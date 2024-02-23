@@ -1,5 +1,6 @@
 {
     "name": "karka/ingenious",
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "lflow\\": "src/"
