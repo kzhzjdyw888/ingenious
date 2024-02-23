@@ -1,21 +1,15 @@
-{  
-    "name": "karka/ingenious",  
-    "description": "a php work flow engine base on ingenious-php", 
-    "license": "MIT",  
-    "homepage": "https://gitee.com/liu_guan_qing",
-    "minimum-stability": "dev",
-    "authors": [  
+{
+    "name": "guanqing.liu/ingenious",
+    "autoload": {
+        "psr-4": {
+            "lflow\\": "src/"
+        }
+    },
+    "authors": [
         {
             "name": "Mr.April",
-            "email": "405784684@qq.com"
+            "email": "liuguanqin.g@163.com"
         }
-    ],  
-    "require": {  
-        "php": ">=7.3"
-    },  
-    "autoload": {  
-        "psr-4": {  
-            "lflow\\": "src/"  
-        }  
-    }
+    ],
+    "require": {}
 }
