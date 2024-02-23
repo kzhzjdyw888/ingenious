@@ -3,6 +3,7 @@
     "description": "测试依赖包",
     "type": "library",
     "license": "MIT",
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "ingenious\\": "src/"
@@ -14,5 +15,7 @@
             "email": "liuguanqin.g@163.com"
         }
     ],
-    "require": {}
+    "require": {
+        "karka/ingenious": "1.0.0"
+    }
 }
