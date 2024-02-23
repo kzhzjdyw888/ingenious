@@ -4,6 +4,7 @@
     "type": "library",  
     "license": "MIT",  
     "homepage": "https://gitee.com/liu_guan_qing",
+    "minimum-stability": "dev"  ,
     "authors": [  
         {
             "name": "Mr.April",
