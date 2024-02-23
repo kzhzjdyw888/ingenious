@@ -1,10 +1,8 @@
 {  
     "name": "mr_april/ingenious-php",  
-    "description": "a php work flow engine base on ingenious-php",  
-    "type": "library",  
+    "description": "a php work flow engine base on ingenious-php", 
     "license": "MIT",  
     "homepage": "https://gitee.com/liu_guan_qing",
-    "minimum-stability": "dev"  ,
     "authors": [  
         {
             "name": "Mr.April",
