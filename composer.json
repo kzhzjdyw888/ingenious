@@ -1,9 +1,11 @@
 {
     "name": "karka/ingenious",
-    "minimum-stability": "dev",
+    "description": "测试依赖包",
+    "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
-            "lflow\\": "src/"
+            "ingenious\\": "src/"
         }
     },
     "authors": [
