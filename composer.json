@@ -15,7 +15,5 @@
             "email": "liuguanqin.g@163.com"
         }
     ],
-    "require": {
-        "karka/ingenious": "1.0.0"
-    }
+    "require": {}
 }
