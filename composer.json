@@ -16,7 +16,6 @@
         }
     ],
     "require": {
-          "php": ">=8.0.0",
-        "some/dependency": "^1.0"
+        "php": ">=8.0.0"
     }
 }
