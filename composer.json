@@ -1,7 +1,7 @@
 {
     "name": "karka/ingenious",
     "description": "测试软件包",
-    "license": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "ingenious\\": "src/"
