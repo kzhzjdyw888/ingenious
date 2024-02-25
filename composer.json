@@ -1,10 +1,10 @@
 {
-    "name": "guanqing/ingenious",
+    "name": "karka/ingenious",
     "description": "测试软件包",
     "license": "library",
     "autoload": {
         "psr-4": {
-            "Ingenious\\": "src/"
+            "ingenious\\": "src/"
         }
     },
     "authors": [
@@ -13,11 +13,8 @@
             "email": "liuguanqin.g@163.com"
         }
     ],
-<<<<<<< HEAD
-    "require": {}
-=======
+
     "require": {
-        "php": ">=8.0.0"
+
     }
->>>>>>> 385d4aa4e08a64c2a09b8e440f07853d04c12354
 }

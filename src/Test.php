@@ -1,13 +1,13 @@
 <?php  
   
-namespace Ingenious;
+namespace ingenious;
   
  
 
 class Test  
 {  
-    public function testExample()  
+    public function testExample()
     {  
-        echo '1'; 
+        return '123';
     }  
 }
