@@ -1,12 +1,10 @@
 {
-    "name": "karka/ingenious",
-    "description": "测试依赖包",
-    "type": "library",
-    "license": "MIT",
-    "minimum-stability": "dev",
+    "name": "guanqing/ingenious",
+    "description": "测试软件包",
+    "license": "library",
     "autoload": {
         "psr-4": {
-            "ingenious\\": "src/"
+            "Ingenious\\": "src/"
         }
     },
     "authors": [
@@ -15,8 +13,5 @@
             "email": "liuguanqin.g@163.com"
         }
     ],
-    "require": {
-          "php": ">=8.0.0",
-        "some/dependency": "^1.0"
-    }
+    "require": {}
 }
