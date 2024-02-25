@@ -15,5 +15,8 @@
             "email": "liuguanqin.g@163.com"
         }
     ],
-    "require": {}
+    "require": {
+        "php": "^7.4",
+        "some/dependency": "^1.0"
+    }
 }
