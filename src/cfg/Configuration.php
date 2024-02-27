@@ -24,9 +24,11 @@ use ingenious\parser\handler\JoinParser;
 use ingenious\parser\handler\StartParser;
 use ingenious\parser\handler\TaskParser;
 use ingenious\parser\handler\WfSubProcessParser;
+use ingenious\service\ProcessCcInstanceService;
 use ingenious\service\ProcessDefineService;
 use ingenious\service\ProcessInstanceService;
 use ingenious\service\ProcessTaskService;
+use ingenious\service\ProcessTypesService;
 
 /**
  * 流程引擎配置类
@@ -54,6 +56,8 @@ class Configuration implements ConfigurationInterface
         ServiceContext::put("processTaskService", new ProcessTaskService());
         ServiceContext::put("processDefineService", new ProcessDefineService());
         ServiceContext::put("processInstanceService", new ProcessInstanceService());
+        ServiceContext::put("processTypesService", new ProcessTypesService());
+        ServiceContext::put("processCcInstanceService", new ProcessCcInstanceService());
         //事件服务配置
         ServiceContext::put('eventService', new ProcessEventService());
     }

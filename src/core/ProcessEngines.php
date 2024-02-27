@@ -28,6 +28,8 @@ use ingenious\model\EndModel;
 use ingenious\model\TaskModel;
 use ingenious\model\TransitionModel;
 use ingenious\parser\ModelParser;
+use ingenious\service\interface\ProcessCcInstanceServiceInterface;
+use ingenious\service\interface\ProcessTypeServiceInterface;
 use ingenious\service\ProcessCcInstanceService;
 use ingenious\service\ProcessDefineService;
 use ingenious\service\ProcessDesignService;
@@ -42,15 +44,17 @@ class ProcessEngines implements ProcessEnginesInterface
     private ProcessDefineService $processDefineService;
     private ProcessInstanceService $processInstanceService;
     private ProcessTaskService $processTaskService;
-    private $processCcInstanceService;
-    private $processTypesService;
+    private ProcessCcInstanceServiceInterface $processCcInstanceService;
+    private ProcessTypeServiceInterface $processTypesService;
 
     public function __construct(ConfigurationInterface|array $config = [])
     {
         $this->configure($config);
-        $this->processTaskService     = ServiceContext::find('processTaskService');
-        $this->processDefineService   = ServiceContext::find('processDefineService');
-        $this->processInstanceService = ServiceContext::find('processInstanceService');
+        $this->processTaskService       = ServiceContext::find('processTaskService');
+        $this->processDefineService     = ServiceContext::find('processDefineService');
+        $this->processInstanceService   = ServiceContext::find('processInstanceService');
+        $this->processCcInstanceService = ServiceContext::find('processCcInstanceService');
+        $this->processTypesService      = ServiceContext::find('processTypesService');
         return $this;
     }
 

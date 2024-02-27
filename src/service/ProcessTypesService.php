@@ -11,14 +11,15 @@
 
 namespace ingenious\service;
 
-use ingenious\db\ProcessTaskActor;
 use ingenious\db\ProcessType;
 use ingenious\libs\base\BaseService;
+use ingenious\libs\utils\ArrayHelper;
 use ingenious\libs\utils\AssertHelper;
 use ingenious\libs\utils\ModelUtils;
-use ingenious\service\interface\ProcessTaskActorServiceInterface;
+use ingenious\libs\utils\PageParam;
+use ingenious\service\interface\ProcessTypeServiceInterface;
 
-class ProcessTypesService extends BaseService implements ProcessTaskActorServiceInterface
+class ProcessTypesService extends BaseService implements ProcessTypeServiceInterface
 {
 
     protected function setModel(): string
@@ -44,9 +45,20 @@ class ProcessTypesService extends BaseService implements ProcessTaskActorService
 
     public function page(object $param): array
     {
+        /** @var TYPE_NAME $where */
+        $where = ArrayHelper::paramsFilter($param, [
+            ['is_del', 0],
+            ['name', ''],
+            ['status', ''],
+            ['pid', ''],
+        ]);
+        [$page, $limit] = PageParam::getPageValue($param);
+        $list  = $this->selectList($where, '*', $page, $limit, 'sort desc', [], true)->toArray();
+        $count = $this->count($where);
+        return compact('list', 'count');
     }
 
-    public function findById(string $id): ?ProcessTaskActor
+    public function findById(string $id): ?ProcessType
     {
         return $this->get($id);
     }

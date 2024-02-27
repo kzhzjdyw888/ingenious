@@ -11,7 +11,6 @@
 
 namespace ingenious\db;
 
-
 use ingenious\libs\base\BaseModel;
 use ingenious\libs\traits\ModelTrait;
 use ingenious\libs\traits\UuidAutoModelTrait;
@@ -47,6 +46,13 @@ class ProcessType extends BaseModel
         'create_time' => 'timestamp:Y-m-d H:i:s',
         'update_time' => 'timestamp:Y-m-d H:i:s',
     ];
+
+    public function searchPidAttr($query, $value)
+    {
+        if (empty($value)) {
+            $query->where('pid', $value);
+        }
+    }
 
     /**
      * 类型名称

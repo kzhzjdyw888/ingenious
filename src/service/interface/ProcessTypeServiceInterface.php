@@ -29,7 +29,7 @@ interface ProcessTypeServiceInterface
      *
      * @return bool
      */
-    public function save(object $param): bool;
+    public function create(object $param): bool;
 
     /**
      * 更新流程流程类型
