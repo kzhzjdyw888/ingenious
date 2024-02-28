@@ -26,6 +26,7 @@ use ingenious\parser\handler\TaskParser;
 use ingenious\parser\handler\WfSubProcessParser;
 use ingenious\service\ProcessCcInstanceService;
 use ingenious\service\ProcessDefineService;
+use ingenious\service\ProcessDesignService;
 use ingenious\service\ProcessInstanceService;
 use ingenious\service\ProcessTaskService;
 use ingenious\service\ProcessTypesService;
@@ -58,6 +59,7 @@ class Configuration implements ConfigurationInterface
         ServiceContext::put("processInstanceService", new ProcessInstanceService());
         ServiceContext::put("processTypesService", new ProcessTypesService());
         ServiceContext::put("processCcInstanceService", new ProcessCcInstanceService());
+        ServiceContext::put("processDesignService", new ProcessDesignService());
         //事件服务配置
         ServiceContext::put('eventService', new ProcessEventService());
     }
@@ -65,11 +67,12 @@ class Configuration implements ConfigurationInterface
     /**
      * 根据键值加载全局配置文件
      *
-     * @param string $key
+     * @param string     $key
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public static function getConfig(string $key): mixed
+    public function getConfig(string $key, mixed $default = null): mixed
     {
         // 获取当前脚本的绝对路径
         $scriptPath = $_SERVER['SCRIPT_FILENAME'];
@@ -78,22 +81,11 @@ class Configuration implements ConfigurationInterface
         // 获取根目录的路径
         $rootPath = realpath($scriptDir . '/../');
         //根目录下的config目录
-        $file = $rootPath . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'workingflower.php';
+        $file = $rootPath . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'ingenious.php';
         if (!file_exists($file)) {
             throw new LFlowException('Add the engine configuration file first!');
         }
         $ret = require($file);
-        return $ret[$key] ?? '';
+        return $ret[$key] ?? $default;
     }
-
-    /**
-     * 日志路基
-     *
-     * @return string
-     */
-    public function logPath(): string
-    {
-        return dirname(__DIR__, 1) . '/log/';
-    }
-
 }

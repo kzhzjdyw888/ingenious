@@ -130,6 +130,7 @@ class ProcessDesign extends BaseModel
 
     /**
      * 定义关联一对多历史表
+     *
      * @return \think\model\relation\HasMany
      */
     public function history(): \think\model\relation\HasMany
@@ -137,4 +138,11 @@ class ProcessDesign extends BaseModel
         return $this->hasMany(ProcessDesignHis::class, 'process_design_id', 'id');
     }
 
+    public function deleteWithHistory(): bool
+    {
+        // 删除关联的所有历史记录
+        $this->history()->delete();
+        // 删除设计本身
+        return $this->delete();
+    }
 }

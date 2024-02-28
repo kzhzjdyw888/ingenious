@@ -29,6 +29,7 @@ use ingenious\model\TaskModel;
 use ingenious\model\TransitionModel;
 use ingenious\parser\ModelParser;
 use ingenious\service\interface\ProcessCcInstanceServiceInterface;
+use ingenious\service\interface\ProcessDesignServiceInterface;
 use ingenious\service\interface\ProcessTypeServiceInterface;
 use ingenious\service\ProcessCcInstanceService;
 use ingenious\service\ProcessDefineService;
@@ -46,6 +47,7 @@ class ProcessEngines implements ProcessEnginesInterface
     private ProcessTaskService $processTaskService;
     private ProcessCcInstanceServiceInterface $processCcInstanceService;
     private ProcessTypeServiceInterface $processTypesService;
+    private ProcessDesignServiceInterface $processDesignService;
 
     public function __construct(ConfigurationInterface|array $config = [])
     {
@@ -55,6 +57,7 @@ class ProcessEngines implements ProcessEnginesInterface
         $this->processInstanceService   = ServiceContext::find('processInstanceService');
         $this->processCcInstanceService = ServiceContext::find('processCcInstanceService');
         $this->processTypesService      = ServiceContext::find('processTypesService');
+        $this->processDesignService     = ServiceContext::find('processDesignService');
         return $this;
     }
 
@@ -95,7 +98,7 @@ class ProcessEngines implements ProcessEnginesInterface
         return $this->processCcInstanceService;
     }
 
-    public function processDesignService(): ProcessDesignService
+    public function processDesignService(): ProcessDesignServiceInterface
     {
         return $this->processDesignService;
     }

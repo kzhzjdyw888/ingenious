@@ -42,6 +42,7 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
     public function create(object $param): bool
     {
         unset($param->id);
+        AssertHelper::notTrue($this->checkUniqueName(['name' => $param->name]), '唯一编码已存在，请检查name参数');
         $processDesign = new ProcessDesign();
         ModelUtils::copyProperties($param, $processDesign);
         return $processDesign->save();
@@ -70,17 +71,15 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         return $processDesign->save();
     }
 
-    /**
-     * page
-     *
-     * @param object $param
-     *
-     * @return array
-     * @throws \ReflectionException
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\DbException
-     * @throws \think\db\exception\ModelNotFoundException
-     */
+    public function del(string $id): bool
+    {
+        $processDesign = $this->get($id);
+        if ($processDesign != null) {
+            return $processDesign->deleteWithHistory();
+        }
+        return false;
+    }
+
     public function page(object $param): array
     {
         $where = ArrayHelper::paramsFilter($param, [
@@ -91,7 +90,7 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         [$page, $limit] = PageParam::getPageValue($param);
         $list = $this->selectList($where, '*', $page, $limit, 'create_time asc', ['processType'], true);
         foreach ($list as $item) {
-            $item->type_name = $item->processType->name ?? '';
+            $item->type_name = $item->processType->name ?? '顶层';
         }
         $list  = $list->hidden(['processType'])->toArray();
         $count = $this->count($where);
@@ -135,7 +134,6 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         }
     }
 
-
     public function redeploy(string $processDesignId, string|int $operation): void
     {
         $processDesign = $this->findById($processDesignId);
@@ -148,7 +146,6 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
             $processDefineService->redeploy($processDefine->getData('id'), ArrayHelper::arrayToObject($processDesign->getData('content')), $operation);
         }
     }
-
 
     public function listByType(): ?ProcessType
     {

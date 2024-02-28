@@ -49,7 +49,7 @@ class ProcessType extends BaseModel
 
     public function searchPidAttr($query, $value)
     {
-        if (empty($value)) {
+        if (!empty($value)) {
             $query->where('pid', $value);
         }
     }
@@ -62,7 +62,8 @@ class ProcessType extends BaseModel
      */
     public function searchNameAttr($query, $value)
     {
-        if ($value) {
+
+        if (!empty($value)) {
             $query->whereLike('name', '%' . $value . '%');
         }
     }
@@ -75,9 +76,10 @@ class ProcessType extends BaseModel
      */
     public function searchIsDelAttr($query, $value)
     {
-        $query->where('is_del', 0);
-        if ($value) {
+        if (!empty($value)) {
             $query->where('is_del', $value);
+        } else {
+            $query->where('is_del', 0);
         }
     }
 
@@ -89,8 +91,14 @@ class ProcessType extends BaseModel
      */
     public function searchStatusAttr($query, $value)
     {
-        if ($value) {
+        if (!empty($value)) {
             $query->where('status', $value);
         }
     }
+
+    public function parent(): \think\model\relation\HasOne
+    {
+        return $this->hasOne(ProcessType::class, 'id', 'pid');
+    }
+
 }

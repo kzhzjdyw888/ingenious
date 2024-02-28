@@ -4,6 +4,8 @@ namespace ingenious\libs\utils;
 
 use DateTime;
 use ingenious\core\ServiceContext;
+use ingenious\ex\LFlowException;
+use ingenious\interface\ConfigurationInterface;
 use ingenious\interface\IConfiguration;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger as Logs;
@@ -35,13 +37,9 @@ class Logger
     private static function initLogger(): void
     {
 
-        $list   = ServiceContext::findList(IConfiguration::class);
-        $config = end($list);
-        if (!empty($config)) {
-            self::$logBasePath = $config->logPath();
-        } else {
-            self::$logBasePath = dirname(__DIR__, 2) . '/log/';
-        }
+        $list              = ServiceContext::findList(ConfigurationInterface::class);
+        $config            = end($list);
+        self::$logBasePath = $config->getConfig('log_path', dirname(__DIR__, 2) . '/log/');
 
         $currentLogPath = self::$logBasePath;
 
@@ -111,14 +109,15 @@ class Logger
         }
     }
 
-    /**
-     *  调试模式
-     *
-     * @return bool
-     */
     public static function isDeBug(): bool
     {
-        return true;
+        $list   = ServiceContext::findList(ConfigurationInterface::class);
+        $config = end($list);
+        try {
+            return $config->getConfig('is_debug', false);
+        } catch (LFlowException $e) {
+            return false;
+        }
     }
 }
 

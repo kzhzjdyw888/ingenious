@@ -26,13 +26,6 @@ interface ConfigurationInterface
      *
      * @return mixed
      */
-    public static function getConfig(string $key): mixed;
-
-    /**
-     * 日志路径
-     *
-     * @return string
-     */
-    public function logPath(): string;
+    public function getConfig(string $key): mixed;
 
 }
