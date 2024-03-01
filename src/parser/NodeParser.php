@@ -17,7 +17,7 @@ use ingenious\model\NodeModel;
 
 interface NodeParser
 {
-    const NODE_NAME_PREFIX = "workingflower:"; // 节点名称前辍
+    const NODE_NAME_PREFIX = "ingenious:"; // 节点名称前辍
     const TEXT_VALUE_KEY = "value"; // 文本值
     const WIDTH_KEY = "width"; // 节点宽度
     const HEIGHT_KEY = "height"; // 节点高度

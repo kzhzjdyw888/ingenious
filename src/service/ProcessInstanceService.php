@@ -96,7 +96,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         $processInstance->save();
     }
 
-    public function createProcessInstance(ProcessDefine $processDefine, string $operator, Dict $args, string $parentId = '', string $parentNodeName = ''): ProcessInstance
+    public function createProcessInstance(ProcessDefine $processDefine, string $operator, Dict $args, string|null $parentId = '', string|null $parentNodeName = ''): ProcessInstance
     {
         $processInstance = new ProcessInstance();
         $processInstance->set('parent_id', $parentId);

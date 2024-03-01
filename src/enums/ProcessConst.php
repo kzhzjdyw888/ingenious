@@ -27,7 +27,7 @@ interface ProcessConst
     const  PROCESS_DISPLAY_NAME_KEY = "displayName";
     const  PROCESS_TYPE = "type";
     // 流程定义id，key
-    const  PROCESS_DEFINE_ID_KEY = "processDefineId";
+    const  PROCESS_DEFINE_ID_KEY = "process_define_id";
     // 流程设计id，key
     const  PROCESS_DESIGN_ID_KEY = "process_design_id";
     // 流程任务id

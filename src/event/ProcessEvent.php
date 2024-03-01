@@ -15,7 +15,7 @@ use ingenious\enums\ProcessEventTypeEnum;
 
 class ProcessEvent
 {
-    private ProcessEventTypeEnum $eventType;
+    private string|int $eventType;
     private string|int $sourceId;
 
     public function __construct($eventType, $sourceId)

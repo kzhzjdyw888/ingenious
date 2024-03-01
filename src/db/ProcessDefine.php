@@ -88,6 +88,19 @@ class ProcessDefine extends BaseModel
     }
 
     /**
+     * 状态搜索器
+     *
+     * @param $query
+     * @param $value
+     */
+    public function searchStateAttr($query, $value)
+    {
+        if (!empty($value)) {
+            $query->where('state', $value);
+        }
+    }
+
+    /**
      *  描述搜索器
      *
      * @param $query
@@ -110,6 +123,18 @@ class ProcessDefine extends BaseModel
     {
         if ($value) {
             $query->where('type_id', $value);
+        }
+    }
+
+    /**
+     * 流程版本-搜索器
+     * @param $query
+     * @param $value
+     */
+    public function searchVersionAttr($query, $value)
+    {
+        if (!empty($value)) {
+            $query->where('version', $value);
         }
     }
 

@@ -53,10 +53,16 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         return $processDefine->save();
     }
 
+    public function del(string $processDefineId):bool
+    {
+        $processDefine = $this->get($processDefineId);
+        AssertHelper::notNull($processDefine, '删除失败找不到资源');
+        return $processDefine->delete();
+    }
+
     public function page(object $param): array
     {
         $where = ArrayHelper::paramsFilter($param, [
-            ['enabled', 1],
             ['name', ''],
             ['display_name', ''],
             ['state', ''],
@@ -182,7 +188,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         if (empty($processDefine)) {
             return json_encode((object)[]);
         }
-        $content          = $processDefine->getData('content') ?? (object)[];
+        $content = $processDefine->getData('content') ?? (object)[];
         return ArrayHelper::arrayToObject($content);
     }
 

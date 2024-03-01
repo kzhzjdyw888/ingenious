@@ -125,6 +125,8 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
     public function deploy(string $processDesignId, string|int $operation): void
     {
         $processDesign = $this->findById($processDesignId);
+        AssertHelper::notNull($processDesign, '部署失败，流程设计不存在或被删除');
+         AssertHelper::notNull($processDesign, 'operation 不能为空');
         $processDesign->set('is_deployed', 1);
         $processDesign->set('update_user', $operation);
         if ($processDesign->save()) {
