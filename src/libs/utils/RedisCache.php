@@ -12,6 +12,8 @@
 namespace ingenious\libs\utils;
 
 use ingenious\cfg\Configuration;
+use ingenious\core\ServiceContext;
+use ingenious\interface\ConfigurationInterface;
 use Redis;
 
 class RedisCache
@@ -36,10 +38,10 @@ class RedisCache
 
     private static function connect(): Redis
     {
-        $config = Configuration::getConfig('redis');
-        if (empty($config)) {
-            $config = self::$config;
-        }
+
+        $list                    = ServiceContext::findList(ConfigurationInterface::class);
+        $handle                  = end($list);
+        $config                  = $handle->getConfig('redis', self::$config);
         self::$prefix            = $config['prefix'] ?? '';
         self::$defaultExpiration = $config['defaultExpiration'] ?? 0;
         self::$host              = $config['host'];

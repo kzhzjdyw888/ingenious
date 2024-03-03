@@ -78,9 +78,9 @@ interface ProcessTaskServiceInterface
      * @param string $processInstanceId 流程实例ID
      * @param string $taskNames         任务名称
      *
-     * @return array|null
+     * @return array|object|null
      */
-    public function getDoneTaskList(string $processInstanceId, string $taskNames): ?array;
+    public function getDoneTaskList(string $processInstanceId, string $taskNames):?array;
 
     /**
      * 将流程任务修改为已完成
@@ -212,11 +212,11 @@ interface ProcessTaskServiceInterface
     /**
      * 分页查询获取候选人
      *
-     * @param object $query
+     * @param \ingenious\libs\utils\Dict $query
      *
-     * @return object
+     * @return object|array
      */
-    public function candidatePage(object $query): object;
+    public function candidatePage(Dict $query): object|array;
 
     /**
      * 创建会签任务

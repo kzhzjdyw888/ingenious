@@ -98,7 +98,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         if (!empty($taskNames)) {
             $map1['task_name'] = $taskNames;
         }
-        return $this->selectList($map1, '*', 0, 0, '', [], true);
+        return $this->selectList($map1, '*', 0, 0, '', [], true)->all();
     }
 
     public function finishProcessTask(string $processTaskId, string $operator, Dict $args): void
@@ -360,13 +360,13 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             $map1[] = ['pt.task_name', '=', $param->task_name];
         }
         if (isset($param->display_name) && !empty($param->display_name)) {
-            $map1[] = ['pt.display_name', 'like', $param->display_name.'%'];
+            $map1[] = ['pt.display_name', 'like', $param->display_name . '%'];
         }
         if (isset($param->process_define_name) && !empty($param->process_define_name)) {
             $map1[] = ['pd.name', '=', $param->process_define_name];
         }
         if (isset($param->process_define_display_name) && !empty($param->process_define_display_name)) {
-            $map1[] = ['pd.display_name', 'like', $param->process_define_display_name.'%'];
+            $map1[] = ['pd.display_name', 'like', $param->process_define_display_name . '%'];
         }
         $list  = Db::table($processTaskActorTable)
             ->alias('pta')
@@ -403,12 +403,13 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         AssertHelper::notNull($taskParentId, '上一步任务ID为空，无法驳回至上一步处理');
         $current = $model->getNode($currentTask->getData('task_name'));
         $history = $this->get($taskParentId);
-        $parent  = $model->getNode($history->getTaskName());
+
+        $parent = $model->getNode($history->getData('task_name'));
         if (!NodeModel::canRejected($current, $parent)) {
             throw new LFlowException("无法驳回至上一步处理，请确认上一步骤并非fork、join、suprocess以及会签任务", '', 99999999);
         }
         $task = new ProcessTask();
-        ModelUtils::copyProperties($history, $task);
+        ModelUtils::copyProperties((object)$history->toArray(), $task);
         $task->set('id', null);
         $task->set('task_tate', ProcessTaskStateEnum::DOING[0]);
         $task->set('create_time', null);
@@ -424,7 +425,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         }
         $task->set('variable', $hisVariable->getAll());
         $task->set('operator', $operator);
-        $task->set('expire_time', getData('expire_time'));
+        $task->set('expire_time', $history->getData('expire_time'));
         $this->saveProcessTask($task);
         $this->addTaskActor($task->getData('id'), $task->getData('operator'));
         return $task;
@@ -436,21 +437,48 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $result          = [];
         $processTaskList = $this->getDoneTaskList($processInstanceId, '');
         $processTaskList = array_filter($processTaskList, function ($task) {
-            return !(ProcessTaskPerformTypeEnum::COUNTERSIGN[0] === $task->getData('preform_type'));
+            return !(ProcessTaskPerformTypeEnum::COUNTERSIGN[0] === $task->getData('perform_type'));
         });
         foreach ($processTaskList as $processTask) {
             $taskName = $processTask->getData('task_name');
             if (!in_array($taskName, $taskNames)) {
                 $taskNames[] = $taskName;
-                $result[]    = (object)['label' => $processTask->getData('display_name'), 'value' => $processTask->getData('name'), 'ext' => null];
+                $result[]    = (object)['label' => $processTask->getData('display_name'), 'value' => $processTask->getData('task_name'), 'ext' => null];
             }
         }
         return $result;
     }
 
-    public function candidatePage($query): object
+//    public function candidatePage($query): object
+//    {
+//
+//    }
+
+    public function candidatePage(Dict $query): object|array
     {
-        // TODO: Implement candidatePage() method.
+        $processTaskId   = $query->get(ProcessConst::PROCESS_TASK_ID_KEY);
+        $processTask     = null;
+        $processInstance = null;
+        $processModel    = null;
+        if ($processTaskId) {
+            $processTask = $this->get($processTaskId);
+        }
+        if ($processTask) {
+            $processInstanceService = new ProcessInstanceService();
+            $processInstance          = $processInstanceService->get($processTask->getData('process_instance_id'));
+        }
+        if ($processInstance) {
+            $processDefineService = new ProcessDefineService();
+            $processModel         = $processDefineService->getProcessModel($processInstance->getData('process_define_id'));
+        }
+        $candidateList = null;
+        if (!empty($processModel)) {
+            $candidateList = $processModel->getNextTaskModelCandidates($processTask->getData('task_name'));
+        }
+        //通过id in查询用户列表
+        $list=[];
+        $count=0;
+        return compact('list', 'count');
     }
 
     public function createCountersignTask($taskModel, $execution): ProcessTask|array|null

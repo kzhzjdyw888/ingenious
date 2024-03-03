@@ -140,7 +140,7 @@ class ProcessEngines implements ProcessEnginesInterface
         return $execution->getProcessTaskList();
     }
 
-    public function executeAndJumpTask(string $processTaskId, string $operator, Dict $args, string $nodeName): array
+    public function executeAndJumpTask(string $processTaskId, string $operator, Dict $args, string $nodeName=''): array
     {
         $execution = $this->execute($processTaskId, $operator, $args);
         if ($execution == null) {

@@ -31,9 +31,9 @@ interface ProcessConst
     // 流程设计id，key
     const  PROCESS_DESIGN_ID_KEY = "process_design_id";
     // 流程任务id
-    const  PROCESS_TASK_ID_KEY = "processTaskId";
+    const  PROCESS_TASK_ID_KEY = "process_task_id";
     // 流程实例id
-    const  PROCESS_INSTANCE_ID_KEY = "processInstanceId";
+    const  PROCESS_INSTANCE_ID_KEY = "process_instance_id";
     // 表单数据前辍
     const  FORM_DATA_PREFIX = "f_";
     // 任务表单数据前辍
@@ -45,7 +45,7 @@ interface ProcessConst
     // 下一节点执行人
     const  NEXT_NODE_OPERATOR = "tf_nextNodeOperator";
     // 抄送人
-    const  CC_ACTORS = "tf_ccActors";
+    const  CC_ACTORS = "tf_cc_actors";
     // 用户ID
     const  USER_USER_ID = "u_userId";
     // 用户姓名
@@ -59,11 +59,11 @@ interface ProcessConst
     // 用户所属岗位名称
     const  USER_POST_NAME = "u_postName";
     // 提交类型
-    const  SUBMIT_TYPE = "submitType";
+    const  SUBMIT_TYPE = "submit_type";
     // 自动生成的标题
     const  AUTO_GEN_TITLE = "autoGenTitle";
     // 节点名称
-    const  TASK_NAME = "taskName";
+    const  TASK_NAME = "task_name";
     // 是否第一个任务节点
     const  IS_FIRST_TASK_NODE = "isFirstTaskNode";
 

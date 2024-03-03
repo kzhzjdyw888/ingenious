@@ -11,7 +11,9 @@
 
 namespace ingenious\model;
 
+use ingenious\core\ServiceContext;
 use ingenious\ex\LFlowException;
+use ingenious\interface\CandidateHandler;
 use ingenious\libs\traits\DynamicMethodTrait;
 use ingenious\libs\utils\ReflectUtil;
 use ingenious\libs\utils\StringHelper;
@@ -94,15 +96,18 @@ class ProcessModel extends BaseModel
         $res       = [];
         $nodeModel = $this->getNode($nodeName);
         if (empty($nodeModel)) return $res;
+
         // 获取所有输出边的目标节点
-        $nextNodeModelList = $nodeModel->getOutputs()
-            ->map(function ($item) {
-                return $item->getTarget();
-            })
-            ->filter(function ($item) {
-                return $item instanceof TaskModel;
-            })
-            ->toArray();
+        $nextNodeModelList = array_map(function ($item) {
+            return $item->getTarget();
+        }, $nodeModel->getOutputs());
+
+        foreach ($nextNodeModelList as $item) {
+            if ($item instanceof TaskModel) {
+                $res[] = $item;
+            }
+        }
+
         if (empty($res)) {
             // 如果下一个节点不存在任务节点，递归往下找
             foreach ($nextNodeModelList as $item) {
