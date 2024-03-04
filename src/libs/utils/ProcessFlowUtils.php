@@ -23,7 +23,7 @@ class ProcessFlowUtils
     /**
      * 将用户信息添加到参数中
      *
-     * @param string                 $operator
+     * @param string                     $operator
      * @param \ingenious\libs\utils\Dict $args
      */
     public static function addUserInfoToArgs(string $operator, Dict &$args): void
@@ -44,7 +44,7 @@ class ProcessFlowUtils
     /**
      * 添加自动生成标题
      *
-     * @param string                 $processDefineDisplayName
+     * @param string                     $processDefineDisplayName
      * @param \ingenious\libs\utils\Dict $args
      */
     public static function addAutoGenTitle(string $processDefineDisplayName, Dict &$args): void
@@ -72,7 +72,7 @@ class ProcessFlowUtils
      * 判断是否为第一个任务节点
      *
      * @param \ingenious\model\ProcessModel $processModel
-     * @param string                    $taskName
+     * @param string                        $taskName
      *
      * @return bool
      */
@@ -86,5 +86,37 @@ class ProcessFlowUtils
             }
         }
         return $isFirst;
+    }
+
+    /**
+     * 筛选数组指定前缀list
+     *
+     * @param array  $data
+     * @param string $prefix
+     *
+     * @return array
+     */
+    public static function filterByPrefix(array $data, string $prefix): array
+    {
+        return array_filter($data, function ($value, $key) use ($prefix) {
+            return str_starts_with($key, $prefix);
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * @param object $data
+     * @param string $prefix
+     *
+     * @return object
+     */
+    public static function filterObjectByPrefix(object $data, string $prefix): object
+    {
+        $result = [];
+        foreach (get_object_vars($data) as $key => $value) {
+            if (str_starts_with($key, $prefix)) {
+                $result[$key] = $value;
+            }
+        }
+        return (object)$result;
     }
 }

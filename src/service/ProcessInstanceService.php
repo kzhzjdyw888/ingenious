@@ -419,7 +419,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
 
     public function ccInstancePage(object $param): array
     {
-        $param->is_cc             = YourEnum::YES[0];
+        $param->state             = YourEnum::NO[0];
         $processCcInstanceService = new ProcessCcInstanceService();
         return $processCcInstanceService->page($param);
     }

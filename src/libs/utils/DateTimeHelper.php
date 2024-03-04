@@ -19,13 +19,16 @@ class DateTimeHelper {
     /**
      * 将时间戳转换为字符串日期
      *
-     * @param int    $timestamp 时间戳
-     * @param string $format    日期格式，默认为 Y-m-d H:i:s
+     * @param int|string $timestamp 时间戳
+     * @param string     $format    日期格式，默认为 Y-m-d H:i:s
      *
      * @return string 格式化后的日期字符串
      */
-    public static function timestampToString(int $timestamp, string $format = 'Y-m-d H:i:s'): string
+    public static function timestampToString(int|string $timestamp, string $format = 'Y-m-d H:i:s'): string
     {
+        if(empty($timestamp)){
+            return '';
+        }
         return date($format, $timestamp);
     }
 

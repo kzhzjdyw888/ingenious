@@ -104,4 +104,13 @@ class ProcessCcInstance extends BaseModel
         }
     }
 
+    /**
+     * 流程实例一对一关联
+     * @return \think\model\relation\HasOne
+     */
+    public function processInstance(): \think\model\relation\HasOne
+    {
+        return $this->hasOne(ProcessInstance::class, 'id', 'process_instance_id');
+    }
+
 }
