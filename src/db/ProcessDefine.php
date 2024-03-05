@@ -82,7 +82,7 @@ class ProcessDefine extends BaseModel
      */
     public function searchDisplayNameAttr($query, $value)
     {
-        if ($value) {
+        if (!empty($value)) {
             $query->whereLike('display_name', '%' . $value . '%');
         }
     }

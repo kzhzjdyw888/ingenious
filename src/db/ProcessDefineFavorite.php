@@ -80,7 +80,7 @@ class ProcessDefineFavorite extends BaseModel
      */
     public function processDefine(): \think\model\relation\HasOne
     {
-        return $this->hasOne(ProcessDefine::class, 'id', 'process_define_id');
+        return $this->hasOne(ProcessDefine::class, 'id', 'process_define_id')->bind(['display_name','version']);
     }
 
 }

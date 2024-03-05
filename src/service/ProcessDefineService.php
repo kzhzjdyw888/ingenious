@@ -53,7 +53,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         return $processDefine->save();
     }
 
-    public function del(string $processDefineId):bool
+    public function del(string $processDefineId): bool
     {
         $processDefine = $this->get($processDefineId);
         AssertHelper::notNull($processDefine, '删除失败找不到资源');
@@ -65,6 +65,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         $where = ArrayHelper::paramsFilter($param, [
             ['name', ''],
             ['display_name', ''],
+            ['type_id', ''],
             ['state', ''],
             ['version', ''],
             ['is_del', 0],
@@ -219,5 +220,41 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
     public function getProcessDefineByVersion(string $name, int $version): ?ProcessDefine
     {
         return $this->selectList(['name' => $name, 'version' => $version, 'is_del' => 0], '*', 0, 0, '', [], true)->last();
+    }
+
+    public function favoritePage(object $param): array
+    {
+        $processDefineFavoriteService = new ProcessDefineFavoriteService();
+        return $processDefineFavoriteService->page($param);
+    }
+
+    public function definitionFavorite(object $param): bool
+    {
+        $processDefineFavoriteService = new ProcessDefineFavoriteService();
+        AssertHelper::notNull($param->user_id, '用户ID不能为空');
+        AssertHelper::notNull($param->process_define_id, '流程定义ID不能为空');
+        $map1     = [
+            'user_id'           => $param->user_id,
+            'process_define_id' => $param->process_define_id,
+        ];
+        $favorite = $processDefineFavoriteService->get($map1);
+        if ($favorite == null) {
+            return $processDefineFavoriteService->create($param);
+        } else {
+            if ($favorite->delete()) {
+                //如果是取消收藏不用再次创建了
+                if (empty($param->favorite) || $param->favorite == 0 || $param->favorite == '0') {
+                    return true;
+                }
+                return $processDefineFavoriteService->create($param);
+            }
+        }
+        return false;
+    }
+
+    public function favoriteDel(string|int|array $param): bool
+    {
+        $processDefineFavoriteService = new ProcessDefineFavoriteService();
+        return $processDefineFavoriteService->del($param);
     }
 }
