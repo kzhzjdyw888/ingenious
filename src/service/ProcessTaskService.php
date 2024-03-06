@@ -303,22 +303,25 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             ['pt.task_state', '=', ProcessTaskStateEnum::DOING[0]],
             ['pta.actor_id', '=', $param->actor_id],
         ];
+        if (isset($param->business_no) && !empty($param->business_no)) {
+            $map1[] = ['pi.business_no', '=', $param->business_no];
+        }
         if (isset($param->task_name) && !empty($param->task_name)) {
             $map1[] = ['pt.task_name', '=', $param->task_name];
         }
         if (isset($param->display_name) && !empty($param->display_name)) {
-            $map1[] = ['pt.display_name', '=', $param->display_name];
+            $map1[] = ['pt.display_name', 'like', $param->display_name . '%'];
         }
         if (isset($param->process_define_name) && !empty($param->process_define_name)) {
-            $map1[] = ['pt.name', '=', $param->process_define_name];
+            $map1[] = ['pd.name', '=', $param->process_define_name];
         }
-        if (isset($param->process_define_name) && !empty($param->process_define_name)) {
-            $map1[] = ['pt.name', '=', $param->process_define_name];
+        if (isset($param->process_define_display_name) && !empty($param->process_define_display_name)) {
+            $map1[] = ['pd.display_name', 'like', $param->process_define_display_name . '%'];
         }
         $list  = Db::table($processTaskActorTable)
             ->alias('pta')
             ->where($map1)
-            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description')
+            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time,pt.update_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pi.business_no,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description')
             ->join([$processTaskTable => 'pt'], 'pta.process_task_id = pt.id')
             ->join([$processInstanceTable => 'pi'], 'pt.process_instance_id = pi.id')
             ->join([$processDefineTable => 'pd'], 'pi.process_define_id = pd.id')
@@ -337,6 +340,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         foreach ($list as $key => $value) {
             $list[$key]['ext']                  = json_decode($value['ext']) ?? (object)[];
             $list[$key]['create_date']          = !empty($value['create_time']) ? DateTimeHelper::timestampToString($value['create_time']) : '';
+            $list[$key]['update_date']          = !empty($value['update_time']) ? DateTimeHelper::timestampToString($value['update_time']) : '';
             $list[$key]['instance_create_date'] = !empty($value['instance_create_time']) ? DateTimeHelper::timestampToString($value['instance_create_time']) : '';
             $list[$key]['instance_ext']         = json_decode($value['instance_ext']) ?? (object)[];
         }
@@ -356,6 +360,9 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             ['pt.task_state', 'not in', [ProcessTaskStateEnum::DOING[0], ProcessTaskStateEnum::WITHDRAW[0]]],
             ['pt.operator', '<>', ProcessConst::AUTO_ID],
         ];
+        if (isset($param->business_no) && !empty($param->business_no)) {
+            $map1[] = ['pi.business_no', '=', $param->business_no];
+        }
         if (isset($param->task_name) && !empty($param->task_name)) {
             $map1[] = ['pt.task_name', '=', $param->task_name];
         }
@@ -371,7 +378,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $list  = Db::table($processTaskActorTable)
             ->alias('pta')
             ->where($map1)
-            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description')
+            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time,pt.update_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pi.business_no,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description')
             ->join([$processTaskTable => 'pt'], 'pta.process_task_id = pt.id')
             ->join([$processInstanceTable => 'pi'], 'pt.process_instance_id = pi.id')
             ->join([$processDefineTable => 'pd'], 'pi.process_define_id = pd.id')
@@ -390,6 +397,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         foreach ($list as $key => $value) {
             $list[$key]['ext']                  = json_decode($value['ext']) ?? (object)[];
             $list[$key]['create_date']          = !empty($value['create_time']) ? DateTimeHelper::timestampToString($value['create_time']) : '';
+            $list[$key]['update_date']          = !empty($value['update_time']) ? DateTimeHelper::timestampToString($value['update_time']) : '';
             $list[$key]['finish_date']          = !empty($value['finish_time']) ? DateTimeHelper::timestampToString($value['finish_time']) : '';
             $list[$key]['instance_create_date'] = !empty($value['instance_create_time']) ? DateTimeHelper::timestampToString($value['instance_create_time']) : '';
             $list[$key]['instance_ext']         = json_decode($value['instance_ext']) ?? (object)[];
@@ -465,7 +473,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         }
         if ($processTask) {
             $processInstanceService = new ProcessInstanceService();
-            $processInstance          = $processInstanceService->get($processTask->getData('process_instance_id'));
+            $processInstance        = $processInstanceService->get($processTask->getData('process_instance_id'));
         }
         if ($processInstance) {
             $processDefineService = new ProcessDefineService();
@@ -476,8 +484,8 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             $candidateList = $processModel->getNextTaskModelCandidates($processTask->getData('task_name'));
         }
         //通过id in查询用户列表
-        $list=[];
-        $count=0;
+        $list  = [];
+        $count = 0;
         return compact('list', 'count');
     }
 

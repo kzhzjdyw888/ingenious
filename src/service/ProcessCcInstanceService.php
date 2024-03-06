@@ -74,6 +74,9 @@ class ProcessCcInstanceService extends BaseService implements ProcessCcInstanceS
         if (!empty($param->display_name)) {
             $map1[] = ['pd.display_name', 'like', $param->display_name.'%'];
         }
+        if (!empty($param->business_no)) {
+            $map1[] = ['pi.business_no', '=', $param->business_no];
+        }
         [$page, $limit] = PageParam::getPageValue($param);
         $processInstance   = ProcessInstance::getTableName();
         $processCcInstance = ProcessCcInstance::getTableName();

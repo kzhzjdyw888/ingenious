@@ -71,7 +71,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
             ['is_del', 0],
         ]);
         [$page, $limit] = PageParam::getPageValue($param);
-        $list  = $this->selectList($where, '*', $page, $limit, 'create_time asc', [], true)->toArray();
+        $list  = $this->selectList($where, '*', $page, $limit, 'name desc,version desc', [], true)->toArray();
         $count = $this->count($where);
         return compact('list', 'count');
     }

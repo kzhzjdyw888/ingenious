@@ -69,8 +69,15 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             ['operator', ''],
         ]);
         [$page, $limit] = PageParam::getPageValue($param);
-        $list  = $this->selectList($where, '*', $page, $limit, 'create_time asc', [], true)->toArray();
+        $list  = $this->selectList($where, '*', $page, $limit, 'create_time asc', ['processDefine'], true)->toArray();
         $count = $this->count($where);
+        foreach ($list as $key => $value) {
+            $list[$key]['process_name'] = $value['processDefine']['display_name'] ?? '';
+            $list[$key]['ext']          = $value['variable'];
+            $list[$key]['form_data']    = ProcessFlowUtils::filterObjectByPrefix((object)$value['variable'], 'f_');
+            $list[$key]['variable']     = json_encode($value['variable']);
+            unset($value['processDefine']);
+        }
         return compact('list', 'count');
     }
 
@@ -198,6 +205,34 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         $processInstance->set('update_time', time());
         $processInstance->set('update_user', $operator);
         $processInstance->save();
+    }
+
+    public function cascadeDelete(string $processInstanceId, ?string $operator = null): void
+    {
+        // 1. 将该流程实例状态修改为撤回
+        $map1            = [
+            ['id', '=', $processInstanceId],
+            ['state', 'notIn', [ProcessInstanceStateEnum::DOING[0], ProcessInstanceStateEnum::PENDING[0], ProcessInstanceStateEnum::FINISHED[0]]],
+        ];
+        $processInstance = $this->get($map1);
+        AssertHelper::notNull($processInstance, '流程实例不存在或已完成，撤回失败');
+        if ($processInstance != null) {
+            //1.删除task
+            $map1               = ['process_instance_id' => $processInstance->getData('id')];
+            $processTaskService = new ProcessTaskService();
+            $taskList           = $processTaskService->selectList($map1, '*', 0, 0, '', [], true);
+            //2.删除actions
+            foreach ($taskList as $task) {
+                $map2                    = ['process_task_id' => $task->getData('id')];
+                $processTaskActorService = new ProcessTaskActorService();
+                $actorList               = $processTaskActorService->selectList($map2, '*', 0, 0, '', [], true);
+                foreach ($actorList as $actor) {
+                    $actor->delete();
+                }
+                $task->delete();
+            }
+        }
+        $processInstance->delete();
     }
 
     public function pending(string $processInstanceId, string $operator): void
