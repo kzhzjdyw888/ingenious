@@ -64,7 +64,12 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
 
     public function findById(string|int $id): ?ProcessTask
     {
-        return $this->get($id);
+        $processTask= $this->get($id);
+         if ($processTask != null) {
+            $processTask->set('ext', $processTask->getData('variable'));
+            $processTask->set('variable', json_encode($processTask->getData('variable')));
+        }
+         return $processTask;
     }
 
     public function saveProcessTask(ProcessTask $processTask): void
@@ -86,7 +91,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         if (!empty($taskNames)) {
             $map1['task_name'] = $taskNames;
         }
-        return $this->selectList($map1, '*', 0, 0, '', [], true);
+        return $this->selectList($map1, '*', 0, 0, '', [], true)->all();
     }
 
     public function getDoneTaskList(string $processInstanceId, string $taskNames): ?array

@@ -18,13 +18,16 @@ class HighLightVirtual extends BaseModel
 {
     use Virtual;
 
-    private array $historyNodeNames = [];
-    private array $historyEdgeNames = [];
-    private array $activeNodeNames = [];
+    private array $history_node_names = [];
+    private array $history_edge_names = [];
+    private array $active_node_names = [];
 
     public function contains(string $propertyName, string $value): bool
     {
         $property = $this->{$propertyName};
+        if (empty($property)) {
+            return false;
+        }
         return in_array($value, $property);
     }
 
@@ -44,14 +47,15 @@ class HighLightVirtual extends BaseModel
 
     /**
      * 重写toArray
+     *
      * @return array
      */
     public function toArray(): array
     {
         return [
-            'historyNodeNames' => $this->historyNodeNames ?? [],
-            'historyEdgeNames' => $this->historyEdgeNames ?? [],
-            'activeNodeNames'  => $this->activeNodeNames ?? [],
+            'history_node_names' => $this->history_node_names ?? [],
+            'history_edge_names' => $this->history_edge_names ?? [],
+            'active_node_names'  => $this->active_node_names ?? [],
         ];
     }
 }

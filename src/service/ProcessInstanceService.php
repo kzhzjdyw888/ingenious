@@ -88,7 +88,11 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         if ($processInstance != null) {
             $processDefine = $processInstance->getData('processDefine');
             $content       = ArrayHelper::arrayToObject($processDefine->getData('content') ?? []);
+            $processInstance->set('version', $processDefine->getData('version'));
             $processInstance->set('json_object', $content);
+            $processInstance->set('ext', $processInstance->getData('variable'));
+            $processInstance->set('form_data', ProcessFlowUtils::filterObjectByPrefix($processInstance->getData('variable'), 'f_'));
+            $processInstance->set('variable', json_encode($processInstance->getData('variable')));
             $processInstance->hidden(['processDefine']);
         }
 
@@ -319,8 +323,8 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             // 拿到正在进行中的任务==>活跃节点
             $processTaskList = $processEngines->processTaskService()->getDoingTaskList($processInstanceId, '');
             foreach ($processTaskList as $task) {
-                if (!$vo->contains('activeNodeNames', $task->getData('task_name'))) {
-                    $vo->add('activeNodeNames', $task->getData('task_name'));
+                if (!$vo->contains('active_node_names', $task->getData('task_name'))) {
+                    $vo->add('active_node_names', $task->getData('task_name'));
                     $this->recursionModel($processModel->getStart(), $processInstance, $processTaskList, $task->getData('task_name'), $vo);
                 }
             }
@@ -333,10 +337,10 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             }, $filteredEnums);
             //非正常结束特殊处理
             if (in_array($processInstance->getData('state'), $orderStatusList)) {
-                $hisProcessTaskList = $processEngines->processTaskService()->getDoneTaskList($processInstanceId, []);
+                $hisProcessTaskList = $processEngines->processTaskService()->getDoneTaskList($processInstanceId, '');
                 if (!empty($hisProcessTaskList)) {
                     $lastProcessTask = $hisProcessTaskList[count($hisProcessTaskList) - 1];
-                    $nodeModel       = $processModel->getNode($lastProcessTask->getTaskName());
+                    $nodeModel       = $processModel->getNode($lastProcessTask->getData('task_name'));
                     $this->recursionModel($processModel->getStart(), $processInstance, $hisProcessTaskList, $nodeModel->getOutputs()[0]->getTo(), $vo);
                 }
             } else {
@@ -356,7 +360,14 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             'process_instance_id' => $processInstanceId,
             'not_in_task_state'   => implode(',', [ProcessTaskStateEnum::DOING[0], ProcessTaskStateEnum::WITHDRAW[0], ProcessTaskStateEnum::ABANDON[0]]),//不包括“进行中 已撤回 已废弃” 任务
         ];
-        return $processTaskService->selectList($map1, '*', 0, 0, '', [], true)->toArray();
+        $processTaskList    = $processTaskService->selectList($map1, '*', 0, 0, '', [], true);
+        foreach ($processTaskList as $task) {
+            $task->set('ext', $task->getData('variable'));
+        }
+        if ($processTaskList == null) {
+            return [];
+        }
+        return $processTaskList->toArray();
     }
 
     public function withdraw(string $processInstanceId, string $operator): void
@@ -463,12 +474,12 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
     {
         if ($nodeModel->getName() === $taskName) {
             if ($nodeModel instanceof EndModel) {
-                $vo->add('historyNodeNames', $nodeModel->getName());
+                $vo->add('history_node_names', $nodeModel->getName());
             }
             return;
         }
-        if (!$vo->contains('historyNodeNames', $nodeModel->getName())) {
-            $vo->add('historyNodeNames', $nodeModel->getName());
+        if (!$vo->contains('history_node_names', $nodeModel->getName())) {
+            $vo->add('history_node_names', $nodeModel->getName());
 
             $filteredOutputs = array_filter($nodeModel->getOutputs(), function ($output) use ($nodeModel, $processInstance, $processTaskList) {
                 // 默认取决策节点前面第一个节点为任务节点-待优化
@@ -487,7 +498,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                     $historyTask = reset($filteredTasks); // 获取筛选后的第一个元素
                 }
                 $args = new Dict();
-                $args->putAll($processInstance->getData('variable'));
+                $args->putAll($processInstance->getData('ext'));
                 if ($historyTask) {
                     $args->putAll($historyTask->getData('variable'));
                 }
@@ -506,8 +517,8 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             });
             // 对过滤后的结果进行遍历操作
             foreach ($filteredOutputs as $transitionModel) {
-                if (!$vo->contains('historyEdgeNames', $transitionModel->getName())) {
-                    $vo->add('historyEdgeNames', $transitionModel->getName());
+                if (!$vo->contains('history_edge_names', $transitionModel->getName())) {
+                    $vo->add('history_edge_names', $transitionModel->getName());
                     $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $taskName, $vo);
                 }
             }
