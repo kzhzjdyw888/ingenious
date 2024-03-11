@@ -26,7 +26,7 @@ use ingenious\model\ProcessModel;
 class DefaultNoGenerator implements INoGenerator
 {
 
-    public function generate(ProcessModel $model): string
+    public function generate(?ProcessModel $model): string
     {
         $dateTime = (new DateTime())->format('YmdHis');
         return $dateTime . rand(1000, 9999);

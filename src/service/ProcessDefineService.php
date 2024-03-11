@@ -148,6 +148,15 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         $processDefine->save();
     }
 
+    public function updateState(string $processDefineId, string|int $state, string|int $operation):void
+    {
+        AssertHelper::notEmpty($processDefineId, '参数 processDefineId 不能为空');
+        $processDefine = $this->get($processDefineId);
+        AssertHelper::notNull($processDefineId, '流程定义不存在或被删除');
+        $processDefine->state = $state;
+        $processDefine->save();
+    }
+
     public function getById(string $processDefineId): ?ProcessDefine
     {
         AssertHelper::notEmpty($processDefineId, '参数 processDefineId 不能为空');
