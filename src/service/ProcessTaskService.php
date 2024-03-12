@@ -64,12 +64,12 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
 
     public function findById(string|int $id): ?ProcessTask
     {
-        $processTask= $this->get($id);
-         if ($processTask != null) {
+        $processTask = $this->get($id);
+        if ($processTask != null) {
             $processTask->set('ext', $processTask->getData('variable'));
             $processTask->set('variable', json_encode($processTask->getData('variable')));
         }
-         return $processTask;
+        return $processTask;
     }
 
     public function saveProcessTask(ProcessTask $processTask): void
@@ -253,8 +253,9 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             return true;
         }
         // 任务参考者==执行者
-        if (strcasecmp($task->getData('id'), $operator) === 0) {
-            return true;
+        $actorsList = $this->getTaskActor($task->getData('id'));
+        if (!empty($actorsList)) {
+            return in_array($operator, $actorsList);
         }
         return false;
     }
