@@ -41,7 +41,7 @@ use ingenious\service\ProcessTypesService;
 class ProcessEngines implements ProcessEnginesInterface
 {
 
-    protected ?ConfigurationInterface $configuration;
+    public ?ConfigurationInterface $configuration;
     private ProcessDefineService $processDefineService;
     private ProcessInstanceService $processInstanceService;
     private ProcessTaskService $processTaskService;

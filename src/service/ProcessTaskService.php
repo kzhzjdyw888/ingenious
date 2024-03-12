@@ -173,8 +173,9 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $processTask->save();
         $execution->setProcessTask($processTask);
         $processTaskList[] = $processTask;
-//        $this->addTaskActor($processTask->getData('id'), $this->getTaskActors($taskModel, $execution));
-        $this->addTaskActor($processTask->getData('id'), ['admin']);
+        $this->addTaskActor($processTask->getData('id'), $this->getTaskActors($taskModel, $execution));
+//        dump($this->getTaskActors($taskModel, $execution));exit;
+//        $this->addTaskActor($processTask->getData('id'), ['admin']);
         return $processTaskList;
 
     }

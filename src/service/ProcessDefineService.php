@@ -69,6 +69,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
             ['state', ''],
             ['version', ''],
             ['is_del', 0],
+            ['state', 1],
         ]);
         [$page, $limit] = PageParam::getPageValue($param);
         $list  = $this->selectList($where, '*', $page, $limit, 'name desc,version desc', [], true)->toArray();
@@ -148,7 +149,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         $processDefine->save();
     }
 
-    public function updateState(string $processDefineId, string|int $state, string|int $operation):void
+    public function updateState(string $processDefineId, string|int $state, string|int $operation): void
     {
         AssertHelper::notEmpty($processDefineId, '参数 processDefineId 不能为空');
         $processDefine = $this->get($processDefineId);

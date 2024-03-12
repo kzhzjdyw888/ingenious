@@ -127,7 +127,6 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         // 追加自动构造标题
         ProcessFlowUtils::addAutoGenTitle($processDefine->getData('display_name'), $args);
         $processInstance->set('variable', $args->getAll());
-
         return $this->saveProcessInstance($processInstance);
     }
 
@@ -310,7 +309,8 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         $operator        = $args->get(ProcessConst::USER_USER_ID);
         $processEngines  = new ProcessEngines();
         $processInstance = $processEngines->startProcessInstanceById($processDefineId, $operator, $args);
-        $processTaskList = $processEngines->processTaskService()->getDoingTaskList($processInstance->getData('id'), new \stdClass());
+        $processTaskList = $processEngines->processTaskService()->getDoingTaskList($processInstance->getData('id'), '');
+
         // 取任务自动执行
         foreach ($processTaskList as $processTask) {
             $args->put(ProcessConst::SUBMIT_TYPE, ProcessSubmitTypeEnum::APPLY[0]);
