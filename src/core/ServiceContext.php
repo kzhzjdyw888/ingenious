@@ -97,5 +97,15 @@ class ServiceContext implements ServiceContextInterface
         }
         return $services;
     }
+
+    public static function findFirst(string $interfaceName): ?object
+    {
+        foreach (self::$context as $service) {
+            if ($service instanceof $interfaceName) {
+                return $service;
+            }
+        }
+        return null; // 如果没有找到实现该接口的对象，则返回 null
+    }
 }
 

@@ -65,22 +65,22 @@ interface ProcessTaskServiceInterface
     /**
      * 根据流程实例ID获取正在进行的任务
      *
-     * @param string $processInstanceId 流程实例ID
-     * @param string $taskNames         任务名称
+     * @param string       $processInstanceId 流程实例ID
+     * @param string|array $taskNames         任务名称
      *
      * @return array|null
      */
-    public function getDoingTaskList(string $processInstanceId, string $taskNames): ?array;
+    public function getDoingTaskList(string $processInstanceId, string|array $taskNames): ?array;
 
     /**
      * 根据流程实例ID获取已完成的任务
      *
-     * @param string $processInstanceId 流程实例ID
-     * @param string $taskNames         任务名称
+     * @param string       $processInstanceId 流程实例ID
+     * @param string|array $taskNames         任务名称
      *
-     * @return array|object|null
+     * @return array|null
      */
-    public function getDoneTaskList(string $processInstanceId, string $taskNames):?array;
+    public function getDoneTaskList(string $processInstanceId, string|array $taskNames):?array;
 
     /**
      * 将流程任务修改为已完成

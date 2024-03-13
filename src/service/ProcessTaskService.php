@@ -12,6 +12,7 @@
 namespace ingenious\service;
 
 use ingenious\core\Execution;
+use ingenious\core\ServiceContext;
 use ingenious\db\ProcessDefine;
 use ingenious\db\ProcessInstance;
 use ingenious\db\ProcessTask;
@@ -23,6 +24,7 @@ use ingenious\enums\ProcessTaskStateEnum;
 use ingenious\enums\ProcessTaskTypeEnum;
 use ingenious\event\ProcessEventService;
 use ingenious\ex\LFlowException;
+use ingenious\interface\LoginUserHolderInterface;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\AssertHelper;
 use ingenious\libs\utils\DateTimeHelper;
@@ -82,7 +84,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $processTask->save();
     }
 
-    public function getDoingTaskList(string $processInstanceId, string $taskNames): ?array
+    public function getDoingTaskList(string $processInstanceId, string|array $taskNames): ?array
     {
         $map1 = [
             'process_instance_id' => $processInstanceId,
@@ -94,7 +96,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         return $this->selectList($map1, '*', 0, 0, '', [], true)->all();
     }
 
-    public function getDoneTaskList(string $processInstanceId, string $taskNames): ?array
+    public function getDoneTaskList(string $processInstanceId, string|array $taskNames): ?array
     {
         $map1 = [
             'process_instance_id' => $processInstanceId,
@@ -119,7 +121,12 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $newArgs->putAll($processTask->getData('variable'));
         $newArgs->putAll($args->getAll());
         if (StringHelper::equalsIgnoreCase(ProcessConst::AUTO_ID, $operator)) {
-            ProcessFlowUtils::addUserInfoToArgs(ProcessConst::AUTO_ID, $newArgs);
+            //获取当前系统登录用户
+            $login = ServiceContext::findFirst(LoginUserHolderInterface::class);
+            AssertHelper::notNull($login, '未找到当前系统登录用户接口');
+            $sysUserId = $login->getUserId();
+            AssertHelper::notNull($sysUserId, '获取当前系统登录用户失败');
+            ProcessFlowUtils::addUserInfoToArgs($sysUserId, $newArgs);
         } else {
             ProcessFlowUtils::addUserInfoToArgs($operator, $newArgs);
         }

@@ -13,6 +13,7 @@ namespace ingenious\service;
 
 use ingenious\core\Execution;
 use ingenious\core\ProcessEngines;
+use ingenious\core\ServiceContext;
 use ingenious\db\ProcessCcInstance;
 use ingenious\db\ProcessDefine;
 use ingenious\db\ProcessInstance;
@@ -23,6 +24,8 @@ use ingenious\enums\ProcessInstanceStateEnum;
 use ingenious\enums\ProcessSubmitTypeEnum;
 use ingenious\enums\ProcessTaskStateEnum;
 use ingenious\enums\YourEnum;
+use ingenious\ex\LFlowException;
+use ingenious\interface\ConfigurationInterface;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\ArrayHelper;
 use ingenious\libs\utils\AssertHelper;
@@ -306,8 +309,12 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
 
     public function startAndExecute(string $processDefineId, Dict $args): void
     {
+        $config = ServiceContext::findAll(ConfigurationInterface::class);
+        if (empty($config)) {
+            throw new LFlowException('没有找到上下文引擎配置类');
+        }
         $operator        = $args->get(ProcessConst::USER_USER_ID);
-        $processEngines  = new ProcessEngines();
+        $processEngines  = new ProcessEngines(end($config));
         $processInstance = $processEngines->startProcessInstanceById($processDefineId, $operator, $args);
         $processTaskList = $processEngines->processTaskService()->getDoingTaskList($processInstance->getData('id'), '');
 
@@ -365,7 +372,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             'process_instance_id' => $processInstanceId,
             'not_in_task_state'   => implode(',', [ProcessTaskStateEnum::DOING[0], ProcessTaskStateEnum::WITHDRAW[0], ProcessTaskStateEnum::ABANDON[0]]),//不包括“进行中 已撤回 已废弃” 任务
         ];
-        $processTaskList    = $processTaskService->selectList($map1, '*', 0, 0, '', [], true);
+        $processTaskList    = $processTaskService->selectList($map1, '*', 0, 0, 'finish_time asc', [], true);
         foreach ($processTaskList as $task) {
             $task->set('ext', $task->getData('variable'));
         }

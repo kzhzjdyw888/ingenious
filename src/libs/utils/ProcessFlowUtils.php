@@ -11,7 +11,9 @@
 
 namespace ingenious\libs\utils;
 
+use ingenious\core\ServiceContext;
 use ingenious\enums\ProcessConst;
+use ingenious\interface\ProcessUserInterface;
 use ingenious\model\ProcessModel;
 
 class ProcessFlowUtils
@@ -28,17 +30,17 @@ class ProcessFlowUtils
      */
     public static function addUserInfoToArgs(string $operator, Dict &$args): void
     {
-//        $data     = getUserInfo($operator);//未知方法
-        $data     = [];
-        $userInfo = (object)[
-            ProcessConst::USER_USER_ID   => $data[ProcessConst::USER_USER_ID] ?? $operator,//用户id
-            ProcessConst::USER_REAL_NAME => $data[ProcessConst::USER_REAL_NAME] ?? $operator,//用户名称
-            ProcessConst::USER_DEPT_ID   => $data[ProcessConst::USER_DEPT_ID] ?? $operator,//用户部门ID
-            ProcessConst::USER_DEPT_NAME => $data[ProcessConst::USER_DEPT_NAME] ?? $operator,//用户部门ID
-            ProcessConst::USER_POST_ID   => $data[ProcessConst::USER_POST_ID] ?? $operator,//追加用户岗位ID
-            ProcessConst::USER_POST_NAME => $data[ProcessConst::USER_POST_NAME] ?? $operator,//追加用户部门名称
-        ];
-        $args->putAll($userInfo);
+        $map = ServiceContext::findFirst(ProcessUserInterface::class);
+        AssertHelper::notNull($map, '引擎未适配用户获取接口');
+        $api = $map->findUser($operator);
+        AssertHelper::notNull($api, '未知用户请核对后重试');
+        $args->put(ProcessConst::USER_USER_ID, $operator);
+        $args->put(ProcessConst::USER_USER_NAME, $api->user_name ?? '');
+        $args->put(ProcessConst::USER_REAL_NAME, $api->real_name ?? '');
+        $args->put(ProcessConst::USER_DEPT_ID, $api->dept_id ?? '');
+        $args->put(ProcessConst::USER_DEPT_NAME, $api->dept_name ?? '');
+        $args->put(ProcessConst::USER_POST_ID, $api->post_id ?? '');
+        $args->put(ProcessConst::USER_POST_NAME, $api->post_name ?? '');
     }
 
     /**

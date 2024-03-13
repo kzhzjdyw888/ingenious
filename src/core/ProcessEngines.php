@@ -135,8 +135,10 @@ class ProcessEngines implements ProcessEnginesInterface
         $processModel = $execution->getProcessModel();
         // 7. 根据流程任务名称获取对应的任务节点模型
         $nodeModel = $processModel->getNode($execution->getProcessTask()->getData('task_name'));
+
         // 8. 调用节点模型执行方法
         $nodeModel->execute($execution);
+
         return $execution->getProcessTaskList();
     }
 
@@ -257,6 +259,7 @@ class ProcessEngines implements ProcessEnginesInterface
             }
             return false; // 其他键值对会被包含在过滤结果中（但在这个上下文中我们不关心它们）
         }, ARRAY_FILTER_USE_BOTH); // 使用 ARRAY_FILTER_USE_BOTH 同时传递键和值给回调函数
+
         $addsArgs   = ProcessFlowUtils::variableToDict($prefixArgs);
         if (!empty($addsArgs->getAll())) {
             $this->processInstanceService()->addVariable($processInstance->getData('id'), $addsArgs);

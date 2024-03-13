@@ -48,6 +48,8 @@ interface ProcessConst
     const  CC_ACTORS = "tf_cc_actors";
     // 用户ID
     const  USER_USER_ID = "u_user_id";
+    // 用户账号
+    const  USER_USER_NAME = "u_user_name";
     // 用户姓名
     const  USER_REAL_NAME = "u_real_name";
     // 用户所属部门ID
