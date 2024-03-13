@@ -33,8 +33,11 @@ use ingenious\libs\utils\Dict;
 use ingenious\libs\utils\ModelUtils;
 use ingenious\libs\utils\PageParam;
 use ingenious\libs\utils\ProcessFlowUtils;
+use ingenious\libs\utils\StringBuilder;
 use ingenious\model\DecisionModel;
 use ingenious\model\EndModel;
+use ingenious\model\ForkModel;
+use ingenious\model\JoinModel;
 use ingenious\model\TaskModel;
 use ingenious\service\interface\ProcessInstanceServiceInterface;
 
@@ -490,6 +493,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             }
             return;
         }
+
         if (!$vo->contains('history_node_names', $nodeModel->getName())) {
             $vo->add('history_node_names', $nodeModel->getName());
 
@@ -499,7 +503,6 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                 $historyTask               = null;
                 if ($nodeModel instanceof DecisionModel) {
                     $defaultDecisionInputModel = $nodeModel->getInputs()[0]->getSource();
-
                     // 使用查询构建器对模型对象列表进行过滤
                     $filteredTasks = [];
                     foreach ($processTaskList as $hisTask) {
@@ -518,13 +521,29 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                     //表达式处理
                     return true;
                 }
-
                 if ($nodeModel instanceof DecisionModel) {
                     $expr = $nodeModel->getExpr();
                     if (!empty($expr)) {
                         return true;
                     }
                 }
+
+                //实现合并处理
+//                if ($nodeModel instanceof JoinModel) {
+//                    $buffer = new StringBuilder();
+//                    $this->findForkTaskNames($nodeModel, $buffer);
+//                    $joinCount = count($buffer->toArray());
+//                    $counter   = 0;
+//                    foreach ($buffer->toArray() as $value) {
+//                        if ($vo->contains('history_node_names', $value)) {
+//                            $counter++;
+//                        }
+//                    }
+//                    if ($counter == $joinCount) {
+//                        return;
+//                    }
+//                }
+
                 return true;
             });
             // 对过滤后的结果进行遍历操作
@@ -534,6 +553,20 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                     $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $taskName, $vo);
                 }
             }
+        }
+    }
+
+    private function findForkTaskNames($node, &$buffer)
+    {
+        if ($node instanceof ForkModel) {
+            return; // 跳过ForkModel类型的节点
+        }
+        $inputs = $node->getInputs();
+        foreach ($inputs as $tm) {
+            if ($tm->getSource() instanceof TaskModel) {
+                $buffer->append($tm->getSource()->getName())->append(",");
+            }
+            $this->findForkTaskNames($tm->getSource(), $buffer); // 递归调用
         }
     }
 }
