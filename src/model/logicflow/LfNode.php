@@ -20,6 +20,7 @@ use ingenious\libs\utils\Dict;
  * @method getProperties()
  * @method getX()
  * @method getY()
+ * @method getType()
  */
 class LfNode
 {

@@ -11,6 +11,11 @@
 
 namespace ingenious\parser;
 
+use ingenious\ex\LFlowException;
+use ingenious\libs\utils\Dict;
+use ingenious\libs\utils\Logger;
+use ingenious\libs\utils\ProcessFlowUtils;
+use ingenious\libs\utils\StringHelper;
 use ingenious\model\logicflow\LfEdge;
 use ingenious\model\logicflow\LfNode;
 use ingenious\model\NodeModel;
@@ -28,9 +33,15 @@ abstract class AbstractNodeParser implements NodeParser
         // 解析基本信息
         $this->nodeModel->setName($lfNode->getId());
 
-//        if ($lfNode->getText() !== null && !empty($lfNode->getText())) {
-//            $this->nodeModel->setDisplayName($lfNode->getText()->{NodeParser::TEXT_VALUE_KEY} ?? '');
-//        }
+        $nodeType = StringHelper::substringAfterColon($lfNode->getType());
+        //针对部分节点添加节点显示名称
+        if (in_array($nodeType, ['start', 'task', 'custom', 'end'])) {
+            $textData = $lfNode->getText() !== null && !empty($lfNode->getText()) ? $lfNode->getText() : (object)[];
+            $textDict = ProcessFlowUtils::variableToDict($textData);
+            if (!empty($textDict) && $textDict instanceof Dict) {
+                $this->nodeModel->setDisplayName($textDict->get(NodeParser::TEXT_VALUE_KEY, ''));
+            }
+        }
 
         $properties = $lfNode->getProperties();
         // 解析布局属性

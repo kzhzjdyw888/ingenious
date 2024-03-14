@@ -10,9 +10,7 @@
  *+------------------
  */
 
-
 namespace ingenious\libs\utils;
-
 
 use ingenious\ex\LFlowException;
 
@@ -104,5 +102,22 @@ class StringHelper
             $orderStr .= $orderByArray[$i] . " " . $orderArray[$i] . " ,";
         }
         return substr($orderStr, 0, strlen($orderStr) - 1);
+    }
+
+    /**
+     * 标识符存在截取后面的内容不存在返回全部
+     * @param string $str
+     * @param string $tag
+     *
+     * @return string
+     */
+    public static function substringAfterColon(string $str, string $tag = ":"):string
+    {
+        $pos = strpos($str,  $tag);
+        if ($pos !== false) {
+            return substr($str, $pos + 1);
+        } else {
+            return $str;
+        }
     }
 }
