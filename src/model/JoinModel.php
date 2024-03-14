@@ -20,6 +20,7 @@ use ingenious\libs\traits\DynamicMethodTrait;
  *
  * @author Mr.April
  * @since  1.0
+ * @method getName()
  */
 class JoinModel extends NodeModel
 {

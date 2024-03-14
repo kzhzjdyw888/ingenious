@@ -42,6 +42,7 @@ use ingenious\model\ForkModel;
 use ingenious\model\JoinModel;
 use ingenious\model\NodeModel;
 use ingenious\model\TaskModel;
+use ingenious\processor\handler\MergeBranchHandler;
 use ingenious\service\interface\ProcessInstanceServiceInterface;
 
 class ProcessInstanceService extends BaseService implements ProcessInstanceServiceInterface
@@ -497,121 +498,6 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         return $processCcInstanceService->page($param);
     }
 
-//    private function recursionModel($nodeModel, $processInstance, $processTaskList, $finishTasksList, $taskName, $vo, $isFirstNode = true): void
-//    {
-//        if ($nodeModel->getName() === $taskName) {
-//            if ($nodeModel instanceof EndModel) {
-//                $vo->add('history_node_names', $nodeModel->getName());
-//            }
-//            return;
-//        }
-//
-//        if (!$vo->contains('history_node_names', $nodeModel->getName())) {
-//            if (!$isFirstNode) {
-//                $vo->add('history_node_names', $nodeModel->getName());
-//            }
-//
-//            $filteredOutputs = array_filter($nodeModel->getOutputs(), function ($output) use ($nodeModel, $processInstance, $processTaskList, $finishTasksList, $vo) {
-//                // 其他代码...
-//
-//                $nextNode = $output->getTarget();
-//                if ($nextNode instanceof JoinModel) {
-//                    $isFinish = false;
-//                    $counter  = 0;
-//                    foreach ($nextNode->getInputs() as $inputs) {
-//                        $task = $inputs->getSource();
-//                        if (!$vo->contains('history_node_names', $task->getName())) {
-//                            return false; // 有输入节点不在历史节点列表中，过滤掉当前输出
-//                        }
-//                    }
-//                }
-//
-//                return true;
-//            });
-//
-//            // 对过滤后的结果进行遍历操作
-//            foreach ($filteredOutputs as $transitionModel) {
-//                if (!$vo->contains('history_edge_names', $transitionModel->getName())) {
-//                    $vo->add('history_edge_names', $transitionModel->getName());
-//                    $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $finishTasksList, $taskName, $vo, false);
-//                }
-//            }
-//        }
-//    }
-
-
-
-
-//    private function recursionModel($nodeModel, $processInstance, $processTaskList, $finishTasksList, $taskName, $vo): void
-//    {
-//        if ($nodeModel->getName() === $taskName) {
-//            if ($nodeModel instanceof EndModel) {
-//                $vo->add('history_node_names', $nodeModel->getName());
-//            }
-//            return;
-//        }
-//
-//        if (!$vo->contains('history_node_names', $nodeModel->getName())) {
-//            $vo->add('history_node_names', $nodeModel->getName());
-//            $filteredOutputs = array_filter($nodeModel->getOutputs(), function ($output) use ($nodeModel, $processInstance, $processTaskList, $finishTasksList, $vo) {
-//                // 默认取决策节点前面第一个节点为任务节点-待优化
-//                $defaultDecisionInputModel = null;
-//                $historyTask               = null;
-//
-//                if ($nodeModel instanceof DecisionModel) {
-//                    $defaultDecisionInputModel = $nodeModel->getInputs()[0]->getSource();
-//                    // 使用查询构建器对模型对象列表进行过滤
-//                    $filteredTasks = array_filter($processTaskList, function ($hisTask) use ($defaultDecisionInputModel) {
-//                        return $defaultDecisionInputModel->getName() === $hisTask->getData('task_name');
-//                    });
-//                    $historyTask   = reset($filteredTasks); // 获取筛选后的第一个元素
-//                }
-//
-//                $args = new Dict();
-//                $args->putAll($processInstance->getData('ext'));
-//                if ($historyTask) {
-//                    $args->putAll($historyTask->getData('variable'));
-//                }
-//
-//                if (!empty($output->getExpr()) && $nodeModel instanceof DecisionModel && $defaultDecisionInputModel !== null) {
-//                    //表达式处理
-//                    return ExpressionUtil::eval($output->getExpr(), $args);
-//                }
-//
-//                if ($nodeModel instanceof DecisionModel) {
-//                    Logger::debug('判断节点' . $nodeModel->getName());
-//
-//                    $expr = $nodeModel->getExpr();
-//                    if (!empty($expr)) {
-//                        return true;
-//                    }
-//                }
-//
-//                $nextNode = $output->getTarget();
-//                if ($nextNode instanceof JoinModel) {
-//                    $isFinish = false;
-//                    $counter  = 0;
-//                    foreach ($nextNode->getInputs() as $inputs) {
-//                        $task = $inputs->getSource();
-//                        if (!$vo->contains('history_node_names', $task->getName())) {
-//                            return false; // 有输入节点不在历史节点列表中，过滤掉当前输出
-//                        }
-//                    }
-//                }
-//
-//                return true;
-//            });
-//
-//            // 对过滤后的结果进行遍历操作
-//            foreach ($filteredOutputs as $transitionModel) {
-//                if (!$vo->contains('history_edge_names', $transitionModel->getName())) {
-//                    $vo->add('history_edge_names', $transitionModel->getName());
-//                    $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $finishTasksList, $taskName, $vo);
-//                }
-//            }
-//        }
-//    }
-
     private function recursionModel($nodeModel, $processInstance, $processTaskList, $finishTasksList, $taskName, $vo): void
     {
         if ($nodeModel->getName() === $taskName) {
@@ -656,23 +542,19 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                         return true;
                     }
                 }
-
-                $nextNode = $output->getTarget();
-                if ($nextNode instanceof JoinModel) {
-                    $isFinish = false;
-                    $counter  = 0;
-                    foreach ($nextNode->getInputs() as $inputs) {
-                        $task = $inputs->getSource();
-                        foreach ($finishTasksList as $finish) {
-                            if ($finish->getData('task_name') == $task->getName()) {
-                                $counter++;
-                            }
-                        }
-                    }
-                    if ($counter == count($nextNode->getInputs())) {
-                        return true;
-                    }
-                }
+                //何必节点处理
+//                if ($nodeModel instanceof JoinModel) {
+//                    // 合并节点
+//                    $isMerged = MergeBranchHandler::isMerged($processInstance->getData('id'), $nodeModel);
+//                    if (!$isMerged) {
+//                        //未能合并，要把已加入历史的节点和边删除
+//                        $vo->remove('history_node_names', $nodeModel->getName());
+//                    }
+//                    foreach ($nodeModel->getInputs() as $input) {
+//                        $vo->remove('history_edge_names', $input->getName());
+//                    }
+//                    return $isMerged;
+//                }
 
                 return true;
             });
@@ -680,8 +562,22 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             // 对过滤后的结果进行遍历操作
             foreach ($filteredOutputs as $transitionModel) {
                 if (!$vo->contains('history_edge_names', $transitionModel->getName())) {
+                    $taskModel = $transitionModel->getTarget();
+                    if ($taskModel instanceof JoinModel) {
+                        $counter = 0;
+                        foreach ($taskModel->getInputs() as $input) {
+                            if ($vo->contains('history_node_names', $input->getSource()->getName())) {
+                                $counter++;
+                            }
+                        }
+                        if ($counter == count($taskModel->getInputs())) {
+                            $vo->add('history_edge_names', $transitionModel->getName());
+                            $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $finishTasksList, $taskName, $vo);
+                        }
+                    } else {
                     $vo->add('history_edge_names', $transitionModel->getName());
                     $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $finishTasksList, $taskName, $vo);
+                    }
                 }
             }
         }

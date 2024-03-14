@@ -45,6 +45,18 @@ class HighLightVirtual extends BaseModel
         return null;
     }
 
+    public function remove(string $propertyName, string $value): self
+    {
+        if (property_exists($this, $propertyName)) {
+            $property = &$this->{$propertyName}; // 使用引用，以便直接修改原数组
+            $key      = array_search($value, $property); // 查找值的键
+            if ($key !== false) {
+                unset($property[$key]); // 如果找到键，则删除它
+            }
+        }
+        return $this;
+    }
+
     /**
      * 重写toArray
      *

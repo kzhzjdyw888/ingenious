@@ -12,12 +12,14 @@
 namespace ingenious\processor\handler;
 
 use ingenious\core\Execution;
+use ingenious\core\ServiceContext;
 use ingenious\libs\utils\StringBuilder;
 use ingenious\model\ForkModel;
 use ingenious\model\JoinModel;
 use ingenious\model\NodeModel;
 use ingenious\model\TaskModel;
 use ingenious\processor\IHandler;
+use ingenious\service\interface\ProcessTaskServiceInterface;
 
 /**
  * 合并分支操作处理器
@@ -52,7 +54,7 @@ class MergeBranchHandler implements IHandler
     public function findActiveNodes(): array
     {
         $buffer = new StringBuilder();
-        $this->findForkTaskNames($this->joinModel, $buffer);
+        self::findForkTaskNames($this->joinModel, $buffer);
         return $buffer->toArray();
     }
 
@@ -60,9 +62,9 @@ class MergeBranchHandler implements IHandler
      * 对join节点的所有输入变迁进行递归，查找join至fork节点的所有中间task元素
      *
      * @param \ingenious\model\NodeModel $node
-     * @param                        $buffer
+     * @param                            $buffer
      */
-    private function findForkTaskNames(NodeModel $node, &$buffer)
+    public static function findForkTaskNames(NodeModel $node, &$buffer)
     {
         if ($node instanceof ForkModel) {
             return; // 跳过ForkModel类型的节点
@@ -73,7 +75,26 @@ class MergeBranchHandler implements IHandler
             if ($tm->getSource() instanceof TaskModel) {
                 $buffer->append($tm->getSource()->getName())->append(",");
             }
-            $this->findForkTaskNames($tm->getSource(), $buffer); // 递归调用
+            self::findForkTaskNames($tm->getSource(), $buffer); // 递归调用
         }
+    }
+
+    /**
+     * 判断流程是否可合并
+     *
+     * @param string|int                 $processInstanceId
+     * @param \ingenious\model\NodeModel $nodeModel
+     *
+     * @return bool
+     */
+    public static function isMerged(string|int $processInstanceId, NodeModel $nodeModel): bool
+    {
+        // 合并节点
+        $buffer = new StringBuilder();
+        MergeBranchHandler::findForkTaskNames($nodeModel, $buffer);
+        $taskNames          = $buffer->toArray();
+        $processTaskService = ServiceContext::findFirst(ProcessTaskServiceInterface::class);
+        $result             = $processTaskService->getDoingTaskList($processInstanceId, $taskNames);
+        return empty($result);
     }
 }
