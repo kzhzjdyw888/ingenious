@@ -52,6 +52,7 @@ class HighLightVirtual extends BaseModel
             $key      = array_search($value, $property); // 查找值的键
             if ($key !== false) {
                 unset($property[$key]); // 如果找到键，则删除它
+                $property = array_values($property); // 重新索引数组
             }
         }
         return $this;

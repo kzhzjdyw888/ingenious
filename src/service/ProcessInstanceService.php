@@ -334,12 +334,12 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
 
     public function highLight(string $processInstanceId): array
     {
-        Logger::debug('highLight 开始');
+        Logger::debug('highLight 开始【process_instance_id=' . $processInstanceId . '】');
         $vo              = new HighLightVirtual();
         $processInstance = $this->findById($processInstanceId);
         $processEngines  = new ProcessEngines();
         if ($processInstance != null) {
-            Logger::debug('highLight 拿到正在进行中的任务活跃节点');
+            Logger::debug('highLight 【process_instance_id=' . $processInstanceId . ' 拿到正在进行中的任务活跃节点】');
             $processModel = $processEngines->processDefineService()->getProcessModel($processInstance->getData('process_define_id'));
             // 拿到正在进行中的任务==>活跃节点
             $processTaskList = $processEngines->processTaskService()->getDoingTaskList($processInstanceId, '');//进行中的
@@ -347,9 +347,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             foreach ($processTaskList as $task) {
                 if (!$vo->contains('active_node_names', $task->getData('task_name'))) {
                     $vo->add('active_node_names', $task->getData('task_name'));
-                    Logger::debug('highLight 拿到正在进行中的任务活跃节点 递归task' . $task->getData('task_name'));
                     $this->recursionModel($processModel->getStart(), $processInstance, $processTaskList, $finishTasksList, $task->getData('task_name'), $vo);
-                    Logger::debug('highLight 拿到正在进行中的任务活跃节点 递归task' . $task->getData('task_name') . '完成');
                 }
             }
             // 拿到非正常结束的流程实例状态值
@@ -363,6 +361,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             }, $filteredEnums);
             //非正常结束特殊处理
             if (in_array($processInstance->getData('state'), $orderStatusList)) {
+                Logger::debug('highLight 非正常结束特殊处理【process_instance_id=' . $processInstanceId . ' 】');
                 $hisProcessTaskList = $processEngines->processTaskService()->getDoneTaskList($processInstanceId, '');
                 if (!empty($hisProcessTaskList)) {
                     $lastProcessTask = $hisProcessTaskList[count($hisProcessTaskList) - 1];
@@ -371,13 +370,14 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                     $this->recursionModel($processModel->getStart(), $processInstance, $hisProcessTaskList, $finishTasksList, $nodeModel->getOutputs()[0]->getTo(), $vo);
                 }
             } else {
-                Logger::debug('highLight 其他');
+                Logger::debug('highLight 其他特殊处理【process_instance_id=' . $processInstanceId . ' 】');
                 $endModels = $processModel->getModels(EndModel::class);
                 foreach ($endModels as $endModel) {
                     $this->recursionModel($processModel->getStart(), $processInstance, $processTaskList, $finishTasksList, $endModel->getName(), $vo);
                 }
             }
         }
+        Logger::debug('highLight 结束【process_instance_id=' . $processInstanceId . '】');
         return $vo->toArray();
     }
 
@@ -510,11 +510,10 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         if (!$vo->contains('history_node_names', $nodeModel->getName())) {
             $vo->add('history_node_names', $nodeModel->getName());
             $filteredOutputs = array_filter($nodeModel->getOutputs(), function ($output) use ($nodeModel, $processInstance, $processTaskList, $finishTasksList, $vo) {
-                // 默认取决策节点前面第一个节点为任务节点-待优化
                 $defaultDecisionInputModel = null;
                 $historyTask               = null;
-
                 if ($nodeModel instanceof DecisionModel) {
+                    Logger::debug('highLight DecisionModel 决策表达式处理');
                     $defaultDecisionInputModel = $nodeModel->getInputs()[0]->getSource();
                     // 使用查询构建器对模型对象列表进行过0
                     $filteredTasks = [];
@@ -525,6 +524,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                     }
                     $historyTask = reset($filteredTasks); // 获取筛选后的第一个元素
                 }
+
                 $args = new Dict();
                 $args->putAll($processInstance->getData('ext'));
                 if ($historyTask) {
@@ -535,49 +535,33 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
                     return ExpressionUtil::eval($output->getExpr(), $args);
                 }
                 if ($nodeModel instanceof DecisionModel) {
-                    Logger::debug('判断节点' . $nodeModel->getName());
-
                     $expr = $nodeModel->getExpr();
                     if (!empty($expr)) {
                         return true;
                     }
                 }
-                //何必节点处理
-//                if ($nodeModel instanceof JoinModel) {
-//                    // 合并节点
-//                    $isMerged = MergeBranchHandler::isMerged($processInstance->getData('id'), $nodeModel);
-//                    if (!$isMerged) {
-//                        //未能合并，要把已加入历史的节点和边删除
-//                        $vo->remove('history_node_names', $nodeModel->getName());
-//                    }
-//                    foreach ($nodeModel->getInputs() as $input) {
-//                        $vo->remove('history_edge_names', $input->getName());
-//                    }
-//                    return $isMerged;
-//                }
 
+                //合并节点处理
+                if ($nodeModel instanceof JoinModel) {
+                    Logger::debug('highLight JoinModel 合并节点处理');
+                    $isMerged = MergeBranchHandler::isMerged($processInstance->getData('id'), $nodeModel);
+                    if (!$isMerged) {
+                        //未能合并，要把已加入历史的节点和边删除
+                        $vo->remove('history_node_names', $nodeModel->getName());
+                        foreach ($nodeModel->getInputs() as $input) {
+                            $vo->remove('history_edge_names', $input->getName());
+                        }
+                    }
+                    return $isMerged;
+                }
                 return true;
             });
 
             // 对过滤后的结果进行遍历操作
             foreach ($filteredOutputs as $transitionModel) {
                 if (!$vo->contains('history_edge_names', $transitionModel->getName())) {
-                    $taskModel = $transitionModel->getTarget();
-                    if ($taskModel instanceof JoinModel) {
-                        $counter = 0;
-                        foreach ($taskModel->getInputs() as $input) {
-                            if ($vo->contains('history_node_names', $input->getSource()->getName())) {
-                                $counter++;
-                            }
-                        }
-                        if ($counter == count($taskModel->getInputs())) {
-                            $vo->add('history_edge_names', $transitionModel->getName());
-                            $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $finishTasksList, $taskName, $vo);
-                        }
-                    } else {
                     $vo->add('history_edge_names', $transitionModel->getName());
                     $this->recursionModel($transitionModel->getTarget(), $processInstance, $processTaskList, $finishTasksList, $taskName, $vo);
-                    }
                 }
             }
         }
