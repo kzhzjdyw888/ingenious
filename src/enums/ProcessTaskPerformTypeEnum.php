@@ -18,6 +18,7 @@ use ReflectionClass;
 class ProcessTaskPerformTypeEnum implements \ingenious\interface\CodedEnum
 {
     use EnumTrait;
+
     /**
      * 普通参与：一个或多个人同时参与一个任务，所有人只要其中一人执行完成，就能驱动任务节点往下一步执行
      */
@@ -31,5 +32,20 @@ class ProcessTaskPerformTypeEnum implements \ingenious\interface\CodedEnum
      * ……等等
      */
     public const COUNTERSIGN = [1, "会签参与"];
+
+    public static function codeOf($codeOrName, $default = null): mixed
+    {
+        $code = strtoupper(trim((string)$codeOrName));
+        if ($code == 'ALL') {
+            return self::COUNTERSIGN;
+        }
+
+        foreach (static::getEnumValues() as $enum) {
+            if ($enum[0] === $codeOrName || $enum[1] === $codeOrName) {
+                return $enum;
+            }
+        }
+        return $default !== null ? $default : static::getEnumValues()[0];
+    }
 
 }

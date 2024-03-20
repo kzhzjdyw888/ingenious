@@ -121,4 +121,8 @@ class ProcessFlowUtils
         }
         return (object)$result;
     }
+
+    public static function processTime($expireTime, $getArgs): void
+    {
+    }
 }

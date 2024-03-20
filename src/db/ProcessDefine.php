@@ -95,7 +95,7 @@ class ProcessDefine extends BaseModel
      */
     public function searchStateAttr($query, $value)
     {
-        if (!empty($value)) {
+        if ($value !== '') {
             $query->where('state', $value);
         }
     }
@@ -128,6 +128,7 @@ class ProcessDefine extends BaseModel
 
     /**
      * 流程版本-搜索器
+     *
      * @param $query
      * @param $value
      */

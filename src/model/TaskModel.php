@@ -25,6 +25,9 @@ use ingenious\processor\handler\CountersignHandler;
  * @method getAssignee()
  * @method getAssignmentHandler()
  * @method getPerformType()
+ * @method getCountersignType()
+ * @method getTaskType()
+ * @method getExt()
  */
 class TaskModel extends NodeModel
 {
@@ -67,6 +70,7 @@ class TaskModel extends NodeModel
         if ($this->performType == null || StringHelper::equalsIgnoreCase(ProcessTaskPerformTypeEnum::COUNTERSIGN[0], $this->getPerformType()[0] ?? 0)) {
             // 会签任务处理
             $this->fire(new CountersignHandler($this), $execution);
+//            dump($execution->getMerged());exit;
             if ($execution->getMerged()) {
                 $this->runOutTransition($execution);
             }

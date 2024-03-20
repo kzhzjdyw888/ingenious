@@ -17,6 +17,7 @@ use ingenious\db\ProcessDefine;
 use ingenious\db\ProcessInstance;
 use ingenious\db\ProcessTask;
 use ingenious\db\ProcessTaskActor;
+use ingenious\enums\CountersignTypeEnum;
 use ingenious\enums\ProcessConst;
 use ingenious\enums\ProcessEventTypeEnum;
 use ingenious\enums\ProcessTaskPerformTypeEnum;
@@ -29,6 +30,7 @@ use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\AssertHelper;
 use ingenious\libs\utils\DateTimeHelper;
 use ingenious\libs\utils\Dict;
+use ingenious\libs\utils\Logger;
 use ingenious\libs\utils\ModelUtils;
 use ingenious\libs\utils\PageParam;
 use ingenious\libs\utils\ProcessFlowUtils;
@@ -118,7 +120,9 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $processTask->set('operator', $operator);
         $processTask->set('finish_time', time());
         $newArgs = new Dict();
-        $newArgs->putAll($processTask->getData('variable'));
+        if (!empty($processTask->getData('variable'))) {
+            $newArgs->putAll((object)[]);
+        }
         $newArgs->putAll($args->getAll());
         if (StringHelper::equalsIgnoreCase(ProcessConst::AUTO_ID, $operator)) {
             //获取当前系统登录用户
@@ -503,9 +507,59 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         return compact('list', 'count');
     }
 
-    public function createCountersignTask($taskModel, $execution): ProcessTask|array|null
+    public function createCountersignTask(TaskModel $taskModel, Execution $execution): ProcessTask|array|null
     {
-        // TODO: Implement createCountersignTask() method.
+        $processTaskList  = [];
+        $taskActors       = $this->getTaskActors($taskModel, $execution);
+        $createTaskActors = [];
+
+        if ($taskModel->getCountersignType()[0] === CountersignTypeEnum::PARALLEL[0]) {
+            // 并行：一个参与者一个任务，同时创建
+            $createTaskActors = $taskActors;
+            // 追加会签类型参数
+            $execution->getArgs()->put(ProcessConst::COUNTERSIGN_VARIABLE_PREFIX . ProcessConst::COUNTERSIGN_TYPE, CountersignTypeEnum::PARALLEL[0]);
+        } else {
+            // 串行：一个参与者一个任务，顺序创建，默认只创建第一个，其他等执行完一个后再创建
+            $prefix = ProcessConst::COUNTERSIGN_VARIABLE_PREFIX . $taskModel->getName() . "_";
+            // 获取循环计数器，默认值为-1
+            $loopCounter = $execution->getArgs()->get($prefix . ProcessConst::LOOP_COUNTER, -1);
+            if ($loopCounter === -1) {
+                $createTaskActors[] = $taskActors[0];
+            } else {
+                $createTaskActors[] = $taskActors[$loopCounter + 1];
+                // 更新计数器为最后的下标值
+                $execution->getArgs()->put($prefix . ProcessConst::LOOP_COUNTER, $loopCounter + 1);
+            }
+            // 追加会签类型参数
+            $execution->getArgs()->put(ProcessConst::COUNTERSIGN_VARIABLE_PREFIX . ProcessConst::COUNTERSIGN_TYPE, CountersignTypeEnum::SEQUENTIAL[0]);
+        }
+
+        foreach ($createTaskActors as $taskActor) {
+            $processTask = new ProcessTask();
+            $processTask->set('perform_type', ProcessTaskPerformTypeEnum::COUNTERSIGN[0]);
+            $processTask->set('task_name', $taskModel->getName());
+            $processTask->set('display_name', $taskModel->getDisplayName());
+            $processTask->set('task_state', ProcessTaskStateEnum::DOING[0]);
+            $processTask->set('task_type', $taskModel->getTaskType()[0] ?? 0);
+            $processTask->set('process_instance_id', $execution->getProcessInstanceId());
+            $execution->getArgs()->put(ProcessConst::IS_FIRST_TASK_NODE, ProcessFlowUtils::isFistTaskName($execution->getProcessModel(), $taskModel->getName()));
+            $processTask->set('Variable', $execution->getArgs()->getAll());
+            $processTask->set('task_parent_id', $execution->getProcessTaskId() ?? 0);
+            $expireTime = $taskModel->getExpireTime();
+            if (!empty($expireTime)) {
+                $processTask->set('expire_time', ProcessFlowUtils::processTime($expireTime, $execution->getArgs()));
+            }
+            $processTask->save();
+            $execution->setProcessTask($processTask);
+            Logger::debug("创建会签任务" . $processTask->getData('task_name') . "," . $processTask->getData('display_name'));
+            $processTaskList[] = $processTask;
+            $this->addTaskActor($processTask->getData('id'), [$taskActor]);
+        }
+
+        $processInstanceService = $execution->getEngine()->processInstanceService();
+        // 更新会签变量到流程实例参数中
+        $processInstanceService->updateCountersignVariable($taskModel, $execution, $taskActors);
+        return $processTaskList;
     }
 
     public function history(Execution $execution, CustomModel $model): ?ProcessTask

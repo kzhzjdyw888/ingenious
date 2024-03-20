@@ -33,16 +33,18 @@ class CountersignHandler implements IHandler
     public function handle(Execution $execution): void
     {
         $isMerged                       = false;
-        $countersignType                = $this->taskModel->getExt()->get("countersignType", "PARALLEL");//会签类型
-        $countersignCompletionCondition = $this->taskModel->getExt()->get("countersignCompletionCondition", "");//会签完成条件
+        $countersignType                = $this->taskModel->getExt()->get("countersign_type", "PARALLEL");//会签类型
+        $countersignCompletionCondition = $this->taskModel->getExt()->get("countersign_completion_condition", "");//会签完成条件
         $isRejected                     = $this->taskModel->getExt()->get('countersignatureRejected', false);//会签拒绝是否驳回未实现功能
-        $prefix                         = ProcessConst:: COUNTERSIGN_VARIABLE_PREFIX . $this->taskModel->getName() + "_";
+        $prefix                         = ProcessConst::COUNTERSIGN_VARIABLE_PREFIX . $this->taskModel->getName() . "_";
         // 会签办理人列表
-        $operatorList = $execution->getArgs()->get($prefix . ProcessConst:: COUNTERSIGN_OPERATOR_LIST);
+        $operatorList = $execution->getArgs()->get($prefix . ProcessConst:: COUNTERSIGN_OPERATOR_LIST, []);
         // 循环计数器，办理人在列表中的索引
         $loopCounter = array_search($execution->getOperator(), $operatorList);
         // 追加计数器
-        $execution->getArgs()->put($prefix . ProcessConst:: LOOP_COUNTER, $loopCounter);
+        if ($loopCounter) {
+            $execution->getArgs()->put($prefix . ProcessConst:: LOOP_COUNTER, $loopCounter);
+        }
         // 追加已完成数量
         $execution->getArgs()->put($prefix . ProcessConst:: NR_OF_COMPLETED_INSTANCES, $execution->getArgs()->get($prefix . ProcessConst:: NR_OF_COMPLETED_INSTANCES, 0) + 1);
         /**
@@ -78,8 +80,8 @@ class CountersignHandler implements IHandler
             }
         }
 
-        if (!$isMerged && StringHelper::equalsIgnoreCase(CountersignTypeEnum::PARALLEL[0], $countersignType)) {
 
+        if (!$isMerged && StringHelper::equalsIgnoreCase(CountersignTypeEnum::PARALLEL[0], $countersignType)) {
             // 是否所有会签任务已完成
             $isMerged = $execution->getEngine()->processTaskService()->getDoingTaskList($execution->getProcessInstanceId(), '');
             if (!$isMerged) {

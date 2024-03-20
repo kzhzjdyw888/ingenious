@@ -446,7 +446,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         $addVariable->put($prefix . ProcessConst::NR_OF_COMPLETED_INSTANCES, $execution->getArgs()->get($prefix . ProcessConst::NR_OF_COMPLETED_INSTANCES));
         // 更新会签操作人列表 countersignOperatorList
         $addVariable->put($prefix . ProcessConst::COUNTERSIGN_OPERATOR_LIST, $taskActors);
-        $this->addVariable($execution->getProcessInstanceId(), $addVariable->getAll());
+        $this->addVariable($execution->getProcessInstanceId(), $addVariable);
     }
 
     /**
