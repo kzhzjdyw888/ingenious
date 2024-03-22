@@ -30,6 +30,7 @@ class DecisionModel extends NodeModel
 
     public function exec(Execution $execution)
     {
+        // 执行决策节点自定义执行逻辑
         $isFound      = false;
         $nextNodeName = null;
 
@@ -45,12 +46,12 @@ class DecisionModel extends NodeModel
         //边线表达式处理
         foreach ($this->outputs as $transitionModel) {
             if ($transitionModel->getExpr() !== null && (bool)ExpressionUtil::eval($transitionModel->getExpr(), $execution->getArgs())) {
-                //边线表达式跳转
+                // 决策节点输出边存在表达式，则使用输出边的表达式，true则执行
                 $isFound = true;
                 $transitionModel->setEnabled(true);
                 $transitionModel->execute($execution);
             } else if ($transitionModel->getTo() === $nextNodeName) {
-                //判断节点表达式类处理器跳转
+                // 找到对应的下一个节点
                 $isFound = true;
                 $transitionModel->setEnabled(true);
                 $transitionModel->execute($execution);
@@ -58,6 +59,7 @@ class DecisionModel extends NodeModel
         }
 
         if (!$isFound) {
+            // 找不到下一个可执行路线
             throw new LFlowException('Not found next node', LfErrEnum::NOT_FOUND_NEXT_NODE[1]);
         }
     }

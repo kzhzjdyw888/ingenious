@@ -42,6 +42,7 @@ class ProcessTask extends BaseModel
         'finish_time' => 'timestamp:Y-m-d H:i:s',
     ];
 
+
     /**
      * JSON字段
      *
