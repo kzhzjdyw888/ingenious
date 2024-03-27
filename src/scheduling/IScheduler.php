@@ -21,8 +21,8 @@ use ingenious\libs\utils\Dict;
  */
 interface IScheduler
 {
-    const SOURCE_ID_KEY = "sourceId";
-    const SOURCE_TYPE_KEY = "sourceType";
+    const SOURCE_ID_KEY = "source_id";
+    const SOURCE_TYPE_KEY = "source_type";
 
     /**
      * 添加作业到调度器

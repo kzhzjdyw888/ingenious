@@ -34,6 +34,7 @@ use ReflectionClass;
  * @method getType()
  * @method getName()
  * @method getDisplayName()
+ * @method getExpireTime()
  */
 class ProcessModel extends BaseModel
 {

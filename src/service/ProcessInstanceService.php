@@ -132,6 +132,12 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
             //外面没有传单据编号使用内置默认编号生成器
             $processInstance->set('business_no', (new DefaultNoGenerator())->generate(null));
         }
+        //添加期望时间
+        $processModel = (new ProcessDefineService())->processDefineToModel($processDefine);
+        $expireTime   = $processModel->getExpireTime();
+        if (empty($expireTime)) {
+            $processInstance->setExpireTime(ProcessFlowUtils::processTime($expireTime, $args));
+        }
         // 追加用户信息到参数
         ProcessFlowUtils::addUserInfoToArgs($operator, $args);
         // 追加自动构造标题

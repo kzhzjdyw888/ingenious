@@ -68,6 +68,15 @@ class Dict extends ArrayObject
     {
         return isset($this[$key]) ?? false;
     }
+
+    public static function of(array $entries): self
+    {
+        $dict = new self();
+        foreach ($entries as $key => $value) {
+            $dict->put($key, $value);
+        }
+        return $dict;
+    }
 }
 
 

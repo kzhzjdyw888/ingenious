@@ -11,6 +11,7 @@
 
 namespace ingenious\libs\utils;
 
+use DateTime;
 use ingenious\core\ServiceContext;
 use ingenious\enums\ProcessConst;
 use ingenious\interface\ProcessUserInterface;
@@ -122,7 +123,40 @@ class ProcessFlowUtils
         return (object)$result;
     }
 
-    public static function processTime($expireTime, $getArgs): void
+    /**
+     * 解析日期
+     *
+     * @param string|int                 $expireTime
+     * @param \ingenious\libs\utils\Dict $args
+     *
+     * @return \DateTime|null
+     * @throws \Exception
+     */
+    public static function processTime(string|int $expireTime, Dict $args): ?DateTime
     {
+        // 如果变量中存在，则使用变量中的时间
+        if ($args->containsKey($expireTime)) {
+            $obj = $args->get($expireTime);
+            if ($obj instanceof DateTime) {
+                return $obj;
+            } else if (is_int($obj)) {
+                return new DateTime("@$obj");
+            } else if (is_string($obj)) {
+                return new DateTime($obj);
+            }
+        }
+        if (!empty($expireTime)) {
+            if (str_contains($expireTime, 's')) {
+                return (new DateTime())->modify('+' . (int)substr($expireTime, 0, -1) . ' second');
+            } else if (str_contains($expireTime, 'm')) {
+                return (new DateTime())->modify('+' . (int)substr($expireTime, 0, -1) . ' minute');
+            } else if (str_contains($expireTime, 'h')) {
+                return (new DateTime())->modify('+' . (int)substr($expireTime, 0, -1) . ' hour');
+            } else if (str_contains($expireTime, 'd')) {
+                return (new DateTime())->modify('+' . (int)substr($expireTime, 0, -1) . ' day');
+            }
+            return new DateTime($expireTime);
+        }
+        return null;
     }
 }
