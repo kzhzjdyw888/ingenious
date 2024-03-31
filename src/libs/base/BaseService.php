@@ -3,7 +3,9 @@
 namespace ingenious\libs\base;
 
 
+use ingenious\ex\LFlowException;
 use ingenious\libs\utils\Str;
+use ReflectionClass;
 
 /**
  * Class BaseDao
@@ -148,7 +150,17 @@ abstract class BaseService
      */
     protected function getModel()
     {
-        return app()->make($this->setModel());
+        // return app()->make($this->setModel());
+        //优化兼容其他框架使用反射实例化
+        $className = $this->setModel();
+        if (class_exists($className)) {
+            $reflectionClass = new ReflectionClass($className);
+            $instance = $reflectionClass->newInstance();
+            return $instance;
+        } else {
+            throw new LFlowException($className.'未知模型');
+        }
+
     }
 
     /**
