@@ -108,7 +108,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         }
         $processDefine->set('name', $processModel->getName());
         $processDefine->set('display_name', $processModel->getDisplayName());
-        $processDefine->set('type_id', $processModel->getType());
+        $processDefine->set('type_id', $param->type_id ?? '');
         $processDefine->set('create_time', time());
         $processDefine->set('update_time', time());
         $processDefine->set('create_user', $operation);
@@ -124,7 +124,7 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
         $processDefine = $this->get($processDefineId);
         $processDefine->set('name', $processModel->getName());
         $processDefine->set('display_name', $processModel->getDisplayName());
-        $processDefine->set('type_id', $processModel->getType());
+        $processDefine->set('type_id', $param->type_id ?? '');
         $processDefine->set('update_time', time());
         $processDefine->set('update_user', $operation);
         $processDefine->set('content', $inputStream);

@@ -136,7 +136,7 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         $processModel = (new ProcessDefineService())->processDefineToModel($processDefine);
         $expireTime   = $processModel->getExpireTime();
         if (empty($expireTime)) {
-            $processInstance->setExpireTime(ProcessFlowUtils::processTime($expireTime, $args));
+            $processInstance->set('expire_time', ProcessFlowUtils::processTime($expireTime, $args));
         }
         // 追加用户信息到参数
         ProcessFlowUtils::addUserInfoToArgs($operator, $args);
@@ -340,10 +340,15 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
 
     public function highLight(string $processInstanceId): array
     {
-        Logger::debug('highLight 开始【process_instance_id=' . $processInstanceId . '】');
-        $vo              = new HighLightVirtual();
+        $vo     = new HighLightVirtual();
+        $config = ServiceContext::findAll(ConfigurationInterface::class);
+        if (empty($config)) {
+            throw new LFlowException('没有找到上下文引擎配置类');
+        }
         $processInstance = $this->findById($processInstanceId);
-        $processEngines  = new ProcessEngines();
+        $processEngines  = new ProcessEngines(end($config));
+        Logger::debug('highLight 开始【process_instance_id=' . $processInstanceId . '】');
+
         if ($processInstance != null) {
             Logger::debug('highLight 【process_instance_id=' . $processInstanceId . ' 拿到正在进行中的任务活跃节点】');
             $processModel = $processEngines->processDefineService()->getProcessModel($processInstance->getData('process_define_id'));

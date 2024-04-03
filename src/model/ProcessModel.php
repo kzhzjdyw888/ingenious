@@ -42,7 +42,7 @@ class ProcessModel extends BaseModel
 
     private string $type; // 流程定义分类
     private string $instance_url; // 启动实例要填写的表单key
-    private string $expire_time; // 期待完成时间变量key
+    private string $expire_time=''; // 期待完成时间变量key
     private string $instance_no_class; // 实例编号生成器实现类
     private string $pre_interceptors; // 节点前置拦截器
     private string $post_interceptors; // 节点后置拦截器
