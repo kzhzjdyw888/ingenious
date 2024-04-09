@@ -115,6 +115,10 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $data                    = new \stdClass();
         $data->process_design_id = $jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY};
         $data->create_user       = $jsonObject->{ProcessConst::CREATE_USER};
+        $processDesign           = $this->get($data->process_design_id);
+        $processDesign->set('update_time', time());
+        $processDesign->set('update_user', $data->create_user);
+        $processDesign->save();
         unset($jsonObject->{ProcessConst::CREATE_USER});
         unset($jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY});
         $data->content = $jsonObject;
