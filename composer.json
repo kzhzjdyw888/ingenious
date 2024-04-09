@@ -1,5 +1,5 @@
 {
-    "name": "karka/ingenious",
+    "name": "ingen/ingenious",
     "type": "library",
     "license": "MIT",
     "description": "a php work flow engine base on ingenious-php",
@@ -11,7 +11,7 @@
     "authors": [
         {
             "name": "Mr.April",
-            "homepage": "https://gitee.com/liu_guan_qing",
+            "homepage": "https://gitee.com/ingenstream",
             "email": "405784684@qq.com"
         }
     ],
