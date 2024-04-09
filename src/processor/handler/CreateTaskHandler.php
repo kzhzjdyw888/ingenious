@@ -47,7 +47,6 @@ class CreateTaskHandler implements IHandler
         $processTaskList = [];
         // 根据任务类型创建任务
         if (strcasecmp((string)ProcessTaskPerformTypeEnum::COUNTERSIGN[0], (string)$this->taskModel->getPerformType()[0] ?? '') === 0) {
-
             $processTaskList = $execution->getEngine()->processTaskService()->createCountersignTask($this->taskModel, $execution);
             //会签任务
         } else {
