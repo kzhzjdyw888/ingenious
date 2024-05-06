@@ -108,7 +108,7 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
             $processDesign->hid     = $processDesignHis->id ?? '';
             $processDesign->content = $processDesignHis->content ?? (object)[];
             $processDesign->fid     = $processFormBuilder->id ?? '';
-            $processDesign->form_builder = $processFormBuilder->content ?? (object)[];
+            $processDesign->form = $processFormBuilder->content ?? (object)[];
         }
         return $processDesign;
     }
