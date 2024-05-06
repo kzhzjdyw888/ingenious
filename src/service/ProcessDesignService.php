@@ -14,6 +14,7 @@ namespace ingenious\service;
 use ingenious\db\ProcessDesign;
 use ingenious\db\ProcessDesignHis;
 use ingenious\db\ProcessType;
+use ingenious\db\ProcessFormBuilder;
 use ingenious\enums\ProcessConst;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\ArrayHelper;
@@ -103,8 +104,11 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $processDesign = $this->get($id);
         if ($processDesign !== null) {
             $processDesignHis       = (new ProcessDesignHis())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
+            $processFormBuilder     = (new ProcessFormBuilder())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
             $processDesign->hid     = $processDesignHis->id ?? '';
             $processDesign->content = $processDesignHis->content ?? (object)[];
+            $processDesign->fid     = $processFormBuilder->id ?? '';
+            $processDesign->form_builder = $processFormBuilder->content ?? (object)[];
         }
         return $processDesign;
     }
@@ -125,6 +129,25 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         ModelUtils::copyProperties($data, $processDesignHis);
         return $processDesignHis->save();
     }
+
+
+    public function updateBuilder(object $jsonObject):bool
+    {
+            $processFormBuilder        = new ProcessFormBuilder();
+            $data                    = new \stdClass();
+            $data->process_design_id = $jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY};
+            $data->create_user       = $jsonObject->{ProcessConst::CREATE_USER};
+            $processDesign           = $this->get($data->process_design_id);
+            $processDesign->set('update_time', time());
+            $processDesign->set('update_user', $data->create_user);
+            $processDesign->save();
+            unset($jsonObject->{ProcessConst::CREATE_USER});
+            unset($jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY});
+            $data->content = $jsonObject;
+            ModelUtils::copyProperties($data, $processFormBuilder);
+            return $processFormBuilder->save();
+    }
+
 
     public function deploy(string $processDesignId, string|int $operation): void
     {
