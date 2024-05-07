@@ -11,28 +11,28 @@
 
 namespace ingenious\service;
 
-use ingenious\db\ProcessDesignHis;
+use ingenious\db\ProcessDesignFlow;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\ArrayHelper;
 use ingenious\libs\utils\AssertHelper;
 use ingenious\libs\utils\ModelUtils;
 use ingenious\libs\utils\PageParam;
-use ingenious\service\interface\ProcessDesignHisServiceInterface;
+use ingenious\service\interface\ProcessDesignHistoryServiceInterface;
 
-class ProcessDesignHisService extends BaseService implements ProcessDesignHisServiceInterface
+class ProcessDesignHistoryService extends BaseService implements ProcessDesignHistoryServiceInterface
 {
 
     protected function setModel(): string
     {
-        return ProcessDesignHis::class;
+        return ProcessDesignFlow::class;
     }
 
     public function create(object $param): bool
     {
         unset($param->id);
-        $processDesignHis = new ProcessDesignHis();
-        ModelUtils::copyProperties($param, $processDesignHis);
-        return $processDesignHis->save();
+        $processDesignFlow = new ProcessDesignFlow();
+        ModelUtils::copyProperties($param, $processDesignFlow);
+        return $processDesignFlow->save();
     }
 
     public function update(object $param): bool
@@ -56,13 +56,13 @@ class ProcessDesignHisService extends BaseService implements ProcessDesignHisSer
         return compact('list', 'count');
     }
 
-    public function findById(string $id): ProcessDesignHis
+    public function findById(string $id): ?ProcessDesignFlow
     {
         AssertHelper::notNull($param->id ?? '', '参数ID不能为空');
         return $this->get($id);
     }
 
-    public function getLatestByProcessDesignId(string $processDesignId): ?ProcessDesignHis
+    public function getLatestByProcessDesignId(string $processDesignId): ?ProcessDesignFlow
     {
         AssertHelper::notNull($processDesignId, '参数process_design_id不能为空');
         return $this->selectList(['process_design_id' => $processDesignId], '*', 0, 0, 'create_time asc', [], true)->last();

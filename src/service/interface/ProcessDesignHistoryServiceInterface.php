@@ -11,9 +11,9 @@
 
 namespace ingenious\service\interface;
 
-use ingenious\db\ProcessDesignHis;
+use ingenious\db\ProcessDesignFlow;
 
-interface ProcessDesignHisServiceInterface
+interface ProcessDesignHistoryServiceInterface
 {
     /**
      * 添加流程设计历史
@@ -49,15 +49,15 @@ interface ProcessDesignHisServiceInterface
      *
      * @return \ingenious\db\ProcessDesignHis
      */
-    public function findById(string $id): ProcessDesignHis;
+    public function findById(string $id): ?ProcessDesignFlow;
 
     /**
      * 获取最新的流程设计
      *
      * @param string $processDesignId
      *
-     * @return \ingenious\db\ProcessDesignHis|null
+     * @return \ingenious\db\ProcessDesignFlow|null
      */
-    public function getLatestByProcessDesignId(string $processDesignId): ?ProcessDesignHis;
+    public function getLatestByProcessDesignId(string $processDesignId): ?ProcessDesignFlow;
 
 }

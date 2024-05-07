@@ -11,26 +11,27 @@
 
 namespace ingenious\service;
 
-use ingenious\db\ProcessFormBuilder;
+use ingenious\db\ProcessDesignForm;
+use ingenious\db\ProcessFormHistory;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\ArrayHelper;
 use ingenious\libs\utils\AssertHelper;
 use ingenious\libs\utils\ModelUtils;
 use ingenious\libs\utils\PageParam;
-use ingenious\service\interface\ProcessFormBuilderServiceInterface;
+use ingenious\service\interface\ProcessFormHistoryServiceInterface;
 
-class ProcessFormBuilderService extends BaseService implements ProcessFormBuilderServiceInterface
+class ProcessFormHistoryService extends BaseService implements ProcessFormHistoryServiceInterface
 {
 
     protected function setModel(): string
     {
-        return ProcessFormBuilder::class;
+        return ProcessFormHistory::class;
     }
 
     public function create(object $param): bool
     {
         unset($param->id);
-        $processFormBuilder = new ProcessFormBuilder();
+        $processFormBuilder = new ProcessDesignForm();
         ModelUtils::copyProperties($param, $processFormBuilder);
         return $processFormBuilder->save();
     }
@@ -56,7 +57,7 @@ class ProcessFormBuilderService extends BaseService implements ProcessFormBuilde
         return compact('list', 'count');
     }
 
-    public function findById(string $id): ProcessFormBuilder
+    public function findById(string $id): ?ProcessFormHistory
     {
         AssertHelper::notNull($param->id ?? '', '参数ID不能为空');
         return $this->get($id);

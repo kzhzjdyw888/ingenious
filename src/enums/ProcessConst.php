@@ -30,6 +30,8 @@ interface ProcessConst
     const  PROCESS_DEFINE_ID_KEY = "process_define_id";
     // 流程设计id，key
     const  PROCESS_DESIGN_ID_KEY = "process_design_id";
+
+    const  PROCESS_FORM_ID_KEY = "process_form_id";
     // 流程任务id
     const  PROCESS_TASK_ID_KEY = "process_task_id";
     // 流程实例id

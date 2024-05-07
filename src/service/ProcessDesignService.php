@@ -12,9 +12,8 @@
 namespace ingenious\service;
 
 use ingenious\db\ProcessDesign;
-use ingenious\db\ProcessDesignHis;
+use ingenious\db\ProcessDesignHistory;
 use ingenious\db\ProcessType;
-use ingenious\db\ProcessFormBuilder;
 use ingenious\enums\ProcessConst;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\ArrayHelper;
@@ -103,19 +102,15 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         AssertHelper::notNull($id, '参数ID不能为空');
         $processDesign = $this->get($id);
         if ($processDesign !== null) {
-            $processDesignHis       = (new ProcessDesignHis())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
-            $processFormBuilder     = (new ProcessFormBuilder())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
-            $processDesign->hid     = $processDesignHis->id ?? '';
-            $processDesign->content = $processDesignHis->content ?? (object)[];
-            $processDesign->fid     = $processFormBuilder->id ?? '';
-            $processDesign->form = $processFormBuilder->content ?? (object)[];
+            $processDesignHistory      = (new ProcessDesignHistory())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
+            $processDesign->content = $processDesignHistory->content ?? (object)[];
         }
         return $processDesign;
     }
 
     public function updateDefine(object $jsonObject): bool
     {
-        $processDesignHis        = new ProcessDesignHis();
+        $processDesignFlow       = new ProcessDesignHistory();
         $data                    = new \stdClass();
         $data->process_design_id = $jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY};
         $data->create_user       = $jsonObject->{ProcessConst::CREATE_USER};
@@ -126,26 +121,18 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         unset($jsonObject->{ProcessConst::CREATE_USER});
         unset($jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY});
         $data->content = $jsonObject;
-        ModelUtils::copyProperties($data, $processDesignHis);
-        return $processDesignHis->save();
-    }
+        // 获取当前版本号并转换为浮点数
+        $processDesignHistoryService = new ProcessDesignHistoryService();
+        $newVersion               = 1.0;//默认版本
+        $history                  = $processDesignHistoryService->selectList(['process_design_id' => $data->process_design_id], 'versions', 0, 0, 'create_time asc', [], true)->last();
+        if (!empty($history)) {
+            $currentVersion = (float)$history->getData('versions');
+            $newVersion     = round($currentVersion + 0.1, 1);
+        }
 
-
-    public function updateBuilder(object $jsonObject):bool
-    {
-            $processFormBuilder        = new ProcessFormBuilder();
-            $data                    = new \stdClass();
-            $data->process_design_id = $jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY};
-            $data->create_user       = $jsonObject->{ProcessConst::CREATE_USER};
-            $processDesign           = $this->get($data->process_design_id);
-            $processDesign->set('update_time', time());
-            $processDesign->set('update_user', $data->create_user);
-            $processDesign->save();
-            unset($jsonObject->{ProcessConst::CREATE_USER});
-            unset($jsonObject->{ProcessConst::PROCESS_DESIGN_ID_KEY});
-            $data->content = $jsonObject;
-            ModelUtils::copyProperties($data, $processFormBuilder);
-            return $processFormBuilder->save();
+        $data->versions = $newVersion;
+        ModelUtils::copyProperties($data, $processDesignFlow);
+        return $processDesignFlow->save();
     }
 
 
@@ -158,8 +145,12 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $processDesign->set('update_user', $operation);
         if ($processDesign->save()) {
             // 先更新状态，更新成功，再部署
-            $processDefineService = new  ProcessDefineService();
-            $processDefineService->deploy(ArrayHelper::arrayToObject($processDesign->getData('content')), $operation);
+            $processDefineService     = new  ProcessDefineService();
+            $content                  = $processDesign->getData('content');
+            if (!empty($content)) {
+               AssertHelper::notNull('instance_url', '部署失败,缺少表单信息');
+            }
+            $processDefineService->deploy(ArrayHelper::arrayToObject($content), $operation);
         }
     }
 
@@ -170,8 +161,12 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $processDesign->set('update_user', $operation);
         if ($processDesign->save()) {
             // 先更新状态，更新成功，再部署
-            $processDefineService = new  ProcessDefineService();
-            $processDefine        = $processDefineService->selectList(['name' => $processDesign->getData('name')], '*', 0, 0, 'version', [], true)->last();
+            $processDefineService     = new  ProcessDefineService();
+            $processDefine            = $processDefineService->selectList(['name' => $processDesign->getData('name')], '*', 0, 0, 'version', [], true)->last();
+            $content                  = $processDesign->getData('content');
+            if (!empty($content)) {
+               AssertHelper::notNull('instance_url', '部署失败,缺少表单信息');
+            }
             $processDefineService->redeploy($processDefine->getData('id'), ArrayHelper::arrayToObject($processDesign->getData('content')), $operation);
         }
     }

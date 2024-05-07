@@ -16,7 +16,7 @@ use ingenious\libs\base\BaseModel;
 use ingenious\libs\traits\ModelTrait;
 use ingenious\libs\traits\UuidAutoModelTrait;
 
-class ProcessFormBuilder extends BaseModel
+class ProcessFormHistory extends BaseModel
 {
     use ModelTrait;
     use UuidAutoModelTrait;
@@ -26,7 +26,7 @@ class ProcessFormBuilder extends BaseModel
      *
      * @var string
      */
-    protected $name = 'wf_process_design_form_his';
+    protected $name = 'wf_process_form_history';
 
     /**
      * 主键
