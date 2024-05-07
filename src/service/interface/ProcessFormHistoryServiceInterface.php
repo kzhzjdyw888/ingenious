@@ -11,9 +11,9 @@
 
 namespace ingenious\service\interface;
 
-use ingenious\db\ProcessFormBuilder;
+use ingenious\db\ProcessFormHistory;
 
-interface ProcessFormBuilderServiceInterface
+interface ProcessFormHistoryServiceInterface
 {
     /**
      * 添加设计历史
@@ -49,14 +49,14 @@ interface ProcessFormBuilderServiceInterface
      *
      * @return \ingenious\db\ProcessFormBuilder
      */
-    public function findById(string $id): ?ProcessFormBuilder;
+    public function findById(string $id): ?ProcessFormHistory;
 
     /**
      * 获取最新的设计
      *
      * @param string $processDesignId
      *
-     * @return \ingenious\db\ProcessFormBuilder|null
+     * @return \ingenious\db\ProcessFormHistory|null
      */
     public function getLatestByProcessDesignId(string $processDesignId): mixed;
 
