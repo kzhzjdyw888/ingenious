@@ -135,7 +135,7 @@ class ProcessDesign extends BaseModel
      */
     public function history(): \think\model\relation\HasMany
     {
-        return $this->hasMany(ProcessDesignHis::class, 'process_design_id', 'id');
+        return $this->hasMany(ProcessDesignHistory::class, 'process_design_id', 'id');
     }
 
     public function deleteWithHistory(): bool

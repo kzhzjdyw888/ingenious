@@ -102,12 +102,13 @@ class ProcessFormService extends BaseService implements ProcessFormServiceInterf
         AssertHelper::notNull($id, '参数ID不能为空');
         $processForm = $this->get($id);
         if ($processForm !== null) {
-            $processFormHistory = (new ProcessFormHistory())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
+            $processFormHistory = (new ProcessFormHistory())->where(['process_form_id' => $id])->order('create_time', 'desc')->find();
+            $processForm->form  = (object)[];
+            $processForm->versions  = (float)1.0;
             if ($processFormHistory != null) {
                 $processForm->form     = $processFormHistory->getData('content');
                 $processForm->versions = $processFormHistory->getData('versions');
             }
-
         }
         return $processForm;
     }
@@ -128,7 +129,7 @@ class ProcessFormService extends BaseService implements ProcessFormServiceInterf
         // 获取当前版本号并转换为浮点数
         $processFormHistoryService = new ProcessFormHistoryService();
         $newVersion                = 1.0;//默认版本
-        $history                   = $processFormHistoryService->selectList(['process_design_id' => $data->process_form_id], 'versions', 0, 0, 'create_time asc', [], true)->last();
+        $history                   = $processFormHistoryService->selectList(['process_form_id' => $data->process_form_id], 'versions', 0, 0, 'create_time asc', [], true)->last();
         if (!empty($history)) {
             $currentVersion = (float)$history->getData('versions');
             $newVersion     = round($currentVersion + 0.1, 1);

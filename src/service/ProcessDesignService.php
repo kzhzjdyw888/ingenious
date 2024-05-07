@@ -102,7 +102,7 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         AssertHelper::notNull($id, '参数ID不能为空');
         $processDesign = $this->get($id);
         if ($processDesign !== null) {
-            $processDesignHistory      = (new ProcessDesignHistory())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
+            $processDesignHistory   = (new ProcessDesignHistory())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
             $processDesign->content = $processDesignHistory->content ?? (object)[];
         }
         return $processDesign;
@@ -123,8 +123,8 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $data->content = $jsonObject;
         // 获取当前版本号并转换为浮点数
         $processDesignHistoryService = new ProcessDesignHistoryService();
-        $newVersion               = 1.0;//默认版本
-        $history                  = $processDesignHistoryService->selectList(['process_design_id' => $data->process_design_id], 'versions', 0, 0, 'create_time asc', [], true)->last();
+        $newVersion                  = 1.0;//默认版本
+        $history                     = $processDesignHistoryService->selectList(['process_design_id' => $data->process_design_id], 'versions', 0, 0, 'create_time asc', [], true)->last();
         if (!empty($history)) {
             $currentVersion = (float)$history->getData('versions');
             $newVersion     = round($currentVersion + 0.1, 1);
@@ -135,7 +135,6 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         return $processDesignFlow->save();
     }
 
-
     public function deploy(string $processDesignId, string|int $operation): void
     {
         $processDesign = $this->findById($processDesignId);
@@ -145,10 +144,10 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $processDesign->set('update_user', $operation);
         if ($processDesign->save()) {
             // 先更新状态，更新成功，再部署
-            $processDefineService     = new  ProcessDefineService();
-            $content                  = $processDesign->getData('content');
+            $processDefineService = new  ProcessDefineService();
+            $content              = $processDesign->getData('content');
             if (!empty($content)) {
-               AssertHelper::notNull('instance_url', '部署失败,缺少表单信息');
+                AssertHelper::notNull('instance_url', '部署失败,缺少表单信息');
             }
             $processDefineService->deploy(ArrayHelper::arrayToObject($content), $operation);
         }
@@ -161,11 +160,12 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $processDesign->set('update_user', $operation);
         if ($processDesign->save()) {
             // 先更新状态，更新成功，再部署
-            $processDefineService     = new  ProcessDefineService();
-            $processDefine            = $processDefineService->selectList(['name' => $processDesign->getData('name')], '*', 0, 0, 'version', [], true)->last();
-            $content                  = $processDesign->getData('content');
+            $processDefineService = new  ProcessDefineService();
+            $processDefine        = $processDefineService->selectList(['name' => $processDesign->getData('name')], '*', 0, 0, 'version', [], true)->last();
+            AssertHelper::notNull($processDefine, '该流程未部署,请先部署流程');
+            $content = $processDesign->getData('content');
             if (!empty($content)) {
-               AssertHelper::notNull('instance_url', '部署失败,缺少表单信息');
+                AssertHelper::notNull('instance_url', '部署失败,缺少表单信息');
             }
             $processDefineService->redeploy($processDefine->getData('id'), ArrayHelper::arrayToObject($processDesign->getData('content')), $operation);
         }

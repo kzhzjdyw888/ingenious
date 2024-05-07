@@ -11,7 +11,7 @@
 
 namespace ingenious\service;
 
-use ingenious\db\ProcessDesignFlow;
+use ingenious\db\ProcessDesignHistory;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\ArrayHelper;
 use ingenious\libs\utils\AssertHelper;
@@ -24,13 +24,13 @@ class ProcessDesignHistoryService extends BaseService implements ProcessDesignHi
 
     protected function setModel(): string
     {
-        return ProcessDesignFlow::class;
+        return ProcessDesignHistory::class;
     }
 
     public function create(object $param): bool
     {
         unset($param->id);
-        $processDesignFlow = new ProcessDesignFlow();
+        $processDesignFlow = new ProcessDesignHistory();
         ModelUtils::copyProperties($param, $processDesignFlow);
         return $processDesignFlow->save();
     }
@@ -56,13 +56,13 @@ class ProcessDesignHistoryService extends BaseService implements ProcessDesignHi
         return compact('list', 'count');
     }
 
-    public function findById(string $id): ?ProcessDesignFlow
+    public function findById(string $id): ?ProcessDesignHistory
     {
         AssertHelper::notNull($param->id ?? '', '参数ID不能为空');
         return $this->get($id);
     }
 
-    public function getLatestByProcessDesignId(string $processDesignId): ?ProcessDesignFlow
+    public function getLatestByProcessDesignId(string $processDesignId): ?ProcessDesignHistory
     {
         AssertHelper::notNull($processDesignId, '参数process_design_id不能为空');
         return $this->selectList(['process_design_id' => $processDesignId], '*', 0, 0, 'create_time asc', [], true)->last();

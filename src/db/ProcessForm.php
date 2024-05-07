@@ -135,9 +135,14 @@ class ProcessForm extends BaseModel
      */
     public function history(): \think\model\relation\HasMany
     {
-        return $this->hasMany(ProcessDesignHis::class, 'process_design_id', 'id');
+        return $this->hasMany(ProcessFormHistory::class, 'process_form_id', 'id');
     }
 
+    /**
+     * 删除表单记录
+     *
+     * @return bool
+     */
     public function deleteWithHistory(): bool
     {
         // 删除关联的所有历史记录
