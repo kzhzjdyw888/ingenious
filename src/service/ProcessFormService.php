@@ -102,9 +102,25 @@ class ProcessFormService extends BaseService implements ProcessFormServiceInterf
         AssertHelper::notNull($id, '参数ID不能为空');
         $processForm = $this->get($id);
         if ($processForm !== null) {
-            $processFormHistory = (new ProcessFormHistory())->where(['process_form_id' => $id])->order('create_time', 'desc')->find();
-            $processForm->form  = (object)[];
-            $processForm->versions  = (float)1.0;
+            $processFormHistory    = (new ProcessFormHistory())->where(['process_form_id' => $id])->order('create_time', 'desc')->find();
+            $processForm->form     = (object)[];
+            $processForm->versions = (float)1.0;
+            if ($processFormHistory != null) {
+                $processForm->form     = $processFormHistory->getData('content');
+                $processForm->versions = $processFormHistory->getData('versions');
+            }
+        }
+        return $processForm;
+    }
+
+    public function findByName(string $name): ?ProcessForm
+    {
+        AssertHelper::notNull($name, '参数name不能为空');
+        $processForm = $this->get(['name' => $name]);
+        if ($processForm !== null) {
+            $processFormHistory    = (new ProcessFormHistory())->where(['process_form_id' => $processForm->getData('id')])->order('create_time', 'desc')->find();
+            $processForm->form     = (object)[];
+            $processForm->versions = (float)1.0;
             if ($processFormHistory != null) {
                 $processForm->form     = $processFormHistory->getData('content');
                 $processForm->versions = $processFormHistory->getData('versions');

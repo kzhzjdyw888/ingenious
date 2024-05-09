@@ -13,6 +13,7 @@ namespace ingenious\service;
 
 use ingenious\db\ProcessDesign;
 use ingenious\db\ProcessDesignHistory;
+use ingenious\db\ProcessFormHistory;
 use ingenious\db\ProcessType;
 use ingenious\enums\ProcessConst;
 use ingenious\libs\base\BaseService;
@@ -103,7 +104,15 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
         $processDesign = $this->get($id);
         if ($processDesign !== null) {
             $processDesignHistory   = (new ProcessDesignHistory())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
-            $processDesign->content = $processDesignHistory->content ?? (object)[];
+            $graph_data             = $processDesignHistory->content ?? (object)[];
+            $processDesign->content = $graph_data;
+            if (!empty($graph_data) && !empty($graph_data->instance_url)) {
+                $processFormService = new ProcessFormService();
+                $processForm        = $processFormService->findByName($graph_data->instance_url);
+                if(!empty($processForm)){
+                     $processDesign->form = $processForm->getData('form');
+                }
+            }
         }
         return $processDesign;
     }
