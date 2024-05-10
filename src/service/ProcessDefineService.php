@@ -79,7 +79,21 @@ class ProcessDefineService extends BaseService implements ProcessDefineServiceIn
     public function findById(string $id): ?ProcessDefine
     {
         AssertHelper::notNull($id, '参数process_define_id不能为空');
-        return $this->get($id);
+        $processDefine = $this->get($id);
+        AssertHelper::notNull($processDefine, '流程定义不存在或被删除');
+        if (!empty($processDefine->getData('content'))) {
+            $graph_data = $processDefine->getData('content');
+            //使用表单key获取表单JSON数据
+            $processDefine->set('form', (object)[]);
+            if (isset($graph_data->instance_url) && !empty($graph_data->instance_url)) {
+                $processFormService = new ProcessFormService();
+                $processForm        = $processFormService->findByName($graph_data->instance_url);
+                if (!empty($processForm)) {
+                    $processDefine->set('form', $processForm->getData('form'));
+                }
+            }
+        }
+        return $processDefine;
     }
 
     public function deploy($param, string $operation): string

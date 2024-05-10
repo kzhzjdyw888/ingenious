@@ -106,13 +106,6 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
             $processDesignHistory   = (new ProcessDesignHistory())->where(['process_design_id' => $id])->order('create_time', 'desc')->find();
             $graph_data             = $processDesignHistory->content ?? (object)[];
             $processDesign->content = $graph_data;
-            if (!empty($graph_data) && !empty($graph_data->instance_url)) {
-                $processFormService = new ProcessFormService();
-                $processForm        = $processFormService->findByName($graph_data->instance_url);
-                if(!empty($processForm)){
-                     $processDesign->form = $processForm->getData('form');
-                }
-            }
         }
         return $processDesign;
     }
