@@ -75,7 +75,7 @@ class ProcessDesignService extends BaseService implements ProcessDesignServiceIn
     public function del(string $id): bool
     {
         $processDesign = $this->get($id);
-        if ($processDesign != null) {
+        if ($processDesign !== null) {
             return $processDesign->deleteWithHistory();
         }
         return false;
