@@ -19,13 +19,9 @@ class ProcessEventHandler
 {
     public function handle(ProcessEvent $event): void
     {
-        $newsList = ServiceContext::findList(NotificationMessage::class);
-        foreach ($newsList as $notify) {
-            try {
-                $notify->notify($event->getEventType(),$event->getSourceId());
-            } catch (Exception $e) {
-                // 不做任何处理
-            }
+        $processEventListenerList = ServiceContext::findList(ProcessEventListener::class);
+        foreach ($processEventListenerList as $processEventListener) {
+            $processEventListener->onEvent($event);
         }
     }
 

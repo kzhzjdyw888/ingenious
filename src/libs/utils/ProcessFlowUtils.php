@@ -134,8 +134,9 @@ class ProcessFlowUtils
      */
     public static function processTime(string|int $expireTime, Dict $args): ?DateTime
     {
+
         // 如果变量中存在，则使用变量中的时间
-        if ($args->containsKey($expireTime)) {
+        if ($args->containsKey($expireTime) !== false) {
             $obj = $args->get($expireTime);
             if ($obj instanceof DateTime) {
                 return $obj;
@@ -145,6 +146,7 @@ class ProcessFlowUtils
                 return new DateTime($obj);
             }
         }
+
         if (!empty($expireTime)) {
             if (str_contains($expireTime, 's')) {
                 return (new DateTime())->modify('+' . (int)substr($expireTime, 0, -1) . ' second');

@@ -103,7 +103,7 @@ class ProcessSurrogate extends BaseModel
      */
     public function searchEnabledAttr($query, $value)
     {
-        if ($value) {
+        if ($value !== '') {
             $query->where('enabled', $value);
         }
     }

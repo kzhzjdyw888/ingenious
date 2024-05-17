@@ -29,10 +29,10 @@ class SchedulerProcessEventListener implements ProcessEventListener
         ])) {
             // 流程实例开始事件、流程任务开始事件，添加作业到调度器
             foreach ($schedulerList as $scheduler) {
-                $scheduler->addJob($event->getEventType()->name() . "_" . $event->getSourceId(),
+                $scheduler->addJob($event->getEventType() . "_" . $event->getSourceId(),
                     Dict::of([
                         IScheduler::SOURCE_ID_KEY   => $event->getSourceId(),
-                        IScheduler::SOURCE_TYPE_KEY => $event->getEventType()->getCode(),
+                        IScheduler::SOURCE_TYPE_KEY => $event->getEventType(),
                     ]));
             }
         } else if (in_array($event->getEventType(), [
@@ -41,7 +41,7 @@ class SchedulerProcessEventListener implements ProcessEventListener
         ])) {
             // 流程实例结束事件、流程任务结束事件，从调度器移除作业
             foreach ($schedulerList as $scheduler) {
-                $scheduler->removeJob($event->getEventType()->name() . "_" . $event->getSourceId());
+                $scheduler->removeJob($event->getEventType() . "_" . $event->getSourceId());
             }
         }
     }

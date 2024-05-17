@@ -39,6 +39,8 @@ use ingenious\model\CustomModel;
 use ingenious\model\NodeModel;
 use ingenious\model\ProcessModel;
 use ingenious\model\TaskModel;
+use ingenious\parser\NodeParser;
+use ingenious\scheduling\IScheduler;
 use ingenious\service\interface\ProcessTaskServiceInterface;
 use think\facade\Db;
 
@@ -173,6 +175,11 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $processTask->set('task_state', ProcessTaskStateEnum::DOING[0]);
         $processTask->set('process_instance_id', $execution->getProcessInstanceId());
         $execution->getArgs()->put(ProcessConst::IS_FIRST_TASK_NODE, ProcessFlowUtils::isFistTaskName($execution->getProcessModel(), $taskModel->getName()));
+        //添加消息提醒间隔时间是否自动执行参数到变量
+        $execution->getArgs()->put(NodeParser::REMINDER_TIME_KEY, $taskModel->getReminderTime());
+        $execution->getArgs()->put(NodeParser::REMINDER_REPEAT_KEY, $taskModel->getReminderRepeat());
+        $execution->getArgs()->put(NodeParser::AUTH_EXECUTE_KEY, $taskModel->getAutoExecute());
+
         $processTask->set('variable', $execution->getArgs()->getAll());
         $processTask->set('create_time', time());
         $processTask->set('update_time', time());

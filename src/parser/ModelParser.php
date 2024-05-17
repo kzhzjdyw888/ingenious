@@ -69,6 +69,7 @@ class ModelParser
         $processModel->setDisplayName($lfModel->getDisplayName());
         $processModel->setType($lfModel->getType());
         $processModel->setInstanceUrl($lfModel->getInstanceUrl());
+        $processModel->setExpireTime($lfModel->getExpireTime());
         $processModel->setInstanceNoClass($lfModel->getInstanceNoClass());
         $processModel->setPostInterceptors($lfModel->getPostInterceptors());
         $processModel->setPreInterceptors($lfModel->getPreInterceptors());

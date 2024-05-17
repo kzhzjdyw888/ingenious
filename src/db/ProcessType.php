@@ -101,4 +101,12 @@ class ProcessType extends BaseModel
         return $this->hasOne(ProcessType::class, 'id', 'pid');
     }
 
+    /**
+     * 类型关联流程定义
+     * @return \think\model\relation\HasMany
+     */
+    public function processDefine()
+    {
+        return $this->hasMany(ProcessDefine::class, 'type_id', 'id')->where('state', 1);
+    }
 }

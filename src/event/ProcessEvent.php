@@ -24,7 +24,7 @@ class ProcessEvent
         $this->sourceId  = $sourceId;
     }
 
-    public function getEventType(): ?ProcessEventTypeEnum
+    public function getEventType(): int|string|null
     {
         return $this->eventType ?? null;
     }

@@ -11,6 +11,7 @@
 
 namespace ingenious\service;
 
+use ingen\helper\DateTime;
 use ingenious\core\Execution;
 use ingenious\core\ProcessEngines;
 use ingenious\core\ServiceContext;
@@ -135,9 +136,13 @@ class ProcessInstanceService extends BaseService implements ProcessInstanceServi
         //添加期望时间
         $processModel = (new ProcessDefineService())->processDefineToModel($processDefine);
         $expireTime   = $processModel->getExpireTime();
-        if (empty($expireTime)) {
-            $processInstance->set('expire_time', ProcessFlowUtils::processTime($expireTime, $args));
+        if (!empty($expireTime)) {
+            $dateTime = ProcessFlowUtils::processTime($expireTime, $args);
+            if ($dateTime !== null) {
+                $processInstance->set('expire_time', $dateTime->getTimestamp());
+            }
         }
+
         // 追加用户信息到参数
         ProcessFlowUtils::addUserInfoToArgs($operator, $args);
         // 追加自动构造标题

@@ -66,7 +66,7 @@ class ProcessTypesService extends BaseService implements ProcessTypeServiceInter
         ]);
 
         [$page, $limit] = PageParam::getPageValue($param);
-        $list = $this->selectList($where, '*', $page, $limit, 'sort desc', ['parent'], true)->toArray();
+        $list = $this->selectList($where, '*', $page, $limit, 'sort desc', ['parent','processDefine'], true)->toArray();
         foreach ($list as $key => $value) {
             if (isset($value['parent']) && isset($value['parent']['name'])) {
                 $list[$key]['pid_name'] = $value['parent']['name'];

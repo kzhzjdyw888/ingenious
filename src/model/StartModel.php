@@ -38,7 +38,6 @@ class StartModel extends NodeModel
 
         //执行开始节点事件
         ProcessEventService::publishNotification(ProcessEventTypeEnum::PROCESS_INSTANCE_START[0], $execution->getProcessInstanceId());
-
         $this->runOutTransition($execution);
     }
 

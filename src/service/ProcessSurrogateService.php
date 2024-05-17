@@ -48,6 +48,18 @@ class ProcessSurrogateService extends BaseService implements ProcessSurrogateSer
         return $processSurrogate->save();
     }
 
+    public function del(string|array|int $id): bool
+    {
+        $processType = new ProcessSurrogate();
+        $map1        = [];
+        if (is_array($id)) {
+            $map1[] = ['id', 'in', $id];
+        } else {
+            $map1[] = ['id', '=', $id];
+        }
+        return $processType->where($map1)->delete();
+    }
+
     public function page(object $param): array
     {
 

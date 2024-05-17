@@ -46,10 +46,12 @@ class ProcessEventService {
      */
     public static function triggerEvent(ProcessEvent $event): void {
         self::$events[] = $event; // 记录事件
-        foreach (self::$listeners as $listener) {
-            $listener->onEvent($event);
-        }
-
+//        foreach (self::$listeners as $listener) {
+//            $listener->onEvent($event);
+//        }
+        // 调用处理类处理事件
+        $eventHandler = new ProcessEventHandler();
+        $eventHandler->handle($event);
     }
 
     /**
