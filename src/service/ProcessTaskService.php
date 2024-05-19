@@ -186,7 +186,10 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $processTask->set('task_parent_id', $execution->getProcessTaskId());
         $expireTime = $taskModel->getExpireTime();
         if (!empty($expireTime)) {
-            $processTask->set('expire_time', $expireTime);
+            $dateTime = ProcessFlowUtils::processTime($expireTime, $execution->getArgs());
+            if ($dateTime !== null) {
+                $processTask->set('expire_time', $dateTime->getTimestamp());
+            }
         }
         $processTask->save();
         $execution->setProcessTask($processTask);
