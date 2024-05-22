@@ -29,7 +29,6 @@
 ## ⏰ 安装
 *  安装Composer
 *  composer require ingen/ingenious
-*  复制assets/work到项目资源目录
 *  开源不易，知识付费  详细教程请购买文档 [购买](https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ)
 
 
