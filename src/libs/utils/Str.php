@@ -1,13 +1,15 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006-2015 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: yunwuxin <448901948@qq.com>
-// +----------------------------------------------------------------------
+/**
+ *+------------------
+ * Ingenious
+ *+------------------
+ * Copyright (c) https://gitee.com/ingenstream/ingenious  All rights reserved. 本版权不可删除，侵权必究
+ *+------------------
+ * Author: Mr. April (405784684@qq.com)
+ *+------------------
+ * Software Registration Number: 2024SR0694589
+ * Official Website: http://www.ingenstream.cn
+ */
 namespace ingenious\libs\utils;
 
 class Str
