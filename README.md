@@ -29,11 +29,15 @@
 
 ---
 
-> 官方：http://www.ingenstream.cn/
+> 官方：
+http://www.ingenstream.cn/
 
-> 演示站点：http://layui.flow.webman.ingenstream.cn/   http://layui.flow.thinkphp.ingenstream.cn/
+> 演示站点：
+http://layui.flow.webman.ingenstream.cn/   
+http://layui.flow.thinkphp.ingenstream.cn/
 
-> 工作流手册：http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
+> 工作流手册：
+http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
 
 ---
 
