@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>请假申请表单</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .fixed-textarea {
+            height: 250px;
+            resize: none; /* 禁止拖动改变大小 */
+            overflow: auto; /* 当内容超出固定高度时显示滚动条 */
+        }
+    </style>
+</head>
+
+<body>
+<form class="layui-form" action="" lay-filter="leaveForm">
+    <div class="layui-form-item">
+        <label class="layui-form-label required">请假时长</label>
+        <div class="layui-input-inline">
+            <input type="number" class="layui-input" name="f_day" min="0.5" step="0.5" placeholder="请输入数字"
+                   value=""/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">开始时间</label>
+        <div class="layui-input-inline">
+            <!--             <input type="text" class="layui-input" name="f_end_time" autocapitalize="off" >-->
+            <input type="text" class="layui-input" name="f_start_time" id="start-time" placeholder="yyyy-MM-dd HH:mm:ss">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">结束时间</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="f_end_time" id="end-time"
+                   placeholder="yyyy-MM-dd HH:mm:ss">
+            <!--            <input type="text" class="layui-input" name="f_end_time" autocapitalize="off" >-->
+
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">请假事由</label>
+        <div class="layui-input-block">
+            <textarea placeholder="请输入内容" class="layui-textarea fixed-textarea" width="100%" name="f_reason" id="f_reason"></textarea>
+        </div>
+    </div>
+</form>
+
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+    layui.use(['form', 'jquery', 'laydate'], function () {
+        let form = layui.form;
+        let laydate = layui.laydate;
+        // 日期时间选择器 - 日期和时间选择器同时显示（全面板）
+        laydate.render({
+            elem: '#start-time',
+            type: 'datetime',
+            fullPanel: true // 2.8+
+        });
+        laydate.render({
+            elem: '#end-time',
+            type: 'datetime',
+            fullPanel: true // 2.8+
+        });
+
+        //获取数据
+        window.getData = function () {
+            return form.val("leaveForm");
+        }
+
+        //渲染数据
+        window.setData = function (data, isEdit = false) {
+            if (typeof data !== 'object') {
+                return;
+            }
+            form.val("leaveForm", data);
+            if (!isEdit) {
+                window.isEdit();
+            }
+            form.render();
+        }
+
+        //页面自定义提交
+        window.submit = function () {
+
+        }
+
+        //只读设置
+        window.isEdit = function () {
+            let inputElements = document.querySelectorAll('input');
+            let textareaElements = document.querySelectorAll('textarea');
+            let selectElements = document.querySelectorAll('select');
+            let checkboxElements = document.querySelectorAll('input[type="checkbox"]');
+            let switchElements = document.querySelectorAll('input[type="checkbox"][lay-skin="switch"]');
+            let radioElements = document.querySelectorAll('input[type="radio"]');
+            // 设置为不可编辑状态
+            inputElements.forEach(function (input) {
+                input.disabled = true;
+            });
+            textareaElements.forEach(function (textarea) {
+                textarea.disabled = true;
+            });
+            selectElements.forEach(function (select) {
+                select.disabled = true;
+            });
+            checkboxElements.forEach(function (checkbox) {
+                checkbox.disabled = true;
+            });
+            switchElements.forEach(function (switchInput) {
+                switchInput.disabled = true;
+            });
+            radioElements.forEach(function (radio) {
+                radio.disabled = true;
+            });
+            form.render();
+        }
+    })
+
+
+    // function setData(data){
+    //     console.log(data)
+    // }
+
+</script>
+</body>
+
+</html>

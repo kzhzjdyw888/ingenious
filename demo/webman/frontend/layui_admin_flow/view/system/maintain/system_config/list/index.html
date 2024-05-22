@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>字典列表</title>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from" >
+            <input type="hidden" name="tab_id" value="" class="layui-input" readonly>
+            <div class="layui-form-item">
+                <label class="layui-form-label">配置名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="info" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="system_config-list-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="system_config-list-table" lay-filter="system_config-list-table"></table>
+    </div>
+</div>
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="setting-config-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="setting-config-delete">
+        <i class="layui-icon layui-icon-delete"></i>删除
+    </button>
+</script>
+
+<script type="text/html" id="system_config-list-status">
+    <input type="checkbox" permission="setting-config-status" name="status" value="{{d.id}}" lay-skin="switch" lay-text="" lay-filter="system_config-list-status"
+           {{ d.status== 1 ? 'checked' : '' }} />
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system_config-list-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="setting-config-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="setting-config-delete">删除</button>
+</script>
+
+<script src="../../../../../config/common.js"></script>
+<script src="../../../../../config/permission.js"></script>
+<script src="../../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/config";
+    const SET_STATUS_API = config.api_url + "/adminapi/setting/config/set_status";
+    const BATCH_DELETE_API = config.api_url + "/adminapi/setting/config/batch/delete"
+    const CATEGORY_RESTFUL_API = config.api_url + "/adminapi/setting/config_class"
+
+
+    // 表格渲染
+    layui.use(["table", "form", "common", "popup", "util", "popup", 'dtree'], function () {
+        let table = layui.table;
+        let Dtree = layui.dtree;
+        let form = layui.form;
+        let $ = layui.$;
+        let common = layui.common;
+        let util = layui.util;
+        let popup = layui.popup;
+        let MODULE_PATH = "view/system/maintain/system_config/list/";
+
+        // 表头参数
+        let cols = [
+            {
+                type: "checkbox"
+            },
+            {
+                title: "配置名称",
+                field: "info",
+                width: 160,
+            },
+            {
+                title: "字段变量",
+                field: "menu_name",
+            },
+            {
+                title: "字段类型",
+                field: "type",
+                width: 180,
+            },
+            {
+                title: "配置参数",
+                field: "parameter",
+                width: 200,
+                hide: true,
+            },
+            {
+                title: "值",
+                field: "value",
+                width: 180
+            },
+            {
+                title: "是否显示",
+                field: "status",
+                templet: '#status',
+                align: 'center',
+            },
+            {
+                title: "操作",
+                toolbar: "#system_config-list-table-bar",
+                align: "center",
+                width: 150,
+                fixed: "right",
+            }
+        ];
+
+        // 渲染表格
+        function render(param) {
+            table.render({
+                elem: "#system_config-list-table",
+                url: RESTFUL_API,
+                page: true,
+                where: {...param},
+                cols: [cols],
+                skin: "line",
+                size: "lg",
+                toolbar: "#table-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status === 200 ? 0 : -1,
+                        "msg": "",
+                        "count": ret.data.count != undefined ? ret.data.count : (ret.data.list.length),
+                        'data': ret.data.list
+                    }
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+
+        // 编辑或删除行事件
+        table.on("tool(system_config-list-table)", function (obj) {
+            if (obj.event === "remove") {
+                remove(obj);
+            } else if (obj.event === "edit") {
+                edit(obj);
+            }
+        });
+
+        // 表格顶部工具栏事件
+        table.on("toolbar(system_config-list-table)", function (obj) {
+            if (obj.event === "add") {
+                add();
+            } else if (obj.event === "refresh") {
+                let param = form.val('top-search-from')
+                refreshTable(param);
+            } else if (obj.event === "batchRemove") {
+                batchRemove(obj);
+            }
+        });
+
+        // 表格顶部搜索事件
+        form.on("submit(system_config-list-table-query)", function (data) {
+            table.reload("system_config-list-table", {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+        // 表格顶部搜索重置事件
+        form.on("submit(table-reset)", function (data) {
+            table.reload("system_config-list-table", {
+                where: []
+            })
+        });
+
+        // 表格排序事件
+        table.on("sort(system_config-list-table)", function (obj) {
+            table.reload("system_config-list-table", {
+                initSort: obj,
+                scrollPos: "fixed",
+                where: {
+                    field: obj.field,
+                    order: obj.type
+                }
+            });
+        });
+
+        // 表格新增数据
+        let add = function () {
+
+            layer.open({
+                type: 2,
+                title: "新增",
+                maxmin: true,
+                shade: 0.1,
+                area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "500px"],
+                content: "./add.html?operation=add"
+            });
+        }
+
+        // 表格编辑数据
+        let edit = function (obj) {
+            layer.open({
+                type: 2,
+                title: "修改",
+                maxmin: true,
+                shade: 0.1,
+                area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "500px"],
+                content: "./add.html?operation=edit&" + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+        /**
+         * 批量删除
+         * @param obj
+         * @returns {boolean}
+         */
+        let batchRemove = function (obj) {
+            let checkIds = common.checkField(obj, PRIMARY_KEY);
+            if (checkIds === "") {
+                layui.popup.warning("未选中数据");
+                return false;
+            }
+            let data = {};
+            data["data"] = checkIds.split(",");
+            layer.confirm("确定删除?", {
+                icon: 3,
+                title: "提示"
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: BATCH_DELETE_API,
+                    dataType: "json",
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    type: "PUT",
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret.status == 200) {
+                            popup.success(ret.msg, function () {
+                                window.refreshTable()
+                            });
+                        } else {
+                            popup.failure(ret.msg);
+                        }
+                    }
+                })
+            });
+        }
+
+        /**
+         * 删除
+         * @param obj
+         */
+        let remove = function (obj) {
+            layer.confirm('确定要删除该权限', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            popup.success(ret.msg, function () {
+                                obj.del();
+                            });
+                        } else {
+                            popup.success(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    },
+                });
+            });
+        }
+
+        /**
+         * 状态切换
+         */
+        form.on('switch(status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            $.ajax({
+                url: SET_STATUS_API + '/' + id + '/' + status,
+                type: 'PUT',
+                dataType: 'json',
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg)
+                    } else {
+                        popup.failure(ret.msg, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        })
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+        });
+
+
+        // 刷新表格数据
+        window.refreshTable = function (param) {
+            table.reloadData("system_config-list-table", {
+                scrollPos: "fixed",
+                where: {...param}
+            });
+        }
+
+        if (getQueryString('operation') == 'list') {
+            let tabId = getQueryString('id')
+            $("input[name='tab_id']").val(tabId)
+            let where = {'tab_id': tabId};
+            render(where);
+        }
+
+
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    })
+
+</script>
+</body>
+</html>

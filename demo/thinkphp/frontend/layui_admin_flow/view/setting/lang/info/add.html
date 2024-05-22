@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+
+<body>
+<form class="layui-form" action="" lay-filter="form-val-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言分类</label>
+                <div class="layui-inline" style="width:50%">
+                    <select name="is_admin" id="is_admin"></select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">翻译语句</label>
+                <div class="layui-input-inline layui-input-wrap" style="width:50%">
+                    <input type="text" name="remarks" lay-verify="required" autocomplete="off" lay-reqtext="请输入翻译语句" class="layui-input demo-phone">
+                </div>
+                <div class="layui-form-mid" style="padding: 0!important;">
+                    <button type="button" class="layui-btn layui-btn-primary" id="translate"> 翻译</button>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-card-body">
+                    <table id="lang-info-add-table" lay-filter="lang-info-add-table" class="my-table"></table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-close"></i>
+                取消
+            </button>
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="lang-info-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                确定
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const DETAIL_API = config.api_url + "/adminapi/setting/lang_code/info";
+    const INSERT_API = config.api_url + "/adminapi/setting/lang_code/save";
+    const SELECT_TYPE_API = config.api_url + "/adminapi/setting/lang_code/type";
+    const SELECT_TRANSLATE_API = config.api_url + "/adminapi/setting/lang_code/translate";
+
+    layui.use(['form', 'jquery', 'laytpl', 'encrypt', 'popup','table'], function () {
+        let form = layui.form;
+        let encrypt = layui.encrypt;
+        let $ = layui.jquery;
+        let popup = layui.popup;
+        let table= layui.table;
+
+        let cols = [
+            {
+                title: '语言类型',
+                field: 'language_name',
+                align: 'left',
+                width: 135,
+            },
+            {
+                title: '语句',
+                field: 'lang_explain',
+                align: 'left',
+                templet: function (d) {
+                    let value = d.lang_explain !== undefined ? d.lang_explain : '';
+                    return '<input class="layui-input"  type="text" value="' + value + '"/>';
+                }
+            },
+            {
+                title: 'remarks',
+                field: 'remarks',
+                align: 'left',
+                hide: true
+            },
+            {
+                title: 'type_id',
+                field: 'type_id',
+                align: 'left',
+                hide: true
+            }
+        ];
+
+
+        let method = 'POST';
+        langType()
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            get();
+        }
+
+        layui.$("button[type='reset']").click(function () {
+            let index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            parent.layer.close(index); //再执行关闭
+        })
+
+
+        //监听事件
+        form.on('submit(lang-info-add-save)', function (data) {
+            data.field.code = '';
+            data.field.name = '';
+            data.field.list = table.getData('lang-info-add-table');
+
+            //检测是否翻译
+            for (let i = 0; i < data.field.list.length; i++) {
+                let obj = data.field.list[i];
+                if (isObjectPropertyEmpty(obj, 'lang_explain')) {
+                    //如果没有翻译直接终止继续执行
+                    return false;
+                }
+            }
+
+            $.ajax({
+                url: INSERT_API + '/' + (method == 'POST' ? '0' : getQueryString(PRIMARY_KEY)),
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        })
+                        return false;
+                    } else {
+                        popup.failure(ret.msg)
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+
+            return false;
+        });
+
+
+        //翻译API
+        layui.$('#translate').click(function () {
+            let text = layui.$("input[name='remarks']").val();
+            if (text === '') {
+                return false;
+            }
+            $.ajax({
+                url: SELECT_TRANSLATE_API,
+                type: "POST", //请求方式
+                data: {text: text},
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status !== 200) {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        }, function () {
+                        });
+                        return;
+                    }
+                    let list = ret.data;
+                    let data = table.getData('lang-info-add-table');
+
+                    layui.$.each(data, (index, item) => {
+                        data[index]['lang_explain'] = list[item.type_id] !== undefined ? list[item.type_id] : '';
+                        data[index]['remarks'] = text;
+                    });
+                    render(data);
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    console.error(ret);
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+
+        });
+
+
+        //获取详情并渲染
+        function get() {
+            $.ajax({
+                url: DETAIL_API, // 请求路径
+                type: "GET", //请求方式
+                data: {code: getQueryString('code')},
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        }, function () {
+                        });
+                        return;
+                    }
+                    //表单数据渲染
+                    let data = ret.data;
+                    let isAdmin = data.list[0]?.is_admin ?? 0;
+
+                    form.val('form-val-filter', {
+                        'is_admin': isAdmin,
+                        'remarks': data['remarks'],
+                    })
+                    render(data.list);
+                    form.render();
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    console.error(ret);
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        }
+
+        function langType() {
+            layui.$.ajax({
+                url: SELECT_TYPE_API, // 请求路径
+                type: "GET", //请求方式
+                contentType: 'application/json',
+                async: false,
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        let data = ret.data.list ?? [];
+                        let is_admin, type_id = '';
+                        layui.$.each(data['is_admin'], function (index, item) {
+                            is_admin += '<option value="' + item.value + '">' + item.title + '</option>';
+                        })
+                        layui.$('#is_admin').html(is_admin);
+                        form.val('top-search-from', {
+                            'is_admin': 1,
+                            'type_id': 1,
+                        })
+                        let rows = data['lang_type'].map(function (item) {
+                            return {
+                                language_name: item.title,
+                                lang_explain: '',
+                                remarks: '',
+                                type_id: item.value
+                            };
+                        });
+                        render(rows);
+                        form.render();
+                    }
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    console.error(ret);
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            })
+        }
+
+        function render(data) {
+            table.render({
+                elem: "#lang-info-add-table",
+                data: data,
+                page: false,
+                cols: [cols],
+                skin: "line",
+                size: 'lg'
+            });
+        }
+
+        function isObjectPropertyEmpty(obj, property) {
+            return obj.hasOwnProperty(property) && (obj[property] === undefined || obj[property] === '');
+        }
+    })
+</script>
+</body>
+
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>语言详情</title>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from" lay-filter="top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言分类</label>
+                <div class="layui-input-block">
+                    <select name="is_admin" id="is_admin" lay-filter="is_admin"></select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言类型</label>
+                <div class="layui-input-block">
+                    <select name="type_id" id="type_id" lay-filter="type_id"></select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">快速搜索</label>
+                <div class="layui-input-block">
+                    <input type="text" name="remarks" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="lang-info-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <!--                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">-->
+                <!--                    <i class="layui-icon layui-icon-refresh"></i>重置-->
+                <!--                </button>-->
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="data-table" lay-filter="data-table" class="my-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="lang-info-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="lang-info-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="lang-info-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="lang-info-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="lang-info-delete">删除</button>
+</script>
+
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const SELECT_API = config.api_url + "/adminapi/setting/lang_code/list";
+    const UPDATE_API = config.api_url + "/adminapi/setting/lang_code/update";
+    const UPDATE_STATE_API = config.api_url + "/adminapi/setting/lang_code/status";
+    const DELETE_API = config.api_url + "/adminapi/setting/lang_code/del";
+    const SELECT_TYPE_API = config.api_url + "/adminapi/setting/lang_code/type";
+    const MODULE_PATH = "view/setting/lang/info/";
+
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'encrypt'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let common = layui.common;
+        let util = layui.util;
+        let encrypt = layui.encrypt;
+
+
+        langType()
+
+        let cols = [
+
+            {
+                align: 'center',
+                title: '序号',
+                type: 'numbers',
+                width: 90
+            },
+            {
+                title: '语句',
+                field: 'remarks',
+                align: 'left',
+            },
+            {
+                title: '翻译后语句',
+                field: 'lang_explain',
+                align: 'left',
+            },
+            {
+                title: '状态码/文字(接口/页面调用参考)',
+                field: 'code',
+                align: 'left',
+            },
+            {
+                title: '语言类型',
+                field: 'language_name',
+                align: 'left',
+            },
+            {
+                title: '操作',
+                toolbar: '#lang-info-table-bar',
+                width: 170,
+                align: "center",
+                fixed: "right",
+            }
+        ]
+
+
+        function render() {
+            table.render({
+                elem: "#data-table",
+                url: SELECT_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                toolbar: "#lang-info-table-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status == 200 ? 0 : -1, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.count, // 解析数据长度
+                        "data": ret.data.list, // 解析数据列表
+                        "langType": ret.data.langType
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+                , done: function (res, curr, count, origin) {
+
+                }
+            });
+        }
+
+        render();
+
+        table.on('tool(data-table)', function (obj) {
+            if (obj.event === 'remove') {
+                remove(obj);
+            } else if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event === 'dept') {
+                dept(obj);
+            }
+        });
+
+        table.on('toolbar(data-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'recycle') {
+                recycle(obj);
+            }
+        });
+
+        // 头部搜索栏
+        form.on('submit(lang-info-table-query)', function (data) {
+            table.reload("data-table", {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+        //select
+        form.on('select', function (obj) {
+            let data = form.val('top-search-from');
+            table.reload("data-table", {
+                page: {
+                    curr: 1
+                },
+                where: data
+            })
+            return false;
+        });
+
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&code=' + obj.data['code']
+            });
+        }
+
+
+        function remove(obj) {
+            layer.confirm('确定要删除该用户', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                })
+            });
+        }
+
+        function batchRemove(obj) {
+
+            //方法1：直接获得所有选择的ID
+            let checkIds = common.checkField(obj, 'userId');
+            if (checkIds === "") {
+                layer.msg("未选中数据", {
+                    icon: 3,
+                    time: 1000
+                });
+                return false;
+            }
+            layer.confirm('确定要删除这些用户', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API,
+                    type: 'POST',
+                    data: {"data": checkIds},
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                window.render();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        console.error(ret);
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                })
+            });
+        }
+
+        function recycle() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '回收站',
+                shade: 0.1,
+                area: screen(),
+                content: MODULE_PATH + 'recycle.html',
+                cancel: function () {
+                    window.render();
+                }
+            });
+        }
+
+        function langType() {
+            layui.$.ajax({
+                url: SELECT_TYPE_API, // 请求路径
+                type: "GET", //请求方式
+                contentType: 'application/json',
+                dataType: 'json',
+                async: false,
+                success: function (ret) {
+                    if (ret.status !== 200) {
+                        let data = ret.data.list ?? [];
+                        let is_admin, type_id = '';
+                        layui.$.each(data['is_admin'], function (index, item) {
+                            is_admin += '<option value="' + item.value + '">' + item.title + '</option>';
+                        })
+                        layui.$.each(data['lang_type'], function (index, item) {
+                            type_id += '<option value="' + item.value + '">' + item.title + '</option>';
+                        })
+                        layui.$('#is_admin').html(is_admin);
+                        layui.$('#type_id').html(type_id);
+                        form.val('top-search-from', {
+                            'is_admin': 1,
+                            'type_id': 1,
+                        })
+                        form.render();
+                    }
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    console.error(ret);
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            })
+        }
+
+        window.refresh = function (param) {
+            render();
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://*.gitee.com">
+    <title>成功</title>
+    <link rel="stylesheet" href="../../component/pear/css/pear.css" />
+    <link rel="stylesheet" href="../../admin/css/reset.css" />
+</head>
+
+<body>
+    <div class="layui-form">
+        <div class="mainBox">
+            <a href="http://" target="_blank" rel="noopener noreferrer">&nbsp;&nbsp;项目地址</a>
+            <span>点亮小星星才可以使用演示系统哦(◠‿◠)</span>
+        </div>
+        <div class="bottom">
+            <div class="button-container">
+                <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit=""
+                    lay-filter="clickDetection">
+                    点击检测
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="../../component/layui/layui.js"></script>
+    <script src="../../component/pear/pear.js"></script>
+    <script>
+        layui.use(["common", "popup", "form", "jquery"], function () {
+            let form = layui.form;
+            form.on("submit(clickDetection)", function (data) {
+                const clientId = 'e69a70cc007b59a5db5ddd734e2ebe76f5d2eb87ab96087881310e8f97e5af01';
+                const redirectUri = '1ffc67d55121ae669d33de84c64803f7fec4f44ad2acb59a3c3de5f80c197502';
+                // 构建登录链接
+                const loginUrl = `https://gitee.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+
+                // 重定向到 Gitee 登录页面
+                window.location.href = loginUrl;
+
+                // // 在重定向 URI 处理授权信息，获取访问令牌
+                // const urlParams = new URLSearchParams(window.location.search);
+                // const code = urlParams.get('code');
+
+
+                return false;
+
+                parent.layer.close(parent.layer.getFrameIndex(window.name));
+
+                return false;
+            });
+
+        })
+
+    </script>
+</body>
+
+</html>

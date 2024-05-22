@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>接口管理</title>
+    <style>
+        .layui-form-label {
+            width: 120px;
+        }
+
+        .layui-input-block {
+            margin-left: 150px;
+            min-height: 36px
+        }
+
+        .layui-form-item span {
+            line-height: 2.7;
+        }
+
+        .layui-table-view {
+            border: 1px solid #c0c4cc;
+        }
+
+        .layui-none {
+            padding: 0 !important;
+            line-height: 35px !important;
+        }
+    </style>
+
+</head>
+<body class="pear-container">
+<div class="layui-card">
+    <div class="layui-tab layui-tab-brief" lay-filter="backend_routing-tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">管理端接口</li>
+            <li>用户端接口</li>
+            <li>对外接口</li>
+        </ul>
+        <!--         main-->
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+
+
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md3">
+                        <div class="layui-card">
+                            <div class="layui-card-body">
+                                <div style="overflow: auto;height: 500px;">
+                                    <ul id="backend_routing-route-tree" class="dtree" data-id="0" data-value="1"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <div class="layui-card">
+                            <div class="layui-card-body layui-hide" id="backend_routing-api-details">
+                                <!--表单部分-->
+                                <div class="layui-row">
+                                    <form class="layui-form" lay-filter="interface-details">
+                                        <div class="layui-form-item">
+                                            <div class="layui-row">
+                                                <div class="layui-col-xs12 layui-col-md9">
+                                                    <div class="layui-col-xs10 grid-demo grid-demo-bg1">
+                                                        <span data-value="" data-index="name"></span>
+                                                    </div>
+                                                    <div class="layui-col-xs2 layui-col-md2">
+                                                        <div class="grid-demo">
+                                                            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="backend_routing-debugBtn">调试</button>
+                                                            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="banckend_routing-edit">编辑</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">接口名称：</label>
+                                            <div class="layui-input-block">
+                                                <span data-value="" data-index="name"></span>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">请求类型：</label>
+                                            <div class="layui-input-block">
+                                                <span data-value="" data-index="method"></span>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">功能描述：</label>
+                                            <div class="layui-input-block">
+                                                <span data-value="" data-index="describe"></span>
+                                            </div>
+                                        </div>
+                                        <!--调用方式-->
+                                        <div class="layui-form-item">
+                                            <span>调用方式</span>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">路由地址：</label>
+                                            <div class="layui-input-block">
+                                                <span data-value="" data-index="path"></span>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">文件地址：</label>
+                                            <div class="layui-input-block">
+                                                <span data-value="" data-index="file_path"></span>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">方法名：</label>
+                                            <div class="layui-input-block">
+                                                <span data-value="" data-index="action"></span>
+                                            </div>
+                                        </div>
+                                        <!--请求参数-->
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">请求参数：</label>
+                                            <div class="layui-input-block">
+                                                <table id="request-params" class="layui-table" lay-filter="request-params"></table>
+                                            </div>
+                                        </div>
+
+                                        <!--返回参数-->
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">返回参数：</label>
+                                            <div class="layui-input-block">
+                                                <table id="response-params" class="layui-table" lay-filter="response-params"></table>
+                                            </div>
+                                        </div>
+
+                                        <!-- 调用示例-->
+                                        <div class="layui-form-item">
+                                            <span>调用示例</span>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">请求数据示例：</label>
+                                            <div class="layui-input-block">
+                                                <pre data-index="response_example"></pre>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">返回数据示例：</label>
+                                            <div class="layui-input-block">
+                                                <pre data-index="request_example"></pre>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">错误码：</label>
+                                            <div class="layui-input-block">
+                                                <table id="backend_routing-error-code" class="layui-table" lay-filter="backend_routing-error-code"></table>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+<script>
+    console.log(12)
+    const PRIMARY_KEY = "id";
+    const ROUTE_API = config.api_url + "/adminapi/system/route";
+    const ROUTE_SYNC_API = config.api_url + "/adminapi/system/route/sync_route";
+    const ROUTE_CATE_API = config.api_url + "/adminapi/system/route_cate";
+    layui.use(['table', 'treeTable', 'form', 'jquery', 'dtree', 'element', 'common', 'notice'], function () {
+        let treeTable = layui.treeTable;
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let dtree = layui.dtree;
+        let common = layui.common;
+        let layer = layui.layer;
+        let DTree;
+        let element = layui.element;
+        let notice = layui.notice;
+        let routing = '';
+
+        let app_name = "adminapi";
+        let MODULE_PATH = "view/system/maintain/backend_routing/";
+
+
+        // tab 切换事件
+        element.on('tab(backend_routing-tab)', function (data) {
+            $('#backend_routing-api-details').addClass('layui-hide')
+            if (data.index === 0) {
+                app_name = 'adminapi'
+                routeTree()
+            }
+            if (data.index === 1) {
+                app_name = 'api'
+                routeTree(app_name)
+            }
+            if (data.index === 2) {
+                app_name = 'outapi'
+                routeTree(app_name)
+            }
+        });
+
+        /**
+         * 路由树
+         * @param app_name
+         */
+        function routeTree(app_name = "adminapi") {
+            $request({
+                url: ROUTE_API + '/tree',
+                data: {app_name: app_name},
+                type: 'GET',
+                dataType: 'json',
+            }).then(function (ret) {
+                DTree = dtree.render({
+                    elem: "#backend_routing-route-tree",
+                    data: ret.data,
+                    line: true, // 有线树
+                    width: '100%',
+                    skin: "layui",
+                    initLevel: "2", //默认展开层级为1
+                    initActive: true, // 设置是否默认选中第一个子项
+                    accordion: true, // 设置是否开启手风琴模式，即一次只能展开一个大项
+                    icon: ["0", "-1"],  // 显示非最后一级节点图标，隐藏最后一级节点图标
+                    type: "all",  // 改为全量加载，即取消自动加载
+                    response: {
+                        treeId: "id", //节点ID（必填）
+                        parentId: "pid", //父节点ID（必填）
+                        title: "name", //节点名称（必填）
+                        // iconClass: "icon", //自定义二级图标class（非必填）
+                    },
+                    menubar: true,
+                    menubarTips: {
+                        group: ["moveDown", "moveUp", {
+                            menubarId: "refresh",
+                            icon: "dtree-icon-refresh",
+                            title: "刷新",  // 按钮的提示标题
+                            handler: function (node, $div) {  //扩展按钮的回调函数
+                                window.routeTree(app_name)
+                            }
+                        },
+                            //     {
+                            //     menubarId: "extGroupAdd",
+                            //     icon: "dtree-icon-roundadd",
+                            //     title: "新增分类",  // 按钮的提示标题
+                            //     handler: function (node, $div) {  //扩展按钮的回调函数
+                            //         window.add(node)
+                            //     }
+                            // },
+                            {
+                                menubarId: "extGroupSync",
+                                icon: "dtree-icon-qrcode1",
+                                title: "同步",
+                                handler: function (node, $div) {
+                                    window.syncRoute(app_name)
+                                }
+                            }
+                        ]
+                    },
+                    toolbar: true,
+                    toolbarFun: {
+                        loadToolbarBefore: function (buttons, param, $div) {
+                            if (param.leaf) { // 如果是叶子节点
+                                buttons.editToolbar = "";  // 取消编辑功能
+                            }
+                            buttons.addToolbar = "";  // 取消新增功能
+                            return buttons; // 将按钮对象返回
+                        },
+                        editTreeNode: function (treeNode, $div) {
+                            let data = {app_name: app_name, name: treeNode.editNodeName, sort: 0}
+                            $.ajax({
+                                url: ROUTE_CATE_API + '/' + treeNode.nodeId,
+                                type: 'PUT',
+                                dataType: 'json',
+                                contentType: 'application/json',
+                                data: JSON.stringify(data),
+                                success: function (ret) {
+                                    if (ret && ret.code !== -1) {
+                                        notice.success(ret.msg)
+                                        DTree.changeTreeNodeEdit(true);
+                                    } else {
+                                        notice.error(ret.msg)
+                                        DTree.changeTreeNodeEdit(false);
+                                    }
+                                },
+                                error: function (ret) {
+                                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                                },
+                                complete: function () {
+                                }
+                            });
+                        },
+                        addTreeNode: function (treeNode, $div) {
+                            console.log('添加')
+                        },
+                        delTreeNode: function (treeNode, $div) {
+                            let url = ROUTE_CATE_API;
+                            if (treeNode.leaf === true) {
+                                url = ROUTE_API
+                            }
+                            //删除接口
+                            $.ajax({
+                                url: url + '/' + treeNode.nodeId,
+                                type: 'DELETE',
+                                dataType: 'json',
+                                success: function (ret) {
+                                    if (ret && ret.code !== -1) {
+                                        notice.success(ret.msg)
+                                        DTree.changeTreeNodeDel(true);
+                                    } else {
+                                        notice.error(ret.msg)
+                                    }
+                                },
+                                error: function (ret) {
+                                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                                },
+                                complete: function () {
+                                }
+                            });
+                        }
+                    },
+                    formatter: {
+                        title: function (data) {  // 示例给有子集的节点返回节点统计
+                            let s = data.name;
+                            if (!data.children || data.children.length === 0) {
+                                let type = '';
+                                if (data.method === 'GET') {
+                                    type = ' <span style=\'color: rgb(97, 175, 254)\'>' + data.method + '&nbsp;&nbsp;</span>';
+                                }
+                                if (data.method === 'POST') {
+                                    type = ' <span style=\'color: rgb(73, 204, 144)\'>' + data.method + '&nbsp;&nbsp;</span>';
+                                }
+                                if (data.method === 'PUT') {
+                                    type = ' <span style=\'color: rgb(252, 161, 48)\'>' + data.method + '&nbsp;&nbsp;</span>';
+                                }
+                                if (data.method === 'DELETE' || data.method === 'DEL') {
+                                    type = ' <span style=\'color: rgb(249, 62, 62)\'>' + data.method + '&nbsp;&nbsp;</span>';
+                                }
+                                return type + s
+                            }
+                            return s;
+                        }
+                    }
+                });
+            }).catch(function (ret) {
+                alert("出错" + ret.status + "：" + ret.responseText);
+            });
+        }
+
+        //请求
+        table.render({
+            elem: '#request-params',
+            skin: 'grid',
+            cols: [[
+                {field: 'attribute', title: '属性', width: 120},
+                {field: 'type', title: '类型'},
+                {field: 'must', title: '必填'},
+                {field: 'trip', title: '说明'},
+            ]],
+            data: []
+        });
+        //返回
+        table.render({
+            elem: '#response-params',
+            skin: 'grid',
+            cols: [[
+                {field: 'attribute', title: '属性', width: 120},
+                {field: 'type', title: '类型'},
+                {field: 'trip', title: '说明'},
+            ]],
+            data: []
+        });
+
+        table.render({
+            elem: '#backend_routing-error-code',
+            skin: 'grid',
+            cols: [[
+                {field: 'attribute', title: '错误码', width: 120},
+                {field: 'type', title: '错误码取值'},
+                {field: 'trip', title: '解决方案'},
+            ]],
+            data: []
+        });
+
+
+        // 绑定节点点击事件
+        dtree.on("node(backend_routing-route-tree)", function (obj) {
+            if (!obj.param.leaf) {
+                let $div = obj.dom;
+                DTree.clickSpread($div); //调用内置函数展开节点
+                $('#backend_routing-api-details').addClass('layui-hide')
+            } else {
+                let id = obj.param.nodeId;
+                routing = null
+                //显示
+                $('#backend_routing-api-details').removeClass('layui-hide')
+                rightRendering(id)
+            }
+        });
+
+        // 监听编辑按钮点击事件
+        $('#banckend_routing-edit').click(function () {
+            if (routing) {
+                edit(routing);
+            }
+        });
+
+        $('#backend_routing-debugBtn').click(function () {
+            if (routing) {
+                debug(routing);
+            }
+        });
+
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: obj.name ?? 'Api调试',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit',
+                success: function (layero, index) {
+                    let childWindow = layero.find('iframe')[0].contentWindow;
+                    childWindow.receiveData(obj);
+                }
+            });
+        }
+
+        function add(obj) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '添加分类',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'cate.html?operation=add&app_name=' + app_name
+            });
+        }
+
+
+        // 打开调试模式
+        function debug(obj) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: obj.name ?? 'Api调试',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'debug.html?operation=edit&method=' + obj.method + '&path=' + obj.path + '&app_name=' + obj.app_name
+
+            });
+        }
+
+
+        //右侧内容渲染
+        function rightRendering(id) {
+            $.ajax({
+                url: ROUTE_API + '/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+
+                    if (ret && ret.code !== -1) {
+                        routing = ret.data;
+                        $('.layui-form-item span[data-index="name"]').html(routing.name);
+                        $('.layui-form-item span[data-index="method"]').html(routing.method);
+                        $('.layui-form-item span[data-index="describe"]').html(routing.describe);
+                        $('.layui-form-item span[data-index="type"]').html(routing.type);
+                        $('.layui-form-item span[data-index="path"]').html(routing.path);
+                        $('.layui-form-item span[data-index="file_path"]').html(routing.file_path);
+                        $('.layui-form-item pre[data-index="request_example"]').html(JSON.stringify(routing.request_example, null, '\t'));
+                        $('.layui-form-item pre[data-index="response_example"]').html(JSON.stringify(routing.response_example, null, '\t'));
+                        table.reloadData('request-params', {data: routing['request'] ?? []})
+                        table.reloadData('response-params', {data: routing['response'] ?? []})
+                    } else {
+                        notice.error(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                },
+                complete: function () {
+
+                }
+            });
+        }
+
+        function syncRoute(obj) {
+            layer.confirm('同步之后，路由文件中新增的接口添加到接口列表中，路由文件中删除的路由会同步的在接口列表中删除', {
+                icon: 3,
+                title: '立即同步'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: ROUTE_SYNC_API + '/' + app_name,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (ret) {
+                        if (ret && ret.code !== -1) {
+                            routeTree(app_name)
+                            notice.success(ret.msg)
+                        } else {
+                            notice.error(ret.msg)
+                        }
+                    },
+                    error: function (ret) {
+                        notice.error("出错" + ret.status + "：" + ret.responseText)
+                    },
+                    complete: function () {
+                        layer.close(loading);
+                    }
+                });
+            });
+        }
+
+        routeTree();
+
+    })
+</script>
+</body>
+</html>

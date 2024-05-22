@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>权限列表</title>
+    <style>
+        .search-rule {
+            border: 1px solid #abdcff;
+            background-color: #f0faff;
+            border-radius: 4px;
+            padding: 10px 10px 10px 15px;
+            font-size: 13px;
+        }
+
+        .layui-input-sm {
+            height: 30px;
+        }
+
+        .layui-input-width {
+            width: 260px !important;
+            margin-left: 20px;
+        }
+
+        .rule-list {
+            background-color: #f2f2f2;
+            width: 48.5%;
+            /*height: -webkit-max-content;*/
+            /*height: -moz-max-content;*/
+            height: max-content;
+            margin: 5px;
+            border-radius: 3px;
+            padding: 10px;
+            color: #333;
+            cursor: pointer;
+            -webkit-transition: all .1s;
+            transition: all .1s;
+        }
+
+        .rule-list:hover {
+            background-color: #badbfb;
+        }
+
+        .select-rule {
+            background-color: #badbfb;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="mainBox">
+    <div class="layui-card" style="padding: 20px">
+        <div class="search-rule">
+       <span>
+           1.接口可多选，可重复添加；
+           <br/>
+           2.添加路由按照路由规则进行添加，即可在开发工具->接口管理里面点击同步；
+           <br/>
+           3.同步完成即可在此选择对应的接口；
+       </span>
+        </div>
+    </div>
+    <!--搜索栏-->
+    <div class="layui-row">
+        <div class="layui-col-xs12">
+            <form action="">
+                <div class="layui-form-item">
+                    <div class="layui-input-inline layui-input-width">
+                        <input type="text" name="name" class="layui-input layui-input-sm" placeholder="请输入关键词搜索">
+                    </div>
+                    <div class="layui-input-inline">
+                        <button type="button" class="layui-btn layui-btn-sm" lay-on="query">搜索</button>
+                        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-on="reset">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="layui-row">
+        <div class="layui-col-xs3">
+            <div style="width:100%;height: 400px;overflow:auto;">
+                <ul id="system-system_menus-rule-cate" class="dtree organizationTree"></ul>
+            </div>
+        </div>
+        <div class="layui-col-xs9">
+            <div class="layui-col-md12 rule">
+                <!--接口列表-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom">
+    <div class="button-container">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system-system_menus-rule-save">
+            <i class="layui-icon layui-icon-ok"></i>
+            提交
+        </button>
+        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-on="close">
+            <i class="layui-icon layui-icon-close"></i>
+            取消
+        </button>
+    </div>
+</div>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="app.admin.user.update">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.user.delete">删除</button>
+</script>
+
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/menus";
+    const RULE_CATE_API = config.api_url + "/adminapi/setting/rule_cate";
+    const RULE_LIST_API = config.api_url + "/adminapi/setting/ruleList";
+
+
+    layui.use(['form', 'jquery', 'dtree', 'util', 'toast'], function () {
+        let form = layui.form;
+        let $ = layui.jquery;
+        let dtree = layui.dtree;
+        let toast = layui.toast;
+        let util = layui.util;
+        let rightData = [];
+        let DTree;
+
+
+        $request({
+            url: RULE_CATE_API,
+            type: 'GET',
+            dataType: 'json',
+        }).then(function (ret) {
+            DTree = dtree.render({
+                elem: "#system-system_menus-rule-cate",
+                data: ret.data,
+                initLevel: "1", //默认展开层级为1
+                line: true, // 有线树
+                accordion: true,
+                icon: "-1",  // 隐藏二级图标
+                skin: "layui",
+                width: '100%',
+                response: {
+                    treeId: "id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "name", //节点名称（必填）
+                }
+            });
+        }).catch(function (ret) {
+            toast.error({message: ret.status + "：" + ret.responseText})
+        });
+
+
+        // 头部搜索栏
+        form.on('submit(table-query)', function (obj) {
+            let data = obj.field;
+            let where = Object.keys(data).filter(function (key) {
+                return data[key] !== '';
+            }).reduce(function (obj, key) {
+                obj[key] = data[key];
+                return obj;
+            }, {});
+            window.render(where);
+            return false;
+        });
+
+        // 绑定节点点击事件
+        dtree.on("node(system-system_menus-rule-cate)", function (obj) {
+            if (!obj.param.leaf) {
+                let $div = obj.dom;
+                DTree.clickSpread($div); //调用内置函数展开节点
+                let param = {cate_id: obj.param.nodeId};
+                rightRrendering(param)
+            } else {
+                let param = {cate_id: obj.param.nodeId};
+                rightRrendering(param)
+            }
+        });
+
+        function rightRrendering(param) {
+            layui.$.ajax({
+                url: RULE_LIST_API,
+                type: 'GET',
+                data: {...param},
+                dataType: 'json',
+                success: function (ret) {
+                    rightData = ret.data !== undefined ? ret.data : [];
+                    renderingTemplate(rightData)
+                },
+                error: function (ret) {
+                    rightData = [];
+                    toast.error({name: "出错" + ret.status + "：" + ret.responseText})
+                },
+            });
+        }
+
+        util.on('lay-on', {
+            'query': function () {
+                let name = $('input[name="name"]').val();
+                let data = fuzzySearch(rightData, name)
+                renderingTemplate(data)
+            },
+            'reset': function () {
+                $('input[name="name"]').val('');
+                renderingTemplate(rightData)
+            },
+            'close': function () {
+                parent.layer.close(parent.layer.getFrameIndex(window.name));
+            }
+        })
+
+        function renderingTemplate(data) {
+            let html = '';
+            layui.$.each(data, function (index, item) {
+                html += `<div class="layui-col-xs6 layui-card rule-list" data-value=` + item.id + `>
+                                <div>接口名称:&nbsp;&nbsp;` + JSON.stringify(item.name) + `</div>
+                                <div>请求方式:&nbsp;&nbsp;` + item.method + `</div>
+                                <div>接口地址:&nbsp;&nbsp;` + item.path + `</div>
+                          </div>`
+            })
+            layui.$('.rule').html(html);
+        }
+
+
+        /**
+         * 提交
+         */
+        form.on('submit(system-system_menus-rule-save)', function (obj) {
+            let dataValues = [];
+            // 遍历每个元素并获取 data-value 属性的值
+            layui.$('.select-rule').each(function () {
+                let id = $(this).attr('data-value');
+                let item = findArrayByID(rightData, id)
+                if (item == {}) {
+                    return
+                }
+                let line = {
+                    api_url: item['path'],
+                    menu_name: item['name'],
+                    method: item['method'],
+                    path: getQueryString(PRIMARY_KEY),
+                    unique_auth: ''
+                }
+                dataValues.push(line)
+            });
+            $.ajax({
+                url: RESTFUL_API + '/batch',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({menus: dataValues}),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.code !== -1) {
+                        toast.success({message: ret.msg})
+                        setTimeout(() => {
+                            parent.refresh();
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));//关闭当前页
+                        }, 2000);
+                    } else {
+                        toast.error({message: ret.msg})
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    toast.error({message: "出错" + ret.status + "：" + ret.responseText})
+                },
+            });
+            return false;
+        });
+
+
+        /**
+         * 接口选中
+         */
+        layui.$(document).ready(function () {
+            layui.$(document).on('click', '.rule-list', function () {
+                $(this).toggleClass('select-rule');
+            });
+        });
+
+        /**
+         * 筛选对应的值
+         * @param array
+         * @param id
+         * @param field
+         * @returns {*[]}
+         */
+        function findArrayByID(array, id, field = 'id') {
+            const result = {};
+            for (let i = 0; i < array.length; i++) {
+                const item = array[i];
+                if (item[field] == id) {
+                    return item
+                }
+            }
+            return result;
+        }
+
+
+        /**
+         * 数组模糊搜索
+         * @param arr
+         * @param keyword
+         * @returns {*[]}
+         */
+        function fuzzySearch(arr, keyword) {
+            const result = [];
+            layui.$.each(arr, function (index, item) {
+                if (typeof item['name'] === 'string') {
+                    if (item['name'].includes(keyword)) {
+                        result.push(item);
+                    }
+                }
+            })
+            return result;
+        }
+    })
+
+
+</script>
+</body>
+</html>

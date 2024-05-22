@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>语言列表</title>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="language_name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言识别码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="file_name" value="" class="layui-input">
+                </div>
+            </div>
+
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="lang-list-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="lang-list-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="lang-list-table" lay-filter="lang-list-table" class="my-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="lang-list-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="lang-list-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="lang-list-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="lang-list-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="lang-list-delete">删除</button>
+</script>
+
+
+<!--状态开关-->
+<script type="text/html" id="lang-status">
+    <input type="checkbox" permission="lang-list-status" name="status" value="{{d.id}}" lay-skin="switch" lay-text="" lay-filter="lang-status" {{ d.status=== 1 ? 'checked' : '' }} />
+</script>
+
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const SELECT_API = config.api_url + "/adminapi/setting/lang_type/list";
+    const UPDATE_API = config.api_url + "/adminapi/setting/lang_type/update";
+    const UPDATE_STATE_API = config.api_url + "/adminapi/setting/lang_type/status";
+    const DELETE_API = config.api_url + "/adminapi/setting/lang_type/del";
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'encrypt', 'popup'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let common = layui.common;
+        let util = layui.util;
+        let encrypt = layui.encrypt;
+        let popup = layui.popup;
+
+        let MODULE_PATH = "view/setting/lang/list/";
+
+        let cols = [
+
+            {
+                align: 'center',
+                title: '序号',
+                type: 'numbers',
+                width: 60
+            },
+            {
+                title: '语言名称',
+                field: 'language_name',
+                align: 'left',
+                width: 120
+            },
+            {
+                title: '浏览器语言识别码',
+                field: 'file_name',
+                align: 'left',
+            },
+            {
+                title: '状态',
+                field: 'status',
+                align: 'center',
+                width: 100,
+                templet: '#lang-status'
+            },
+            {
+                title: '操作',
+                toolbar: '#lang-list-table-bar',
+                width: 170,
+                align: "center",
+                fixed: "right",
+            }
+        ]
+
+
+        function render() {
+            table.render({
+                elem: "#lang-list-table",
+                url: SELECT_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                toolbar: "#lang-list-table-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status == 200 ? 0 : -1, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.count, // 解析数据长度
+                        "data": ret.data.list // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+        render();
+
+        table.on('tool(lang-list-table)', function (obj) {
+            if (obj.event === 'remove') {
+                window.remove(obj);
+            } else if (obj.event === 'edit') {
+                window.edit(obj);
+            } else if (obj.event === 'dept') {
+                window.dept(obj);
+            }
+        });
+
+        table.on('toolbar(lang-list-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'recycle') {
+                recycle(obj);
+            }
+        });
+
+        // 头部搜索栏
+        form.on('submit(lang-list-query)', function (data) {
+            table.reload("lang-list-table", {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+        /**
+         * 状态
+         */
+        form.on('switch(lang-status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            layui.$.ajax({
+                url: UPDATE_STATE_API + '/' + id + '/' + status,
+                type: 'PUT',
+                dataType: 'json',
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg)
+                    } else {
+                        popup.failure(ret.msg, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        })
+                    }
+                }
+
+            })
+        });
+
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+
+         function remove(obj) {
+            layer.confirm('确定要删除该用户', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            popup.success(ret.msg, function () {
+                                obj.del();
+                            })
+                        } else {
+                            popup.failure(ret.msg)
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                })
+            });
+        }
+
+        window.refresh = function (param) {
+            render();
+        }
+    })
+</script>
+</body>
+</html>

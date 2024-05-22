@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>流程定义</title>
+</head>
+
+<body class="pear-container">
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">唯一编码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">显示名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="display_name" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <select name="state">
+                        <option value="" selected>所有</option>
+                        <option value="1">启用</option>
+                        <option value="0">禁用</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="define-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="define-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="define-table" lay-filter="define-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="define-table-toolbar">
+    <!-- <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="wf-definition-add">
+        <i class="layui-icon layui-icon-add-1"></i>导入
+    </button> -->
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="define-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="detail">查看</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="start">发起</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove">删除</button>
+</script>
+
+<!--状态开关-->
+<script type="text/html" id="define-process-status">
+    <input type="checkbox" name="state" value="{{d.id}}" permission="wf-process-status" lay-skin="switch" lay-text="" lay-filter="define-process-status" {{ d.state=== 1 ? 'checked' : '' }}/>
+</script>
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+
+<script>
+
+    const PRIMARY_KEY = "id";
+    //layui 对应id
+    const LAYUI_TABLE_DATA_ID = "define-table";
+    const LAYUI_TABLE_BAR_ID = "define-table-bar";
+    const LAYUI_TABLE_TOOLBAR_ID = "define-table-toolbar";
+    const LAYUI_TABLE_QUERY_ID = "define-table-query";
+    const LAYUI_TABLE_RESET_ID = "define-table-reset";
+    //当前模块的基础目录
+    const MODULE_PATH = "view/wf/definition/";
+    //Api相关接口
+    const LIST_API = config.api_url + "/adminapi/wf/process_define/page";
+    const READ_API = config.api_url + "/adminapi/wf/process_define/detail";
+    const SAVE_API = config.api_url + "/adminapi/wf/process_define/save";
+    const EDIT_API = config.api_url + "/adminapi/wf/process_define/edit";
+    const STATE_API = config.api_url + "/adminapi/wf/process_define/set_status";
+    const UPDATE_API = config.api_url + "/adminapi/wf/process_define/update";
+    const DELETE_API = config.api_url + "/adminapi/wf/process_define/delete";
+    const REMOVE_API = config.api_url + "/adminapi/wf/process_define/remove";
+
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'popup'], function () {
+            let table = layui.table;
+            let form = layui.form;
+            let $ = layui.jquery;
+            let common = layui.common;
+            let util = layui.util;
+            let popup = layui.popup;
+
+
+            let cols = [
+                {
+                    type: 'checkbox'
+                },
+                {
+                    title: 'ID',
+                    field: 'id',
+                    align: 'center',
+                    sort: true,
+                    hide: true,
+                    width: 60
+                },
+
+                {
+                    title: '唯一编码',
+                    field: 'name',
+                    align: 'left',
+                    width: 150
+                },
+                {
+                    title: '显示名称',
+                    field: 'display_name',
+                    align: 'left'
+                },
+                {
+                    title: '版本',
+                    field: 'version',
+                    align: 'left'
+                },
+                {
+                    title: '状态',
+                    field: 'state',
+                    align: 'left',
+                    templet: '#define-process-status',
+                    width: 100
+                },
+                {
+                    title: '创建时间',
+                    field: 'create_time',
+                    align: 'left',
+                    width: 170
+                },
+                {
+                    title: '更新时间',
+                    field: 'update_time',
+                    align: 'left',
+                    width: 170
+                },
+                {
+                    title: '操作',
+                    toolbar: '#'.concat(LAYUI_TABLE_BAR_ID),
+                    align: "left",
+                    fixed: "right",
+                    minWidth: 190,
+                    width: 200,
+                }
+            ]
+
+
+            function render() {
+                table.render({
+                    elem: '#'.concat(LAYUI_TABLE_DATA_ID),
+                    url: LIST_API,
+                    page: true,
+                    cols: [cols],
+                    skin: "line",
+                    toolbar: "#".concat(LAYUI_TABLE_TOOLBAR_ID),
+                    autoSort: false,
+                    parseData: function (ret) {
+                        return {
+                            "code": ret.status === 200 ? 0 : -1, // 解析接口状态
+                            "msg": ret.msg, // 解析提示文本
+                            "count": ret.data.count, // 解析数据长度
+                            "data": ret.data.list // 解析数据列表
+                        };
+                    },
+                    defaultToolbar: [{
+                        title: "刷新",
+                        layEvent: "refresh",
+                        icon: "layui-icon-refresh",
+                    }, "filter", "print", "exports"]
+                })
+            }
+
+            render();
+
+            table.on('tool(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+                if (obj.event === 'remove') {
+                    remove(obj);
+                } else if (obj.event === 'start') {
+                    start(obj);
+                } else if (obj.event == 'detail') {
+                    detail(obj)
+                }
+            });
+
+            table.on('toolbar(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+                if (obj.event === 'refresh') {
+                    window.refreshTable()
+                }
+            });
+
+            // 头部搜索栏
+            form.on('submit(' + LAYUI_TABLE_QUERY_ID + ')', function (data) {
+                table.reload(LAYUI_TABLE_DATA_ID, {
+                    page: {
+                        curr: 1
+                    },
+                    where: data.field
+                })
+                return false;
+            });
+
+            //状态切换
+            form.on('switch(define-process-status)', function (data) {
+                let state = this.checked ? 1 : 0;
+                let switchElement = this; // 保存当前开关的引用
+                $.ajax({
+                    url: STATE_API,
+                    type: 'post',
+                    dataType: 'json',
+                    data: {id: data.value, state},
+                    success: function (ret) {
+                        if (ret && ret.status == 200) {
+                            popup.success(ret.msg)
+                        } else {
+                            popup.failure(ret.msg, function () {
+                                switchElement.checked = !switchElement.checked;
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                })
+            });
+
+
+            function detail(obj) {
+                let url = "view/wf/common/previewProcess.html";
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '流程预览',
+                    shade: 0.1,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: url + '?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY],
+                    success: function (layero, index) {
+                        let childWindow = window[layero.find('iframe')[0]['name']];
+                    }
+                })
+            }
+
+            function start(obj) {
+                layer.open({
+                    type: 2,
+                    offset: 'r',
+                    area: ['70%', '100%'],
+                    title: false,
+                    shade: 0.1,
+                    closeBtn: 0,
+                    shadeClose: true,
+                    anim: -1,
+                    skin: 'layer-anim-right',
+                    move: true,
+                    content: 'view/wf/common/launchProcess.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY],
+                    success: function (layero, index) {
+                    }, end: function (layero, index) {
+
+                    }
+                });
+            }
+
+            /**
+             * 删除指定数据
+             * @param obj
+             */
+            function remove(obj) {
+                layer.confirm('次操作将永久删除该记录,是否继续？', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: DELETE_API,
+                        type: 'post',
+                        dataType: 'json',
+                        data: {id: obj.data[PRIMARY_KEY]},
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                popup.success(ret.msg, function () {
+                                    obj.del();
+                                })
+                            } else {
+                                popup.failure(ret.msg);
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                });
+            }
+
+            /**
+             * 刷新
+             */
+            window.refreshTable = function () {
+                table.reloadData(LAYUI_TABLE_DATA_ID, {
+                    scrollPos: "fixed"
+                });
+            }
+
+            form.render();
+        })
+</script>
+</body>
+
+</html>

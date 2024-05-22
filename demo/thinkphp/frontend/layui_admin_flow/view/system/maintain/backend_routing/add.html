@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>接口维护</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+    <style>
+        .layui-form-label {
+            width: 120px;
+        }
+
+        .layui-input-block {
+            margin-left: 150px;
+            min-height: 36px
+        }
+
+        .layui-form-item span {
+            line-height: 2.7;
+        }
+
+        .layui-table-view {
+            border: 1px solid #c0c4cc;
+        }
+
+        .layui-none {
+            padding: 0 !important;
+            line-height: 35px !important;
+        }
+
+        .layui-form-checkbox {
+            margin-top: 0px !important;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <form class="layui-form" lay-filter="backend_routing-add-form">
+        <div class="mainBox">
+            <div class="layui-form-item">
+                <h5 style="padding: 10px">接口信息</h5>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">接口名称：</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" class="layui-input" value=""/>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">请求类型：</label>
+                <div class="layui-input-block">
+                    <select name="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PUT">PUT</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">功能描述：</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入内容" class="layui-textarea" name="describe"></textarea>
+                </div>
+            </div>
+            <!--调用方式-->
+            <div class="layui-form-item">
+                <h5 style="padding: 10px">调用方式</h5>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">路由地址：</label>
+                <div class="layui-input-block">
+                    <span data-value="" data-index="path"></span>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">文件地址：</label>
+                <div class="layui-input-block">
+                    <span data-value="" data-index="file_path"></span>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">方法名：</label>
+                <div class="layui-input-block">
+                    <span data-value="" data-index="action"></span>
+                </div>
+            </div>
+            <!--请求参数-->
+            <div class="layui-form-item">
+                <label class="layui-form-label">请求参数：</label>
+                <div class="layui-input-block">
+                    <table id="backend_routing-add-request-params" class="layui-table" lay-filter="backend_routing-add-request-params"></table>
+                    <br/>
+                    <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-on="request-add" type="button">添加参数</button>
+                </div>
+            </div>
+
+            <!--返回参数-->
+            <div class="layui-form-item">
+                <label class="layui-form-label">返回参数：</label>
+                <div class="layui-input-block">
+                    <table id="backend_routing-add-response-params" class="layui-table" lay-filter="backend_routing-add-response-params"></table>
+                    <br/>
+                    <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-on="response-add" type="button">添加参数</button>
+                </div>
+            </div>
+
+            <!-- 调用示例-->
+            <div class="layui-form-item">
+                <span>调用示例</span>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">请求数据示例：</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="" class="layui-textarea" name="response_example"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">返回数据示例：</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="" class="layui-textarea" name="request_example"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">错误码：</label>
+                <div class="layui-input-block">
+                    <table id="error-code" class="layui-table" lay-filter="error-code"></table>
+                    <br/>
+                    <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-on="error-add" type="button">添加参数</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom">
+            <div class="button-container">
+                <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="api-save">
+                    <i class="layui-icon layui-icon-ok"></i>
+                    提交
+                </button>
+                <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-on="cancel">
+                    <i class="layui-icon layui-icon-refresh"></i>
+                    返回
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--删除公共-->
+<script type="text/html" id="backend_routing-add-bar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+
+<!-- 请求参数是否必填 -->
+<script type="text/html" id="backend_routing-add-debug-must">
+    <input class="layui-input " type="checkbox" name="must" lay-skin="primary" lay-filter="backend_routing-add-debug-must" {{ d.must== true ? 'checked' : '' }} />
+</script>
+
+<!-- 类型选择 -->
+<script type="text/html" id="type">
+    {{#  var data = ['String', 'Array', 'Object', 'Number', 'Boolean', 'Null', 'Any']; }}
+    <select name="city" class="layui-border select-demo-primary" lay-ignore style="width: 100%">
+        <option value=""></option>
+        {{# layui.each(data, function(i, v){ }}
+        <option value="{{= v }}" {{=v === d.type ? 'selected' : '' }}>{{= v }}</option>
+        {{# }); }}
+    </select>
+</script>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const UPDATE_API = config.api_url + '/adminapi/system/route'
+
+    function receiveData(obj) {
+        layui.use(['table', 'form', 'jquery', 'common', 'notice', 'util', 'dropdown'], function () {
+            let table = layui.table;
+            let form = layui.form;
+            let $ = layui.jquery;
+            let layer = layui.layer;
+            let notice = layui.notice;
+            let util = layui.util;
+
+            //请求参数
+            table.render({
+                elem: '#backend_routing-add-request-params',
+                skin: 'grid',
+                cols: [[
+                    {field: 'attribute', title: '属性', width: 120, edit: true},
+                    {field: 'type', title: '类型', edit: true, toolbar: '#type'},
+                    {field: 'must', title: '必填', templet: '#backend_routing-add-debug-must'},
+                    {field: 'trip', title: '说明', edit: true},
+                    {field: '', title: '操作', width: 90, toolbar: '#backend_routing-add-bar'}
+                ]],
+                data: [],
+                done: function (res, curr, count) {
+                    let options = this;
+                    // 获取当前行数据
+                    table.getRowData = function (elem) {
+                        let index = $(elem).closest('tr').data('index');
+                        return table.cache[options.id][index] || {};
+                    };
+
+                    // 原生 select 事件
+                    $('.select-demo-primary').on('change', function () {
+                        let value = this.value; // 获取选中项 value
+                        let data = table.getRowData(this); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
+                        let rowIndex = data['LAY_INDEX'];
+                        let cacheData = table.cache['backend_routing-add-request-params'];
+                        console.log(this.value)
+                        cacheData[rowIndex].type = this.value;
+                        table.reloadData('backend_routing-add-request-params');
+                    });
+
+                }
+            });
+            table.on('tool(backend_routing-add-request-params)', function (obj) {
+                if (obj.event === 'del') {
+                    obj.del();
+                }
+            });
+
+
+            // 监听行开关的点击事件
+            form.on('checkbox(backend_routing-add-debug-must)', function (obj) {
+                let rowIndex = obj.othis.parents('tr').eq(0).data('index');
+                let cacheData = table.cache['backend_routing-add-request-params'];
+                cacheData[rowIndex].must = obj.elem.checked == true ? 1 : 0;
+                // 重新渲染表格
+                table.reload('backend_routing-add-request-params');
+            });
+
+
+            //返回参数
+            table.render({
+                elem: '#backend_routing-add-response-params',
+                skin: 'grid',
+                cols: [[
+                    {field: 'attribute', title: '属性', width: 120, edit: true},
+                    {field: 'type', title: '类型', toolbar: '#type'},
+                    {field: 'trip', title: '说明', edit: true},
+                    {field: '', title: '操作', width: 90, toolbar: '#backend_routing-add-bar'}
+                ]],
+                data: [],
+                done: function (res, curr, count) {
+                    let options = this;
+                    // 获取当前行数据
+                    table.getRowData = function (elem) {
+                        let index = $(elem).closest('tr').data('index');
+                        return table.cache[options.id][index] || {};
+                    };
+
+                    // 原生 select 事件
+                    $('.select-demo-primary').on('change', function () {
+                        let value = this.value; // 获取选中项 value
+                        let data = table.getRowData(this); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
+                        // 更新数据中对应的字段
+                        console.log(data)
+                        data.type = value;
+                    });
+
+                }
+            });
+            table.on('tool(backend_routing-add-response-params)', function (obj) {
+                if (obj.event === 'del') {
+                    obj.del();
+                }
+            });
+
+            table.render({
+                elem: '#error-code',
+                skin: 'grid',
+                cols: [[
+                    {field: 'attribute', title: '错误码', width: 120, edit: true},
+                    {field: 'type', title: '错误码取值', edit: true},
+                    {field: 'trip', title: '解决方案', edit: true},
+                    {field: '', title: '操作', width: 90, toolbar: '#backend_routing-add-bar'}
+                ]],
+                data: []
+            });
+            table.on('tool(error-code)', function (obj) {
+                if (obj.event === 'del') {
+                    obj.del();
+                }
+            });
+
+
+            form.val('add', {
+                'name': obj.name,
+                'method': obj.method
+            });
+
+            $('.layui-form-item span[data-index="path"]').html(obj.path);
+            $('.layui-form-item span[data-index="file_path"]').html(obj.file_path);
+            $('.layui-form-item span[data-index="action"]').html(obj.action);
+            form.render();
+
+
+            /**
+             * 表单提交
+             */
+            form.on('submit(api-save)', function (data) {
+                let rows = data.field;
+                $.each(rows, function (index, item) {
+                    if (obj.hasOwnProperty(index)) {
+                        obj[index] = item;
+                    }
+                })
+
+                obj.request = convertToObject(table.getData('backend_routing-add-request-params'))
+                obj.response = convertToObject(table.getData('backend_routing-add-response-params'))
+                obj.error_code = table.getData('error-code')
+                $.ajax({
+                    url: UPDATE_API + '/' + obj[PRIMARY_KEY],
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(obj),
+                    dataType: 'json',
+                    success: function (ret) {
+                        if (ret && ret.code != -1) {
+                            let parentWindow = window.parent;
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parentWindow.rightRendering(obj[PRIMARY_KEY]);
+                            notice.success(ret.msg)
+                            return false;
+                        } else {
+                            notice.error(ret.msg)
+                            return false;
+                        }
+                    },
+                    error: function (ret) {
+                        notice.error("出错" + ret.status + "：" + ret.responseText)
+                    },
+                });
+                return false;
+            });
+
+            util.on('lay-on', {
+                'request-add': function () {
+                    let newData = {id: '', attribute: '', children: [], trip: '', type: '', must: ''};
+                    let allData = table.getData('backend_routing-add-request-params')
+                    console.log(allData)
+                    allData.push(newData);
+                    table.reloadData('backend_routing-add-request-params', {data: allData})
+                },
+                'response-add': function () {
+                    let newData = {key: '', value: ''};
+                    let allData = table.getData('backend_routing-add-response-params')
+                    allData.push(newData);
+                    table.reloadData('backend_routing-add-response-params', {data: allData})
+                },
+                'error-add': function () {
+                    let newData = {key: '', value: ''};
+                    let allData = table.getData('error-code')
+                    allData.push(newData);
+                    table.reloadData('error-code', {data: allData})
+                },
+                'cancel': function () {
+                    parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                }
+            })
+
+            /**
+             * 表格数据渲染
+             * @param obj
+             */
+            function renderer(obj) {
+                table.reloadData('backend_routing-add-request-params', {data: obj['request'] != undefined && obj['request'] != null ? obj['request'] : []})
+                table.reloadData('request-response', {data: obj['response'] != undefined && obj['response'] != null ? obj['response'] : []})
+                table.reloadData('error_code', {data: obj['error_code'] != undefined && obj['error_code'] != null ? obj['error_code'] : []})
+            }
+
+            renderer(obj)
+        })
+    };
+
+    function convertToObject(arr, key = 'attribute') {
+        let result = [];
+        if (arr.length === 0 || arr === undefined) {
+            return result;
+        }
+        layui.$.each(arr, function (index, item) {
+            if (item[key] === '' || item[key] === undefined) {
+                return
+            }
+            result.push(item);
+        })
+        return result;
+    }
+
+</script>
+</body>
+</html>

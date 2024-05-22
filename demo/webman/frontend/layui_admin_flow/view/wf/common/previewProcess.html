@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>查看流程定义</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <style>
+        .mainBox {
+            height: 100vh;
+        }
+
+        .iframe-container {
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+<form class="layui-form" action="" lay-filter="create-data-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-tab layui-tab-brief">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">流程图</li>
+                    <li>流程数据</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show" style="height: calc(100vh - 120px);">
+                        <div id="preview-process-chart" class="parent iframe-container"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                            <textarea placeholder="" class="layui-textarea" name="content"
+                                      style="height: calc(100vh - 110px);" readonly></textarea>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+<script>
+    const PRIMARY_KEY = "id";
+    const DETAIL_API = config.api_url + "/adminapi/wf/process_define/detail";
+
+    // 字段设置
+    layui.use(["popup", "form", "jquery", "util"], function () {
+        let form = layui.form;
+        let util = layui.util;
+        let $ = layui.jquery;
+        let graphData = {};
+        let uniqueId = generate32BitUniqueId();
+        if (getQueryString('operation') == 'edit') {
+            get()
+            initChat({graphData,viewer:true})
+        }
+
+
+        function initChat(data) {
+            let url = './design/index.html';
+            iframeRender('p_' + uniqueId, 'preview-process-chart', resolveRelativeUrl(url))
+            let iframe = document.getElementById('p_' + uniqueId,);
+            iframe.onload = function () {
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(data, '*');
+                }
+            }
+        }
+
+        /**
+         * 渲染ifream 数据
+         * @param uniqueId
+         * @param targetId
+         * @param src
+         */
+        function iframeRender(uniqueId, targetId, src) {
+            let iframe = document.createElement('iframe');
+            iframe.id = uniqueId;
+            iframe.src = src;
+            iframe.frameborder = 0;
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.style.border = 'none';
+            iframe.style.overflow = 'hidden';
+            iframe.allowFullscreen = true; // 允许全屏显示-->
+            // 添加类名-->
+            // iframe.classList.add("myFrame");
+            // 等待 iframe 内容加载完成
+            iframe.onload = function () {
+                // 获取 iframe 内部文档的高度
+                let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                let iframeBody = iframeDoc.body;
+                // 设置 iframe 的初始高度
+                let iframeHeight = iframeBody.scrollHeight;
+                iframe.style.height = iframeHeight + 30 + 'px';
+                // 监听 body 元素的高度变化
+                let bodyObserver = new MutationObserver(function (mutations) {
+                    // 获取 body 元素的新高度
+                    let newIframeHeight = iframeBody.scrollHeight;
+                    if (newIframeHeight !== iframeHeight) {
+                        iframeHeight = newIframeHeight;
+                        iframe.style.height = iframeHeight + 30 + 'px';
+                    }
+                });
+                // 开始监听 body 元素的高度变化
+                bodyObserver.observe(iframeBody, {attributes: true, childList: true, subtree: true});
+            };
+            document.getElementById(targetId).appendChild(iframe);
+        }
+
+        function get() {
+            layui.$.ajax({
+                    url: DETAIL_API,
+                    method: 'GET',
+                    dataType: 'JSON',
+                    data: {id: getQueryString(PRIMARY_KEY)},
+                    async: false,
+                    success: function (ret) {
+                        if (ret.status === 200) {
+                            let data = ret.data;
+                            graphData = data['content'] ?? [];
+                            form.val("create-data-form", {
+                                'content': JSON.stringify(data.content, null, '\t')
+                            })
+                            form.render();
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                }
+            );
+        }
+
+        /**
+         * 输出全路径
+         * @param relativeUrl
+         * @returns {string}
+         */
+        function resolveRelativeUrl(relativeUrl) {
+            let base = window.location.href;
+            let resolvedUrl = new URL(relativeUrl, base);
+            return resolvedUrl.href;
+        }
+
+        /**
+         * 生成32位uuid
+         */
+        function generate32BitUniqueId() {
+            let timestamp = Date.now().toString(36); // 将时间戳转换为36进制
+            let randomPart = Math.random().toString(36).substring(2); // 生成一个随机数并转换为36
+            let uniqueId = (timestamp + randomPart).substring(0, 32);
+            return uniqueId;
+        }
+
+        /**
+         * 关闭当前页面
+         */
+        util.on('lay-on', {
+            close: function () {
+                parent.refreshTable();
+                parent.layer.close(parent.layer.getFrameIndex(window.name));
+            }
+        });
+    });
+</script>
+
+</body>
+
+</html>

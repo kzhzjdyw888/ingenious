@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>用户管理</title>
+</head>
+
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">模型编码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="model_key" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">模型名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="model_name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="designer-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="designer-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="designer-table" lay-filter="designer-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="designer-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="wf-designer-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="remove" permission="wf-designer-delete">
+        <i class="layui-icon layui-icon-delete"></i>删除
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="designer-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="design">设计</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="deploy">部署</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="redeploy">重新部署</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove">删除</button>
+</script>
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    //layui 对应id
+    const LAYUI_TABLE_DATA_ID = "designer-table";
+    const LAYUI_TABLE_BAR_ID = "designer-table-bar";
+    const LAYUI_TABLE_TOOLBAR_ID = "designer-table-toolbar";
+    const LAYUI_TABLE_QUERY_ID = "designer-table-query";
+    const LAYUI_TABLE_RESET_ID = "designer-table-reset";
+    //当前模块的基础目录
+    const MODULE_PATH = "view/wf/designer/";
+    //Api相关接口
+    const LIST_API = config.api_url + "/adminapi/wf/designer/page";
+    const READ_API = config.api_url + "/adminapi/wf/designer/detail";
+    const SAVE_API = config.api_url + "/adminapi/wf/designer/save";
+    const EDIT_API = config.api_url + "/adminapi/wf/designer/edit";
+    const STATE_API = config.api_url + "/adminapi/wf/designer/state";
+    const UPDATE_API = config.api_url + "/adminapi/wf/designer/update";
+    const DELETE_API = config.api_url + "/adminapi/wf/designer/delete";
+    const REMOVE_API = config.api_url + "/adminapi/wf/designer/remove";
+    const DEPLOY_API = config.api_url + "/adminapi/wf/designer/deploy";
+    const REDEPLOY_API = config.api_url + "/adminapi/wf/designer/redeploy";
+    const UPDATE_DESIGN_API = config.api_url + "/adminapi/wf/designer/update_define";
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util'], function () {
+            let table = layui.table;
+            let form = layui.form;
+            let $ = layui.jquery;
+            let common = layui.common;
+
+            let cols = [
+
+                {
+                    type: 'checkbox'
+                },
+                {
+                    title: 'ID',
+                    field: 'id',
+                    align: 'center',
+                    sort: true,
+                    hide: true,
+                    width: 60
+                },
+                {
+                    title: '流程分类',
+                    field: 'type_name',
+                    align: 'left'
+                },
+                {
+                    title: '唯一编码',
+                    field: 'name',
+                    align: 'left',
+                    width: 150
+                },
+                {
+                    title: '显示名称',
+                    field: 'display_name',
+                    align: 'left'
+                },
+                {
+                    title: '描述',
+                    field: 'description',
+                    align: 'left',
+                    minWidth: 250
+                },
+                {
+                    title: '是否部署',
+                    field: 'description',
+                    align: 'left',
+                    templet: function (args) {
+                        let d = args['is_deployed'] != undefined ? args['is_deployed'] : 0;
+                        return d == 1 || d === '1' ? '是' : '否';
+                    }
+                },
+                {
+                    title: '备注',
+                    field: 'remarks',
+                    hide: true,
+                    align: 'left'
+                },
+                {
+                    title: '更新时间',
+                    field: 'update_time',
+                    align: 'left',
+                    width: 170
+                },
+                {
+                    title: '操作',
+                    toolbar: '#'.concat(LAYUI_TABLE_BAR_ID),
+                    align: "left",
+                    fixed: "right",
+                    minWidth: 300
+                }
+            ]
+
+
+            function  render() {
+                table.render({
+                    elem: "#".concat(LAYUI_TABLE_DATA_ID),
+                    url: LIST_API,
+                    page: true,
+                    cols: [cols],
+                    skin: "line",
+                    toolbar: "#".concat(LAYUI_TABLE_TOOLBAR_ID),
+                    autoSort: false,
+                    parseData: function (ret) {
+                        return {
+                            "code": ret.status === 200 ? 0 : -1, // 解析接口状态
+                            "msg": ret.msg, // 解析提示文本
+                            "count": ret.data.count, // 解析数据长度
+                            "data": ret.data.list // 解析数据列表
+                        };
+                    },
+                    defaultToolbar: [{
+                        title: "刷新",
+                        layEvent: "refresh",
+                        icon: "layui-icon-refresh",
+                    }, "filter", "print", "exports"]
+                })
+            }
+
+            render();
+
+            table.on('tool(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+                if (obj.event === 'remove') {
+                    remove(obj);
+                } else if (obj.event === 'edit') {
+                    edit(obj);
+                } else if (obj.event == 'design') {
+                    design(obj)
+                } else if (obj.event == 'deploy') {
+                    deploy(obj)
+                } else if (obj.event == 'redeploy') {
+                    redeploy(obj)
+                }
+            });
+
+            table.on('toolbar(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+                if (obj.event === 'add') {
+                    add();
+                } else if (obj.event === 'refresh') {
+                    window.refreshTable()
+                } else if (obj.event === 'remove') {
+                    batchRemove(obj);
+                }
+            });
+
+            // 头部搜索栏
+            form.on('submit(' + LAYUI_TABLE_QUERY_ID + ')', function (data) {
+                table.reload(LAYUI_TABLE_DATA_ID, {
+                    page: {
+                        curr: 1
+                    },
+                    where: data.field
+                })
+                return false;
+            });
+
+             function add () {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '新增流程设计',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'add.html?operation=add',
+                    end:function (layero, index, that){
+                        console.log(123)
+
+                    }
+                });
+            }
+
+             function edit (obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '修改流程设计',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+            function design (obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '流程设计',
+                    shade: 0.1,
+                    area: ['100%', '100%'],
+                    content: 'view/wf/common/design/index.html?operation=default&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY],
+                    success: function (layero, index, that) {
+
+                        // 获取 iframe 的窗口对象
+                        let iframeWin = window[layero.find('iframe')[0].name];
+                        let params = {
+                            viewer: false,
+                            graphData: acquisitionProcess(obj.data[PRIMARY_KEY]),
+                            highLight: [],
+                            commitPath: UPDATE_DESIGN_API,
+                            extendAttrConfig: {}
+                        };
+                        iframeWin.postMessage(params, '*');
+                    }
+                });
+
+            }
+
+            function deploy (obj) {
+                layer.confirm('部署会生成新的流程定义版本，确定部署吗？', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: DEPLOY_API,
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {id: obj.data.id},
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    // obj.del();
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                });
+            }
+
+            function redeploy(obj) {
+                layer.confirm('重新部署会覆盖最新版流程定义，确定重新部署吗？', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: REDEPLOY_API,
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {id: obj.data.id},
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    // obj.del();
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                })
+            }
+
+
+            /**
+             * 删除管理员
+             * @param obj
+             */
+            function remove(obj) {
+                layer.confirm('确定要删除该分组', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: DELETE_API,
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {id: obj.data[PRIMARY_KEY]},
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    obj.del();
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                });
+            }
+
+            /**
+             * 批量删除
+             * @param obj
+             * @returns {boolean}
+             */
+             function batchRemove (obj) {
+                //方法1：直接获得所有选择的ID
+                let checkIds = common.checkField(obj, PRIMARY_KEY);
+                if (checkIds === "") {
+                    layer.msg("未选中数据", {
+                        icon: 3,
+                        time: 1000
+                    });
+                    return false;
+                }
+                layer.confirm('确定要删除这些分类', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: REMOVE_API,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({data: checkIds}),
+                        dataType: 'json',
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    window.refreshTable()
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            console.error(ret);
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        },
+                    })
+                });
+            }
+
+
+            function acquisitionProcess(id) {
+                let result = {};
+                layui.$.ajax({
+                    url: READ_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {id},
+                    async: false,
+                    success: function (ret) {
+                        if (ret.status == 200) {
+                            result = ret.data['content'] ?? {};
+                            result.type_id = ret.data['type_id'] ?? '';
+                            result.name = ret.data['name'] ?? '';
+                            result.display_name = ret.data['display_name'] ?? '';
+                        }
+                    },
+                    error: function (ret) {
+
+                    },
+                });
+                return result;
+            }
+
+            /**
+             * 刷新
+             */
+            window.refreshTable = function () {
+                table.reloadData(LAYUI_TABLE_DATA_ID, {
+                    scrollPos: "fixed"
+                });
+            }
+        }
+    )
+</script>
+</body>
+
+</html>

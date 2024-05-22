@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>定时任务</title>
+    <style>
+        .search-rule {
+            border: 1px solid #abdcff;
+            background-color: #f0faff;
+            border-radius: 4px;
+            padding: 10px 10px 10px 15px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body class="pear-container">
+
+<div class="layui-card" style="padding: 20px">
+    <div class="search-rule">
+       <span>
+           启动定时任务两种方式：
+           <br/>
+           1、使用命令启动：php think timer start --d；如果更改了执行周期、编辑是否开启、删除定时任务需要重新启动下定时任务确保生效；
+           <br/>
+           2、使用接口触发定时任务，建议每分钟调用一次，接口地址 https://您的域名/api/crontab/run
+       </span>
+    </div>
+</div>
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="crontab-data-table" lay-filter="crontab-data-table" class="my-table"></table>
+    </div>
+</div>
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="crontab-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="crontab-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="crontab-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="crontab-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="crontab-delete">删除</button>
+</script>
+
+<!--是否开启-->
+<script type="text/html" id="crontab-is_open">
+    <input type="checkbox" name="crontab-status" value="{{d.id}}" lay-skin="switch" lay-text="" lay-filter="crontab-status"
+           {{ d.is_open== 1 ? 'checked' : '' }} />
+</script>
+
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const SELECT_API = config.api_url + "/adminapi/system/crontab/list";
+    const DELETE_API = config.api_url + "/adminapi/system/crontab/del";
+    const SET_OPEN_API = config.api_url + "/adminapi/system/crontab/set_open"
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'encrypt', 'popup'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let common = layui.common;
+        let util = layui.util;
+        let encrypt = layui.encrypt;
+        let popup = layui.popup;
+
+        let MODULE_PATH = "view/system/maintain/crontab/";
+
+
+        let cols = [
+
+            {
+                title: '名称',
+                field: 'name',
+                align: 'left',
+            },
+            {
+                title: '任务说明',
+                field: 'content',
+                align: 'left',
+            },
+            {
+                title: '执行周期',
+                field: 'minute',
+                align: 'left',
+                templet: function (d) {
+                    let value = '';
+                    if (d.type == 1) {
+                        value = '每隔' + d.second + '秒'
+                    }
+                    if (d.type == 2) {
+                        value = '每隔' + d.minute + '分钟执行一次'
+                    }
+                    if (d.type == 3) {
+                        value = '每隔' + d.hour + '小时执行一次'
+                    }
+                    if (d.type == 4) {
+                        value = '每隔' + d.day + '天执行一次'
+                    }
+                    if (d.type == 5) {
+                        value = '每天 ' + d.hour + '小时' + d.minute + '分' + d.second + '秒执行一次'
+                    }
+                    if (d.type == 6) {
+                        value = '每周' + d.week + d.day + '执行一次'
+                    }
+                    if (d.type == 7) {
+                        value = '每月' + d.day + '执行一次'
+                    }
+                    return value;
+                }
+            },
+            {
+                title: '是否开启',
+                field: 'link_lang',
+                align: 'left',
+                templet: '#crontab-is_open',
+            },
+            {
+                title: '操作',
+                toolbar: '#crontab-table-bar',
+                width: 170,
+                align: "center",
+                fixed: "right",
+            }
+        ]
+
+
+        function render() {
+            table.render({
+                elem: "#crontab-data-table",
+                url: SELECT_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                toolbar: "#crontab-table-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status == 200 ? 0 : -1, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.count, // 解析数据长度
+                        "data": ret.data.list // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+        render();
+
+        table.on('tool(crontab-data-table)', function (obj) {
+            if (obj.event === 'remove') {
+                remove(obj);
+            } else if (obj.event === 'edit') {
+                edit(obj);
+            }
+        });
+
+        table.on('toolbar(crontab-data-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                window.refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'recycle') {
+                recycle(obj);
+            }
+        });
+
+        // 头部搜索栏
+        form.on('submit(table-query)', function (data) {
+            table.reload("crontab-data-table", {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '900px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '900px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+
+        function remove(obj) {
+            layer.confirm('确定要删除该用户', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            popup.success(ret.msg, function () {
+                                obj.del();
+                            });
+
+                        } else {
+                            popup.failure(ret.msg);
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                })
+            });
+        }
+
+        window.refresh = function (param) {
+            render();
+        }
+
+        /**
+         * 设置状态
+         */
+        form.on('switch(crontab-status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            $.ajax({
+                url: SET_OPEN_API + '/' + id + '/' + status,
+                type: 'GET',
+                data: {is_show: status},
+                dataType: 'json',
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg)
+                    } else {
+                        popup.failure(ret.msg, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        })
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+        });
+    })
+</script>
+</body>
+</html>

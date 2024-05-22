@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>新增配置分配</title>
+    <link rel="stylesheet" href="../../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../../admin/css/reset.css" />
+    
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="system_config-add-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属上级</label>
+                <div class="layui-input-block">
+                    <ul id="system_config-category-add-tree" class="dtree" data-id="0"></ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">分类名称</label>
+                <div class="layui-input-block">
+                    <input name="title" placeholder="请输入分类名称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">字段名称</label>
+                <div class="layui-input-block">
+                    <input name="eng_title" placeholder="请输入分类字段英文" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item" id="picker">
+                <label for="" class="layui-form-label">图标</label>
+                <div class="layui-input-block">
+                    <div class="layui-input-inline">
+                        <input type="text" id="system_config-add-iconPicker" name="icon" value="layui-icon-face-smile" lay-filter="system_config-add-iconPicker" class="hide">
+                    </div>
+                    <div class="layui-input-block" style="position:absolute;">
+                        <span class="pear-btn" id="clear" style="line-height: 34px;">清空</span>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">类型</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="type" value="0" title="系统" checked>
+                    <input type="radio" name="type" value="3" title="其他">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="显示" checked>
+                    <input type="radio" name="status" value="2" title="隐藏">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-block">
+                    <input type="number" name="sort" class="layui-input" value="0">
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system_config-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+<script src="../../../../../component/layui/layui.js"></script>
+<script src="../../../../../component/pear/pear.js"></script>
+<script src="../../../../../config/common.js"></script>
+<script src="../../../../../config/permission.js"></script>
+<script src="../../../../../config/config.js"></script>
+
+<script>
+
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/config_class";
+
+    layui.use(['form', 'popup', 'iconPicker', 'jquery', 'dropdown', 'dtree'], function () {
+        let form = layui.form;
+        let popup = layui.popup;
+        let iconPicker = layui.iconPicker;
+        let $ = layui.jquery;
+        let Dtree = layui.dtree;
+        let method = 'POST';
+        let levelData = [];
+
+        /**
+         * 所属上级获取
+         */
+        layui.$.ajax({
+            url: RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function (ret) {
+                let data = ret.data.list
+                data.unshift({
+                    "id": '-1',
+                    'pid': '-1',
+                    "title": "顶层",
+                });
+                levelData = data;
+            },
+            error: function (ret) {
+                levelData = [{
+                    "id": '-1',
+                    "title": "顶层",
+                }];
+            },
+        });
+
+
+        /**
+         * ICON 图标选择器
+         */
+        iconPicker.render({
+            elem: '#system_config-add-iconPicker',
+            type: 'fontClass',
+            style: 'color: #5FB878;'
+            , placeholder: ''
+            , isSplit: true
+            , page: false
+            , search: true
+            , click: function (data) {
+            },
+            ready: function (d) {
+            }
+        });
+        $('#clear').click(function () {
+            iconPicker.checkIcon('system_config-add-iconPicker', "");
+        });
+
+
+        /**
+         * 添加场景
+         */
+        if (getQueryString('operation') === 'add') {
+            //下拉框赋值
+            let pid = getQueryString('pid')
+            Dtree.renderSelect({
+                elem: "#system_config-category-add-tree",
+                data: levelData,
+                accordion: true,
+                icon: "-1",  // 隐藏二级图标
+                skin: "layui",
+                width: '100%',
+                selectCardHeight: "280",
+                selectInitVal: '-1',//默认值顶层
+                response: {
+                    treeId: "id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "title", //节点名称（必填）
+                },
+                selectInputName: {
+                    nodeId: "pid",
+                    context: "请选择父级"
+                },
+                done: function (res, $ul, first) {
+                    if (first) {
+                        //首次赋值顶层
+                        Dtree.dataInit("system_config-category-add-tree", pid);
+                        Dtree.selectVal("system_config-category-add-tree");
+                    }
+                }
+            });
+        }
+
+        /**
+         * 编辑场景
+         */
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            $.ajax({
+                url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        let data = ret.data
+                        form.val('add', data)
+                        //下拉框赋值
+                        Dtree.renderSelect({
+                            elem: "#system_config-category-add-tree",
+                            data: levelData,
+                            accordion: true,
+                            line: true, // 有线树
+                            icon: "-1",  // 隐藏二级图标
+                            startNode: '-1',
+                            skin: "layui",
+                            width: '100%',
+                            selectCardHeight: "200",
+                            selectInitVal: '-1',//默认值顶层
+                            response: {
+                                treeId: "id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "title", //节点名称（必填）
+                            },
+                            request: {
+                                pid: "-1"
+                            },
+                            selectInputName: {
+                                nodeId: "pid",
+                                context: "请选择父级"
+                            },
+                            done: function (res, $ul, first) {
+                                if (first) {
+                                    //首次赋值顶层
+                                    Dtree.dataInit("system_config-category-add-tree", data.pid);
+                                    Dtree.selectVal("system_config-category-add-tree");
+                                }
+                            }
+                        });
+                        //icon赋值
+                        iconPicker.checkIcon('system_config-add-iconPicker', data.icon);
+                        form.render()
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            form.render();
+        }
+
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system_config-add-save)', function (data) {
+            $.ajax({
+                url: RESTFUL_API + (method == 'PUT' ? '/' + getQueryString(PRIMARY_KEY) : ''),
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));//关闭当前页
+                            parent.refresh();
+                        })
+                    } else {
+                        popup.failure(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            return false;
+        });
+
+
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    });
+</script>
+
+
+</body>
+</html>

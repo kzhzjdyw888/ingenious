@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>发起流程</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+    <style>
+        .parent {
+            height: 85vh;
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* iframe样式 */
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+<div class="layui-tab layui-tab-brief layui-form" lay-filter="setting-form" id="setting-form">
+    <ul class="layui-tab-title">
+        <li class="layui-this" lay-id="1">表单</li>
+        <li lay-id="2">流程图</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="parent iframe-container" id="launch-process-forms"></div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="parent iframe-container" id="launch-process-chart"></div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom">
+    <div class="button-container">
+        <button type="reset" class="pear-btn pear-btn-md" lay-on="cancel">
+            取消
+        </button>
+        <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-on="startAndExecute">
+            确定
+        </button>
+    </div>
+</div>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+    const PRIMARY_KEY = "id";
+    const START_AND_EXECUTE_API = config.api_url + "/adminapi/wf/process_define/start_and_execute";
+    const DETAIL_API = config.api_url + "/adminapi/wf/process_define/detail";
+    const TEMPLATE_PATH = "../../../view/wf/template/";
+
+
+    layui.use(['layer', 'popup', 'util'], function () {
+        let popup = layui.popup;
+        let $ = layui.jquery;
+        let util = layui.util;
+        let uniqueId = generate32BitUniqueId();
+        let process_data = {};
+        let isLocalForm = false;
+
+        /**
+         * 表单渲染
+         * @param url
+         */
+        function formsRendering(url) {
+            let iframe = document.createElement('iframe');
+            iframe.id = 'f_'.concat(uniqueId);
+            iframe.src = url;
+            iframe.frameborder = 0;
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.allowFullscreen = true; // 允许全屏显示
+            document.getElementById("launch-process-forms").appendChild(iframe);
+        }
+
+        /**
+         * 图形渲染
+         */
+        function chartRendering(url) {
+            let iframe = document.createElement('iframe');
+            iframe.id = 'c_'.concat(uniqueId);
+            iframe.src = url;
+            iframe.frameborder = 0;
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.allowFullscreen = true; // 允许全屏显示
+
+            let params = {
+                viewer: true,
+                graphData: process_data,
+                highLight: [],
+                commitPath: null,
+                extendAttrConfig: {}
+            };
+            // 等待 iframe 加载完成
+            iframe.onload = function () {
+                iframe.contentWindow.postMessage(params, '*');
+            };
+            document.getElementById("launch-process-chart").appendChild(iframe);
+        }
+
+        if (getQueryString(PRIMARY_KEY) != undefined && getQueryString(PRIMARY_KEY) != '' && getQueryString(PRIMARY_KEY) != null) {
+            process_data = detail(getQueryString(PRIMARY_KEY));
+            let url = process_data['instance_url'] !== undefined ? process_data['instance_url'] : null;
+            if (url == null || url == '') {
+                //模板跳出启动流程页面
+                popup.failure('流程缺少表单', function () {
+                    parent.layer.close(parent.layer.getFrameIndex(window.name));
+                })
+            }
+            if (!isExternalUrl(url)) {
+                url = resolveRelativeUrl(TEMPLATE_PATH + url); // 替换为实际的URL
+                isLocalForm = true;
+            }
+            let chartUrl = resolveRelativeUrl('./design/index.html');
+            formsRendering(url);
+            chartRendering(chartUrl);
+        }
+
+
+        /**
+         * 退出当前页面
+         */
+        function cancel() {
+            parent.layer.close(parent.layer.getFrameIndex(window.name));
+        }
+
+
+        //启动流程
+        function startAndExecute() {
+            let data = {};
+            if (isLocalForm) {
+                //内网页面get 数据
+                let iframe = document.getElementById('f_' + uniqueId);
+                let iframeWindow = iframe.contentWindow;
+                data = iframeWindow.getData();//获取表单数据
+            }
+            data.process_define_id = getQueryString(PRIMARY_KEY);
+            $.ajax({
+                url: START_AND_EXECUTE_API,
+                type: 'post',
+                data: JSON.stringify({...data}),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.refreshTable();
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        });
+                    } else {
+                        popup.failure(ret.msg);
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }
+            })
+
+        }
+
+        function detail(id) {
+            let result = {};
+            $.ajax({
+                url: DETAIL_API,
+                type: 'GET',
+                data: {id: id},
+                dataType: 'json',
+                async: false,
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        let data = ret.data['content'] != undefined ? ret.data['content'] : [];
+                        result = data;
+                    } else {
+                        cancel();
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }
+            })
+            return result;
+        }
+
+        util.on({
+            startAndExecute: function () {
+                startAndExecute()
+            },
+            cancel: function () {
+                cancel()
+            }
+        });
+
+    });
+
+    /**
+     * 生成32位uuid
+     */
+    function generate32BitUniqueId() {
+        const timestamp = Date.now().toString(36); // 将时间戳转换为36进制
+        const randomPart = Math.random().toString(36).substring(2); // 生成一个随机数并转换为36
+        const uniqueId = (timestamp + randomPart).substring(0, 32);
+        return uniqueId;
+    }
+
+    /**
+     * 输出全路径
+     * @param relativeUrl
+     * @returns {string}
+     */
+    function resolveRelativeUrl(relativeUrl) {
+        let base = window.location.href;
+        let resolvedUrl = new URL(relativeUrl, base);
+        return resolvedUrl.href;
+    }
+
+    /**
+     * 是否外网模板
+     * @param url
+     * @returns {boolean}
+     */
+    function isExternalUrl(url) {
+        return /^https?:\/\//i.test(url);
+    }
+
+</script>
+</body>
+
+</html>

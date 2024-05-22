@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>分配职位</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="system_role-post-form-data-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label for="" class="layui-form-label">角色名称</label>
+                <div class="layui-input-block">
+                    <input type="text" id="role_name" maxlength="16" name="role_name" placeholder="" class="layui-input" lay-verify="required" readonly>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label for="" class="layui-form-label">职位列表</label>
+                <div class="layui-input-block">
+                    <ul id="system_role-post-checkbar-tree" class="dtree" data-id="-1"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system_role-post-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/config.js"></script>
+<script src="../../../config/permission.js"></script>
+
+
+<script>
+
+    const PRIMARY_KEY = "role_id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/role_post"
+    const ROLE_RESTFUL_API = config.api_url + "/adminapi/setting/role";
+    const POST_RESTFUL_API = config.api_url + "/adminapi/setting/post"
+
+
+    layui.use(['form', 'dtree', 'jquery', 'tree'], function () {
+        let form = layui.form;
+        let Dtree = layui.dtree;
+        let $ = layui.jquery;
+
+        //场景处理
+        if (getQueryString('operation') === 'edit') {
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+            get(getQueryString(PRIMARY_KEY))
+        }
+
+        /**
+         * 角色初始信息获取s
+         * @param id
+         */
+        function get(id) {
+            $.ajax({
+                url: ROLE_RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                dataType: 'JSON',
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        let data = ret.data
+                        form.val("system_role-post-form-data-filter", {
+                            "role_code": data.role_code,
+                            "role_name": data.role_name,
+                        });
+                        renderTree(data)
+                    }
+                }
+            });
+        }
+
+        function renderTree(data) {
+            $.ajax({
+                url: POST_RESTFUL_API,
+                dataType: 'JSON',
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        let tree_data = ret.data != undefined ? ret.data : [];
+                        appendCheckArr(tree_data);
+                        Dtree.render({
+                            elem: '#system_role-post-checkbar-tree',
+                            data: tree_data,
+                            accordion: true,
+                            checkbar: true,
+                            checkbarType: "self",
+                            skin: "layui",
+                            response: {
+                                treeId: "post_id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "post_name", //节点名称（必填）
+                            },
+                            done: function (res, $ul, first) {
+                                if (first) {
+                                    let arr = data['posts'] != undefined ? data['posts'] : [];
+                                    if (arr.length > 0) {
+                                        Dtree.chooseDataInit("system_role-post-checkbar-tree", [arr]);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+        }
+
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system_role-post-save)', function (data) {
+            let halfCheckedNodes = Dtree.getCheckbarNodesParam("system_role-post-checkbar-tree");
+            data.field.checked_post = array_column(halfCheckedNodes, 'nodeId');
+            data.field.role_id = getQueryString(PRIMARY_KEY);
+            $.ajax({
+                url: RESTFUL_API,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1000
+                        }, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        });
+                        return false;
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+    })
+</script>
+</body>
+</html>

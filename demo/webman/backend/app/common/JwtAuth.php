@@ -1,0 +1,101 @@
+<?php
+
+namespace app\common;
+
+use app\exception\AdminException;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+class JwtAuth
+{
+    /**
+     * token
+     *
+     * @var string
+     */
+    protected string $token;
+
+    /**
+     * alg
+     *
+     * @var string
+     */
+    protected string $algorithm = 'HS256';
+
+    /**
+     * 获取token
+     *
+     * @param int|string $id
+     * @param string     $type
+     * @param array      $params
+     *
+     * @return array
+     */
+    public function getToken($id, string $type, array $params = []): array
+    {
+        $keyId         = "keyId"; //这个东西必须要加上，不加上，报错，报错内容：'"kid" empty, unable to lookup correct key'
+        $host          = request()->host();
+        $time          = time();
+        $exp_time      = strtotime('+ 30day');
+        $params        += [
+            'iss' => $host,
+            'aud' => $host,
+            'iat' => $time,
+            'nbf' => $time,
+            'exp' => $exp_time,
+        ];
+        $params['jti'] = compact('id', 'type');
+        $token         = JWT::encode($params, getenv('app.app_key') ?: 'default', $this->algorithm, $keyId);
+        return compact('token', 'params');
+    }
+
+    /**
+     * 解析token
+     *
+     * @param string $jwt
+     *
+     * @return array
+     */
+    public function parseToken(string $jwt): array
+    {
+        $this->token = $jwt;
+        list($headb64, $bodyb64, $cryptob64) = explode('.', $this->token);
+        $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($bodyb64));
+        return [$payload->jti->id, $payload->jti->type, $payload->pwd ?? '', $payload->exp];
+    }
+
+    /**
+     * 验证token
+     */
+    public function verifyToken(): void
+    {
+        JWT::$leeway = 60;
+        JWT::decode($this->token, new Key(getenv('app.app_key') ?: 'default', $this->algorithm));
+    }
+
+    /**
+     * 获取token并放入令牌桶
+     *
+     * @param             $id
+     * @param string      $type
+     * @param array       $params
+     *
+     * @return array
+     * @throws \app\exception\AdminException
+     */
+    public function createToken($id, string $type, array $params = []): array
+    {
+        $tokenInfo = $this->getToken($id, $type, $params);
+        $exp       = $tokenInfo['params']['exp'] - $tokenInfo['params']['iat'] + 60;
+        $info      = [
+            'uid'   => $id,
+            'token' => $tokenInfo['token'],
+            'exp'   => $exp,
+        ];
+        $res       = CacheService::set(md5($tokenInfo['token']), $info, (int)$exp,'');
+        if (!$res) {
+            throw new AdminException('网络异常请稍后重试');
+        }
+        return $tokenInfo;
+    }
+}

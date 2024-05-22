@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>职位管理</title>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">岗位名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="post_name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">岗位代码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="post_code" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="post-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="post-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--数据表格-->
+<div class="layui-row layui-col-space15">
+    <div class="layui-col-md3">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <div id="organizationTreeContent" style="overflow: auto">
+                    <ul id="dept" class="dtree" data-id="9527"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-col-md9">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <table id="post-table" lay-filter="post-table"></table>
+                <div id="data-laypage"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="post-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="setting-post-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-success pear-btn-md" lay-event="expandAll">
+        <i class="layui-icon layui-icon-spread-left"></i>展开
+    </button>
+    <button class="pear-btn pear-btn-success pear-btn-md" lay-event="foldAll">
+        <i class="layui-icon layui-icon-shrink-right"></i>折叠
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="post-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="setting-post-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="setting-post-delete">删除</button>
+</script>
+
+
+<!--图标-->
+<script type="text/html" id="icon">
+    <i class="layui-icon {{d.icon}}"></i>
+</script>
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+
+    // 相关常量
+    const PRIMARY_KEY = "post_id";
+    //layui 对应id
+    const LAYUI_TABLE_DATA_ID = "post-table";
+    const LAYUI_TABLE_BAR_ID = "post-table-bar";
+    const LAYUI_TABLE_TOOLBAR_ID = "post-table-toolbar";
+    const LAYUI_TABLE_QUERY_ID = "post-table-query";
+    const LAYUI_TABLE_RESET_ID = "post-table-reset";
+    //当前模块的基础目录
+    const MODULE_PATH = "view/setting/org/post/";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/post";
+    const DEPT_RESTFUL_API = config.api_url + "/adminapi/setting/dept";
+
+    layui.use(['table', 'treeTable', 'form', 'jquery', 'dtree', 'laypage', 'common'], function () {
+        let treeTable = layui.treeTable;
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let Dtree = layui.dtree;
+        let common = layui.common;
+
+        let cols = [
+            {
+                title: '岗位名称',
+                field: 'post_name',
+                align: 'left',
+                minwidth: 120,
+                width: 200
+            },
+            {
+                title: '图标',
+                field: 'icon',
+                templet: '#icon',
+                width: 60,
+                align: 'left',
+                hide: true,
+            },
+            {
+                title: '岗位代码',
+                field: 'post_code',
+                align: 'left',
+                width: 110,
+            },
+            {
+                title: '备注',
+                field: 'remarks',
+                align: 'left',
+            },
+
+            {
+                title: '操作',
+                toolbar: '#'.concat(LAYUI_TABLE_BAR_ID),
+                align: 'left',
+                width: 150
+            }
+        ]
+
+
+        $request({
+            url: DEPT_RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+        }).then(function (ret) {
+            Dtree.render({
+                elem: "#dept",
+                data: ret.data,
+                initLevel: "2", //默认展开层级为1
+                line: true, // 有线树
+                width: '100%',
+                skin: "layui",
+                accordion: true,
+                response: {
+                    treeId: "dept_id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "dept_name", //节点名称（必填）
+                }
+            });
+        }).catch(function (ret) {
+            alert("出错" + ret.status + "：" + ret.responseText);
+        });
+
+        function render(param = []) {
+            treeTable.render({
+                elem: '#'.concat(LAYUI_TABLE_DATA_ID),
+                cols: [cols],
+                url: RESTFUL_API,
+                skin: "line",
+                where: {...param},
+                tree: {
+                    customName: {
+                        name: 'post_name',
+                        id: 'post_id',
+                        pid: 'pid',
+                    },
+                    data: {
+                        rootPid: '-1',
+                        isSimpleDataL: true,
+                    },
+                    view: {
+                        showIcon: false,
+                    },
+                    async: {},
+                    callback: {}
+                },
+                parseData: function (ret) {
+                    return {
+                        "code": 0,
+                        "msg": "",
+                        "count": ret.count != undefined ? ret.count : (ret.data.length),
+                        'data': ret.data
+                    }
+                },
+                toolbar: "#".concat(LAYUI_TABLE_TOOLBAR_ID),
+                page: false,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+        // 头部搜索栏
+        form.on('submit(' + LAYUI_TABLE_QUERY_ID + ')', function (obj) {
+            let data = obj.field;
+            let where = Object.keys(data).filter(function (key) {
+                return data[key] !== '';
+            }).reduce(function (obj, key) {
+                obj[key] = data[key];
+                return obj;
+            }, {});
+            render(where);
+            return false;
+        });
+
+        // 绑定节点点击事件
+        Dtree.on("node(dept)", function (obj) {
+
+            if (!obj.param.leaf) {
+                let $div = obj.dom;
+                // CommonTreet.clickSpread($div);  //调用内置函数展开节点
+
+                let param = {};
+                param.dept_id = obj.param.nodeId;
+                layui.$("#dept_id").val(obj.param.nodeId)
+                render(param);
+            } else {
+                let param = {};
+                param.dept_id = obj.param.nodeId;
+                layui.$("#dept_id").val(obj.param.nodeId)
+                render(param);
+            }
+        });
+
+        table.on('tool(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+            if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event == 'remove') {
+                remove(obj);
+            }
+        })
+
+
+        table.on('toolbar(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'expandAll') {
+                treeTable.expandAll(LAYUI_TABLE_DATA_ID, true);
+            } else if (obj.event === 'foldAll') {
+                treeTable.expandAll(LAYUI_TABLE_DATA_ID, false);
+            }
+        });
+
+
+        function add() {
+            layer.open({
+                type: 2,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+        function remove(obj) {
+            layer.confirm('确定要删除该权限', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        function batchRemove(obj) {
+
+            //方法1：直接获得所有选择的ID
+            let checkIds = common.checkField(obj, 'id');
+            if (checkIds === "") {
+                layer.msg("未选中数据", {
+                    icon: 3,
+                    time: 1000
+                });
+                return false;
+            }
+
+            layer.confirm('确定要删除这些权限', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API,
+                    type: 'POST',
+                    headers: {Authorization: getUserInfo()["token"]},
+                    data: {"data": checkIds},
+                    dataType: 'json',
+
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.code == 0) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                window.refresh()
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        render();
+
+        window.refresh = function () {
+            let data = form.val('data-query');
+            let where = Object.keys(data).filter(function (key) {
+                return data[key] !== '';
+            }).reduce(function (obj, key) {
+                obj[key] = data[key];
+                return obj;
+            }, {});
+            render(where);
+        }
+    })
+</script>
+</body>
+</html>
