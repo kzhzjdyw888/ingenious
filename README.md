@@ -1,31 +1,38 @@
 # Ingenious 工作流引擎
 
 #### 介绍
-工作流引擎自动化的核心工具，它具备流程建模、执行控制、任务分配、通知提醒、数据管理以及监控分析等功能。通过可视化设计工具，用户可以轻松定义和优化业务流程，确保任务按规则高效执行。引擎自动分配任务，实时通知相关人员，并提供数据管理和实时监控，助力企业全面掌控业务流程。工作流引擎的应用，显著提高了工作效率，降低了运营成本，为企业实现高效、智能的业务管理提供了有力支持。
+Ingenious 的核心特点之一是其灵活性。它支持多种类型的任务和活动，包括人工任务、自动化任务和决策任务。您可以根据实际需求自定义任务的执行逻辑，并灵活地调整工作流程，以适应不同的业务场景。此外，Ingenious还提供了丰富的插件和扩展机制，使您能够根据需要扩展其功能和集成其他系统。
+
+
+#### 主要特性
+采用PHP8强类型（严格模式）
+升级PSR规范依赖版本
+支持PHP主流框架【ThinkPHP,Webman,Laraver】
+支持主流设计器【logicFlow,AntV X6】
+支持 前置后置拦截器 表达式 会签 会签条件 合并 分支  抄送 子流程 自定义任务 委托 时限 任务调度
 
 
 
 
-## ⭐交流群
-
-交流群①：321796659
-
-手册：http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
-
-
-
-
-
-## ⏰ 安装
+#### ⏰ 安装
 *  安装Composer
 *  composer require ingen/ingenious
 *  开源不易，知识付费  详细教程请购买文档 [购买](https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ)
 
 
+#### 相关Demo截图
+![img.png](img.png)
+
+
+#### ⭐交流群
+
+交流群①：321796659
 
 
 
-## ㊙️ 链接
+
+
+#### ㊙️ 链接
 
 ---
 
@@ -33,11 +40,18 @@
 http://www.ingenstream.cn/
 
 > 演示站点：
-http://layui.flow.webman.ingenstream.cn/   
 http://layui.flow.thinkphp.ingenstream.cn/
 
 > 工作流手册：
 http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
+
+
+> 纷传圈子:
+https://pc.fenchuan8.com/#/index?forum=77206&yqm=M9RJ
+
+
+> 纷传专栏:
+https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ 【付费】
 
 ---
 
