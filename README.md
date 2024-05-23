@@ -5,16 +5,16 @@ Ingenious 的核心特点之一是其灵活性。它支持多种类型的任务�
 
 
 #### 主要特性
-采用PHP8强类型（严格模式）
-升级PSR规范依赖版本
-支持PHP主流框架【ThinkPHP,Webman,Laraver】
-支持主流设计器【logicFlow,AntV X6】
-支持 前置后置拦截器 表达式 会签 会签条件 合并 分支  抄送 子流程 自定义任务 委托 时限 任务调度
+*  采用PHP8强类型（严格模式）
+*  升级PSR规范依赖版本
+*  支持PHP主流框架【ThinkPHP,Webman,Laraver】
+*  支持主流设计器【logicFlow,AntV X6】
+*  支持 前置后置拦截器 表达式 会签 会签条件 合并 分支  抄送 子流程 自定义任务 委托 时限 任务调度
 
 
 
 
-#### ⏰ 安装
+#### 安装
 *  安装Composer
 *  composer require ingen/ingenious
 *  开源不易，知识付费  详细教程请购买文档 [购买](https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ)
@@ -32,28 +32,22 @@ Ingenious 的核心特点之一是其灵活性。它支持多种类型的任务�
 
 
 
-#### ㊙️ 链接
-
----
-
-> 官方：
-http://www.ingenstream.cn/
-
-> 演示站点：
-http://layui.flow.thinkphp.ingenstream.cn/
-
-> 工作流手册：
-http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
+#### 链接
 
 
-> 纷传圈子:
-https://pc.fenchuan8.com/#/index?forum=77206&yqm=M9RJ
+
+*  官方:http://www.ingenstream.cn/
+
+*  演示:http://layui.flow.thinkphp.ingenstream.cn/
+
+*  手册:http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
 
 
-> 纷传专栏:
-https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ 【付费】
+*  圈子:https://pc.fenchuan8.com/#/index?forum=77206&yqm=M9RJ
 
----
+
+*  专栏:https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ 【付费】
+
 
 
 ~~~
