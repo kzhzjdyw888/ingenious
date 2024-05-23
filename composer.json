@@ -1,7 +1,7 @@
 {
     "name": "ingen/ingenious",
     "type": "library",
-    "license": "MIT",
+    "license": "Apache 2.0",
     "description": "a php work flow engine base on ingenious-php",
     "autoload": {
         "psr-4": {
