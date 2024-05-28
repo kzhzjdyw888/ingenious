@@ -22,39 +22,6 @@ Route::options('[{path:.+}]', function () {
     return response('');
 });
 
-//查看php相关扩展生产环境不适用
-//Route::get('/phpinfo', function () {
-//    ob_start();
-//    phpinfo();
-//    $phpinfo = ob_get_clean();
-//    $styledPhpinfo = '<!DOCTYPE html>
-//                            <html>
-//                            <head>
-//                                <title>PHP Configuration Information</title>
-//                                <style>
-//                                    body {
-//                                        font-family: Arial, sans-serif;
-//                                        margin: 20px;
-//                                    }
-//                                    h1 {
-//                                        color: #333;
-//                                    }
-//                                    table {
-//                                        border-collapse: collapse;
-//                                        width: 100%;
-//                                    }
-//                                    th, td {
-//                                        border: 1px solid #ddd;
-//                                        padding: 8px;
-//                                    }
-//                                </style>
-//                            </head>
-//                            <body>
-//                                <h1>PHP Configuration Information</h1>';
-//    $styledPhpinfo .= $phpinfo;
-//    $styledPhpinfo .= '</body></html>';
-//    return new Response($styledPhpinfo);
-//});
 
 Route::fallback(function (\support\Request $request) {
     return json(['code' => 404, 'msg' => '404 not found']);

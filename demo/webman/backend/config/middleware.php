@@ -12,7 +12,7 @@
  */
 
 return [
-    '' => [
+    '@' => [
         app\adminapi\middleware\AllowCrossOriginMiddleware::class,//跨域处理
     ],
 ];

@@ -7,7 +7,7 @@ logo:
 ## 菜单配置
 menu:
   ## 菜单数据
-  data: "http://flow.webman.ingenstream.cn/adminapi/setting/permission"
+  data: "http://127.0.0.1:8787/adminapi/setting/permission"
   ##data: "admin/data/menu.json"
   ## GET / POST
   method: "GET"

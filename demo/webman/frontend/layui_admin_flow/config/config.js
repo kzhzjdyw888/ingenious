@@ -1,6 +1,6 @@
 const config = {
-    api_url: "http://flow.webman.ingenstream.cn",
-    // api_url: "http://127.0.0.1:8787",
+    // api_url: "http://flow.webman.ingenstream.cn",
+    api_url: "http://127.0.0.1:8787",
     base_path: "/layui_admin_flow/",
 }
 
