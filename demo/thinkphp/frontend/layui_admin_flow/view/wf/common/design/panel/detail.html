@@ -45,7 +45,7 @@
 
             let clipboard = new ClipboardJS('.btn', {
                 text: function () {
-                    return $('#json').html()
+                    return $('#json').text()
                 }
             });
 
