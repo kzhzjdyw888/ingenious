@@ -35,6 +35,9 @@ Ingenious 的核心特点之一是其灵活性。它支持多种类型的任务�
 #### 链接
 
 
+*  Gitee:https://gitee.com/ingenstream/ingenious 【主要】
+
+*  Github:https://github.com/kzhzjdyw888/ingenious 【同步】
 
 *  官方:http://www.ingenstream.cn/
 
