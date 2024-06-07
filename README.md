@@ -1,3 +1,11 @@
+<!--
+ * @Author: nian-jiangyu mm254868
+ * @Date: 2024-06-04 22:40:37
+ * @LastEditors: nian-jiangyu mm254868
+ * @LastEditTime: 2024-06-04 22:42:15
+ * @FilePath: \ingenious\README.md
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
 # Ingenious 工作流引擎
 
 #### 介绍
@@ -16,8 +24,9 @@
 - 支持前置后置拦截器
 - 支持子流程
 - 支持委托
+- 添加一个 支持时限控制 自动处理（提供调度接口)
 - 支持任务调度（提供接口）
-- 支持任务实现（提供接口）
+- 支持事件订阅
 - 支持自定义任务
 - 支持不同orm框架系统使用
 - 官方提供基于layui-ui封装实战项目
