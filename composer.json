@@ -19,6 +19,7 @@
         "php": ">=8.0",
         "ext-redis": "*",
         "kphoen/rulerz": "^0.21.1",
-        "monolog/monolog": "*"
+        "monolog/monolog": "*",
+        "ramsey/uuid": "^4.7"
     }
 }
