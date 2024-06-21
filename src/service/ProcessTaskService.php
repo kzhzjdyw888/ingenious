@@ -313,6 +313,12 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             if (!empty($assignmentHandler)) {
                 $assignmentHandlerObj = new $assignmentHandler();
                 $result               = array_merge($result, $assignmentHandlerObj->assign($model, $execution));
+            } else {
+                //默认参与者处理类
+                $assigneeList = ServiceContext::findList(AssignmentDefaultInterface::class);
+                foreach ($assigneeList as $assigneeObj) {
+                    $result = array_merge($result, $assigneeObj->assign($model, $execution));
+                }
             }
         }
         return $result;

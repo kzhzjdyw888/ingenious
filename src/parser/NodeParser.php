@@ -29,6 +29,7 @@ interface NodeParser
     const HANDLE_CLASS_KEY = "handle_class"; // 表达式处理类
     const FORM_KEY = "form"; // 表单标识
     const ASSIGNEE_KEY = "assignee"; // 参与人
+    const GROUP_KEY = "group_key"; // 参与用户组
     const ASSIGNMENT_HANDLE_KEY = "assignment_handler"; // 参与人处理类
     const TASK_TYPE_KEY = "task_type"; // 任务类型(主办/协办)
     const PERFORM_TYPE_KEY = "perform_type"; // 参与类型(普通参与/会签参与)

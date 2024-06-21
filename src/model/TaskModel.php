@@ -38,6 +38,7 @@ class TaskModel extends NodeModel
 
     private string|null $form; // 表单标识
     private string|null $assignee; // 参与人
+    private string|null $groupKey; // 参与组用户标识
     private string|null $assignmentHandler; // 参与人处理类
     private array $taskType; // 任务类型(主办/协办)
     private array $performType; // 参与类型(普通参与/会签参与)
