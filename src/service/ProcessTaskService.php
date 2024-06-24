@@ -45,6 +45,7 @@ use ingenious\parser\NodeParser;
 use ingenious\scheduling\IScheduler;
 use ingenious\service\interface\ProcessTaskServiceInterface;
 use think\facade\Db;
+use ingenious\interface\AssignmentDefaultInterface;
 
 class ProcessTaskService extends BaseService implements ProcessTaskServiceInterface
 {
