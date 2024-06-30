@@ -356,7 +356,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $list  = Db::table($processTaskActorTable)
             ->alias('pta')
             ->where($map1)
-            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time,pt.update_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pi.business_no,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description')
+            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time,pt.update_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pi.business_no,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description,pd.content as define_ext')
             ->join([$processTaskTable => 'pt'], 'pta.process_task_id = pt.id')
             ->join([$processInstanceTable => 'pi'], 'pt.process_instance_id = pi.id')
             ->join([$processDefineTable => 'pd'], 'pi.process_define_id = pd.id')
@@ -378,6 +378,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             $list[$key]['update_date']          = !empty($value['update_time']) ? DateTimeHelper::timestampToString($value['update_time']) : '';
             $list[$key]['instance_create_date'] = !empty($value['instance_create_time']) ? DateTimeHelper::timestampToString($value['instance_create_time']) : '';
             $list[$key]['instance_ext']         = json_decode($value['instance_ext']) ?? (object)[];
+            $list[$key]['define_ext']           = json_decode($value['define_ext']) ?? (object)[];
         }
         return compact('list', 'count');
     }
@@ -413,7 +414,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         $list  = Db::table($processTaskActorTable)
             ->alias('pta')
             ->where($map1)
-            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time,pt.update_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pi.business_no,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description')
+            ->field('pta.*, pt.task_name,pt.display_name,pt.task_type,pt.perform_type,pt.task_state,pt.variable as ext,pt.create_time,pt.update_time, pi.id as process_instance_id, pd.id as process_define_id,pi.create_time as instance_create_time,pi.variable as instance_ext,pi.business_no,pd.name as process_define_name,pd.display_name as process_define_display_name,pd.description as process_define_description,pd.content as define_ext')
             ->join([$processTaskTable => 'pt'], 'pta.process_task_id = pt.id')
             ->join([$processInstanceTable => 'pi'], 'pt.process_instance_id = pi.id')
             ->join([$processDefineTable => 'pd'], 'pi.process_define_id = pd.id')
@@ -436,6 +437,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             $list[$key]['finish_date']          = !empty($value['finish_time']) ? DateTimeHelper::timestampToString($value['finish_time']) : '';
             $list[$key]['instance_create_date'] = !empty($value['instance_create_time']) ? DateTimeHelper::timestampToString($value['instance_create_time']) : '';
             $list[$key]['instance_ext']         = json_decode($value['instance_ext']) ?? (object)[];
+            $list[$key]['define_ext']           = json_decode($value['define_ext']) ?? (object)[];
         }
         return compact('list', 'count');
     }
