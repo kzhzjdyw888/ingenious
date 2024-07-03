@@ -32,6 +32,7 @@ class TaskParser extends AbstractNodeParser
         if (!empty($properties)) {
             $model->setForm($properties->get(NodeParser::FORM_KEY));
             $model->setAssignee($properties->get(NodeParser::ASSIGNEE_KEY));
+            $model->setAssigneeFormKey($properties->get(NodeParser::ASSIGNEE_FORM_KEY));
             $model->setGroupKey($properties->get(NodeParser::GROUP_KEY));
             $model->setAssignmentHandler($properties->get(NodeParser::ASSIGNMENT_HANDLE_KEY));
             $model->setTaskType(ProcessTaskTypeEnum::codeOf($properties->get(NodeParser::TASK_TYPE_KEY), ProcessTaskTypeEnum::MAJOR));

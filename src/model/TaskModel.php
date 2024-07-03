@@ -25,7 +25,9 @@ use ingenious\processor\handler\CountersignHandler;
  * @method getDisplayName()
  * @method getExpireTime()
  * @method getAssignee()
+ * @method getAssigneeFormKey()
  * @method getAssignmentHandler()
+ * @method getGroupKey()
  * @method getPerformType()
  * @method getCountersignType()
  * @method getTaskType()
@@ -38,6 +40,7 @@ class TaskModel extends NodeModel
 
     private string|null $form; // 表单标识
     private string|null $assignee; // 参与人
+    private string|null $assigneeFormKey; // 参与人表单key
     private string|null $groupKey; // 参与组用户标识
     private string|null $assignmentHandler; // 参与人处理类
     private array $taskType; // 任务类型(主办/协办)

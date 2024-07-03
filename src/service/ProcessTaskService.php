@@ -290,13 +290,17 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
 
     public function getTaskActors(TaskModel $model, Execution $execution): array
     {
+
+        // 1 参与者处理优先级下一节点处理人
         $nextNodeOperator = $execution->getArgs()->get(ProcessConst::NEXT_NODE_OPERATOR);
         if (!empty($nextNodeOperator)) {
             return is_array($nextNodeOperator) ? $nextNodeOperator : explode(',', $nextNodeOperator);
         }
         $result   = [];
         $assignee = $model->getAssignee();
+        // 2 参与人处理
         if (!empty($assignee)) {
+            // 2.1参与人包含key优先表单处理
             // 多个使用英文逗号分割
             $assigneeArr = explode(",", $assignee);
             foreach ($assigneeArr as $assigneeItem) {
@@ -310,6 +314,7 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
                 }
             }
         } else {
+            // 2.2 参与人处理再没有输入参与人跟包含key情况
             $assignmentHandler = $model->getAssignmentHandler();
             if (!empty($assignmentHandler)) {
                 $assignmentHandlerObj = new $assignmentHandler();
@@ -319,6 +324,22 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
                 $assigneeList = ServiceContext::findList(AssignmentDefaultInterface::class);
                 foreach ($assigneeList as $assigneeObj) {
                     $result = array_merge($result, $assigneeObj->assign($model, $execution));
+                }
+            }
+        }
+
+        //3 参与人表单key 独立与参与者共存建议前端控制
+        $assignee = $model->getAssigneeFormKey();
+        if (!empty($assignee)) {
+            $assigneeArr = explode(",", $assignee);
+            foreach ($assigneeArr as $assigneeItem) {
+                // 如果args中存在assigneeArr[i]为key的数据
+                $argsArr = (array)$execution->getArgs()->getAll();
+                if (array_key_exists($assigneeItem, $argsArr)) {
+                    $result[] = $argsArr[$assigneeItem];
+                } else {
+                    // 如果args中不存在assigneeArr[i]为key的数据
+                    $result[] = $assigneeItem;
                 }
             }
         }

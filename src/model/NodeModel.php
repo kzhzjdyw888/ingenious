@@ -37,7 +37,9 @@ use ReflectionClass;
  * @method setHandleClass(string $param)
  * @method setForm($getStr)
  * @method setAssignee($getStr)
+ * @method setAssigneeFormKey(string $param)
  * @method setAssignmentHandler($getStr)
+ * @method setGroupKey(string $param)
  * @method setTaskType($codeOf)
  * @method setPerformType($codeOf)
  * @method setReminderTime($getStr)
@@ -130,7 +132,7 @@ abstract class NodeModel extends BaseModel implements Action
     /**
      * 执行节点拦截器
      *
-     * @param string                $interceptors
+     * @param string                    $interceptors
      * @param \ingenious\core\Execution $execution
      *
      * @throws \ReflectionException
