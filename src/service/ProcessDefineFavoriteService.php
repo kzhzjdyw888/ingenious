@@ -92,6 +92,9 @@ class ProcessDefineFavoriteService extends BaseService implements ProcessDefineF
             ->where($map1)
             ->join([$processDefineTable => 'pd'], 'pdf.process_define_id = pd.id')
             ->count();
+        foreach ($list as $key => $value) {
+            $list[$key]['content'] = json_decode($value['content'], 1);
+        }
         return compact('list', 'count');
     }
 
