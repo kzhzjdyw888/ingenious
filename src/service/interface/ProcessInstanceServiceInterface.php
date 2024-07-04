@@ -13,8 +13,6 @@
 
 namespace ingenious\service\interface;
 
-
-
 use ingenious\core\Execution;
 use ingenious\db\ProcessDefine;
 use ingenious\db\ProcessInstance;
@@ -61,7 +59,6 @@ interface ProcessInstanceServiceInterface
      * 将流程实例修改为已完成
      *
      * @param string $id
-     *
      */
     public function findById(string $id): ?ProcessInstance;
 
@@ -73,13 +70,20 @@ interface ProcessInstanceServiceInterface
     public function finishProcessInstance(string $processInstanceId): void;
 
     /**
+     * 将流程实例修改为拒绝
+     *
+     * @param string $processInstanceId
+     */
+    public function rejectProcessInstance(string $processInstanceId): void;
+
+    /**
      * 根据流程、操作人员、父流程实例ID创建流程实例
      *
      * @param \ingenious\db\ProcessDefine $processDefine 流程定义对象
-     * @param String                  $operator      操作人员ID
+     * @param String                      $operator      操作人员ID
      * @param \ingenious\libs\utils\Dict  $args          参数列表
-     * @param string                  $parentId
-     * @param string                  $parentNodeName
+     * @param string                      $parentId
+     * @param string                      $parentNodeName
      *
      * @return \ingenious\db\ProcessInstance|null 活动流程实例对象
      */
@@ -88,7 +92,7 @@ interface ProcessInstanceServiceInterface
     /**
      * 向指定实例id添加全局变量数据
      *
-     * @param string                 $processInstanceId
+     * @param string                     $processInstanceId
      * @param \ingenious\libs\utils\Dict $args 变量数据
      *
      * @return void
@@ -161,7 +165,7 @@ interface ProcessInstanceServiceInterface
     /**
      * 启动且执行流程（自动执行第一个节点）
      *
-     * @param string                 $processDefineId
+     * @param string                     $processDefineId
      * @param \ingenious\libs\utils\Dict $args
      */
     public function startAndExecute(string $processDefineId, Dict $args): void;
@@ -197,7 +201,7 @@ interface ProcessInstanceServiceInterface
      *
      * @param \ingenious\model\TaskModel $taskModel
      * @param \ingenious\core\Execution  $execution
-     * @param array                  $taskActors
+     * @param array                      $taskActors
      */
     public function updateCountersignVariable(TaskModel $taskModel, Execution $execution, array $taskActors): void;
 
