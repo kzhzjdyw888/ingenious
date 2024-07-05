@@ -68,7 +68,7 @@
 *  手册:http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
 
 
-*  圈子:https://pc.fenchuan8.com/#/index?forum=84843&yqm=M9RJ
+*  圈子:https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ
 
 
 *  专栏:https://pc.fenchuan8.com/#/index?forum=69121&yqm=M9RJ 【付费】
