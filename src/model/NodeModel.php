@@ -217,7 +217,7 @@ abstract class NodeModel extends BaseModel implements Action
                 $source instanceof StartModel) {
                 continue;
             }
-            $result = $result || canRejected($source, $parent);
+            $result = $result || self::canRejected($source, $parent);
         }
         return $result;
     }
