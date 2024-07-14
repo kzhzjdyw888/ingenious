@@ -34,7 +34,6 @@
 
 交流群①：321796659
 
-手册：http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
 
 
 
