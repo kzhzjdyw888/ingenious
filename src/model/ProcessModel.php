@@ -44,7 +44,7 @@ class ProcessModel extends BaseModel
 
     private string $type; // 流程定义分类
     private string $instance_url; // 启动实例要填写的表单key
-    private string $expire_time=''; // 期待完成时间变量key
+    private string $expire_time = ''; // 期待完成时间变量key
     private string $instance_no_class; // 实例编号生成器实现类
     private string $pre_interceptors; // 节点前置拦截器
     private string $post_interceptors; // 节点后置拦截器
@@ -99,12 +99,10 @@ class ProcessModel extends BaseModel
         $res       = [];
         $nodeModel = $this->getNode($nodeName);
         if (empty($nodeModel)) return $res;
-
         // 获取所有输出边的目标节点
         $nextNodeModelList = array_map(function ($item) {
             return $item->getTarget();
         }, $nodeModel->getOutputs());
-
         foreach ($nextNodeModelList as $item) {
             if ($item instanceof TaskModel) {
                 $res[] = $item;
@@ -157,16 +155,18 @@ class ProcessModel extends BaseModel
                 $res = array_merge($res, $candidateList);
             }
         }
+
         // 通过候选人处理类获取筛选人
         $candidateHandler = $taskModel->getCandidateHandler();
-        if (!empty($candidateHandler)) {
+        if (!empty($candidateHandler) && class_exists($candidateHandler)) {
             $candidateHandlerClass = ReflectUtil::newInstance($candidateHandler);
-            $candidateList         = $candidateHandlerClass->handle($taskModel);
-            if (!empty($candidateList)) {
-                $res = array_merge($res, $candidateList);
+            if (method_exists($candidateHandlerClass, 'handle')) {
+                $candidateList = $candidateHandlerClass->handle($taskModel);
+                if (!empty($candidateList)) {
+                    $res = array_merge($res, $candidateList);
+                }
             }
         }
-        // 去重
         $res = array_unique($res, SORT_REGULAR);
         return array_values($res);
     }

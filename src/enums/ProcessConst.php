@@ -98,4 +98,10 @@ interface ProcessConst
     //创建人用户ID
     const  CREATE_USER = "create_user";
 
+    const QUERY_PAGE_KEY = "page";//页面
+
+    const QUERY_SIZE_KEY = "limit";//每页记录数量
+
+    const QUERY_ORDER_KEY = "order";//排序key
+
 }

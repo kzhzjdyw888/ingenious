@@ -40,9 +40,9 @@ interface NodeParser
     const AUTH_EXECUTE_KEY = "auto_execute"; // 到期是否自动执行Y/N
     const CALLBACK_KEY = "callback"; // 自动执行回调类
     const EXT_FIELD_KEY = "field"; // 自定义扩展属性
-    const EXT_FIELD_CANDIDATE_USERS_KET = "candidateUsers";
-    const EXT_FIELD_CANDIDATE_GROUPS_KEY = "candidate_groups";
-    const EXT_FIELD_CANDIDATE_HANDLER_KEY = "candidate_handler";
+    const EXT_FIELD_CANDIDATE_USERS_KET = "candidate_ext_users";//候选人
+    const EXT_FIELD_CANDIDATE_GROUPS_KEY = "candidate_ext_groups";//候选人组
+    const EXT_FIELD_CANDIDATE_HANDLER_KEY = "candidate_ext_handler";//候选人处理类
     const EXT_FIELD_COUNTERSIGN_TYPE_KEY = "countersign_type"; // 会签类型
     const EXT_FIELD_COUNTERSIGN_COMPLETION_CONDITION_KEY = "countersign_completion_condition"; // 会签完成条件
     const CLASS_KEY = "clazz"; // 类路径

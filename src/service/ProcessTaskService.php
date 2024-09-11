@@ -28,6 +28,7 @@ use ingenious\enums\ProcessTaskTypeEnum;
 use ingenious\event\ProcessEventService;
 use ingenious\ex\LFlowException;
 use ingenious\interface\LoginUserHolderInterface;
+use ingenious\interface\ProcessUserInterface;
 use ingenious\libs\base\BaseService;
 use ingenious\libs\utils\AssertHelper;
 use ingenious\libs\utils\DateTimeHelper;
@@ -515,11 +516,6 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         return $result;
     }
 
-//    public function candidatePage($query): object
-//    {
-//
-//    }
-
     public function candidatePage(Dict $query): object|array
     {
         $processTaskId   = $query->get(ProcessConst::PROCESS_TASK_ID_KEY);
@@ -537,14 +533,23 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
             $processDefineService = new ProcessDefineService();
             $processModel         = $processDefineService->getProcessModel($processInstance->getData('process_define_id'));
         }
-        $candidateList = null;
+        $candidateList = [];
         if (!empty($processModel)) {
             $candidateList = $processModel->getNextTaskModelCandidates($processTask->getData('task_name'));
         }
-        //通过id in查询用户列表
-        $list  = [];
-        $count = 0;
-        return compact('list', 'count');
+
+        $handlerList = ServiceContext::findList(ProcessUserInterface::class);
+        if (empty($handlerList)) {
+            return $candidateList ?? [];
+        }
+        $handler = end($handlerList);
+        if (!method_exists($handler, 'getUsersById')) {
+            return $candidateList ?? [];
+        }
+        if (empty($candidateList)) {
+            return ['list' => [], 'count' => 0];
+        }
+        return $handler->getUsersById($candidateList, $query->get(ProcessConst::QUERY_PAGE_KEY, 1), $query->get(ProcessConst::QUERY_SIZE_KEY, 999), $query->get(ProcessConst::QUERY_ORDER_KEY));
     }
 
     public function createCountersignTask(TaskModel $taskModel, Execution $execution): ProcessTask|array|null
