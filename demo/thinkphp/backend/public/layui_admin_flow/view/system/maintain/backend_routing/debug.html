@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>API 调试页面</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+    <style>
+        .layui-none {
+            padding: 0 !important;
+            line-height: 35px !important;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-container">
+    <form class="layui-form " lay-filter="backend_routing-debug-form">
+        <br/>
+        <div class="layui-form-item">
+            <div class="layui-row">
+                <div class="layui-col-xs2 layui-col-md12">
+                    <div class="grid-demo">
+                        <select name="method" lay-verify="required">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-col-xs8 layui-col-md12">
+                    <div class="grid-demo grid-demo-bg2">
+                        <input type="text" name="url" lay-verify="required" autocomplete="off" placeholder="请输入 API 的 URL" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-col-xs2 layui-col-md12">
+                    <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-filter="api-debug" type="button" lay-submit>发起请求</button>
+                </div>
+            </div>
+        </div>
+
+        <!--参数-->
+        <div class="layui-form-item">
+            <div class="layui-tab layui-tab-brief" lay-filter="demo">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">Params</li>
+                    <li>Body</li>
+                    <li>Header</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <table id="backend_routing-debug-table-params" lay-filter="backend_routing-debug-table-params"></table>
+                        <br/>
+                        <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-on="params-add" type="button">添加参数</button>
+                    </div>
+                    <div class="layui-tab-item">
+                        <table id="backend_routing-table-body" lay-filter="backend_routing-table-body"></table>
+                        <br/>
+                        <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-on="body-add" type="button">添加参数</button>
+                    </div>
+                    <div class="layui-tab-item">
+                        <table id="backend_routing-debug-table-header" lay-filter="backend_routing-debug-table-header"></table>
+                        <br/>
+                        <button class="pear-btn pear-btn-primary pear-btn-md pear-btn-mt" lay-on="header-add" type="button">添加参数</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+    <!--返回结果-->
+    <pre id="api-debug-result" class="layui-hide"></pre>
+</div>
+
+<script type="text/html" id="backend_routing-debug-bar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+
+<script src="../../../..component/layui/layui.js"></script>
+<script src="../../../..component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<!--&lt;!&ndash;<script src="../../../../lms/permission.js"></script>&ndash;&gt; 不经过统一权限-->
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const BASE_API = config.api_url;
+
+    layui.use(['form', 'jquery', 'table'], function () {
+        let form = layui.form;
+        let table = layui.table;
+        let $ = layui.jquery;
+        let util = layui.util;
+
+        // 渲染表格
+        table.render({
+            elem: '#backend_routing-debug-table-params',
+            skin: 'grid',
+            cols: [[
+                {field: 'key', title: '属性', width: 120, edit: true},
+                {field: 'value', title: '参数值', edit: true},
+                {field: 'type', title: '类型'},
+                {field: '', title: '操作', width: 90, toolbar: '#backend_routing-debug-bar'}
+            ]],
+            data: []
+        });
+
+        table.render({
+            elem: '#backend_routing-table-body',
+            skin: 'grid',
+            cols: [[
+                {field: 'key', title: '属性', width: 120, edit: true},
+                {field: 'value', title: '参数值', edit: true},
+                {field: 'type', title: '类型'},
+                {field: '', title: '操作', width: 90, toolbar: '#backend_routing-debug-bar'}
+            ]],
+            data: []
+        });
+        table.on('tool(backend_routing-table-body)', function (obj) {
+            if (obj.event === 'del') {
+                obj.del();
+            }
+        });
+
+        //Header 数据处理
+        table.render({
+            elem: '#backend_routing-debug-table-header',
+            cols: [[
+                {field: 'key', title: '属性', width: 150, edit: true},
+                {field: 'value', title: '参数值', edit: true},
+                {field: '', title: '操作', width: 90, toolbar: '#backend_routing-debug-bar'}
+            ]],
+            skin: 'grid',
+            data: [
+                {key: 'Authori-zation', value: getUserInfo()['token'] ?? ''}
+            ]
+        });
+        table.on('tool(backend_routing-debug-table-header)', function (obj) {
+            if (obj.event === 'del') {
+                obj.del();
+            }
+        });
+
+
+        //表单赋值
+        if (getQueryString('operation') === 'edit') {
+            form.val('debug', {
+                'url': getQueryString('path') ?? '',
+                'method': getQueryString('method') ?? 'GET'
+            })
+
+            form.render();
+        }
+
+        util.on('lay-on', {
+            'header-add': function () {
+                let newData = {key: '', value: ''};
+                let allData = table.getData('backend_routing-debug-table-header')
+                allData.push(newData);
+                table.reloadData('backend_routing-debug-table-header', {data: allData})
+            },
+
+            'body-add': function () {
+                let newData = {key: '', value: ''};
+                let allData = table.getData('backend_routing-table-body')
+                allData.push(newData);
+                table.reloadData('backend_routing-table-body', {data: allData})
+            },
+
+            'params-add': function () {
+                let newData = {key: '', value: ''};
+                let allData = table.getData('backend_routing-debug-table-params')
+                allData.push(newData);
+                table.reloadData('backend_routing-debug-table-params', {data: allData})
+            }
+        })
+
+
+        // 监听表单提交事件
+        form.on('submit(api-debug)', function (data) {
+            let url = data.field.url;
+            let method = data.field.method;
+            let params = convertToObject(table.getData('backend_routing-debug-table-params'))
+            let body = convertToObject(table.getData('backend_routing-table-body'))
+            let headers = convertToObject(table.getData('backend_routing-debug-table-header'))
+            // 发起 API 请求
+            $.ajax({
+                url: BASE_API + '/' + getQueryString('app_name') + '/' + url + (generateUrlParams(params) ?? ''),
+                type: method,
+                data: body,
+                headers: headers,
+                dataType: 'json',
+                success: function (response) {
+                    // 显示响应结果
+                    $('#api-debug-result').removeClass('layui-hide').html(JSON.stringify(response, null, '\t'));
+                },
+                error: function (xhr, status, error) {
+                    // 显示错误信息
+                    $('#api-debug-result').removeClass('layui-hide').html('请求错误：' + error);
+                }
+            });
+            return false;
+        });
+    });
+
+    function convertToObject(arr) {
+        let result = {};
+        if (arr.length === 0 || arr === undefined) {
+            return result;
+        }
+
+        layui.$.each(arr, function (index, item) {
+            if (item.key === '' || item.key === undefined) {
+                return
+            }
+            result[item.key] = item.value;
+        })
+
+        return result;
+    }
+
+    function generateUrlParams(obj) {
+        let params = [];
+        for (let key in obj) {
+            let value = encodeURIComponent(obj[key]);
+            params.push(key + "=" + value);
+        }
+        if (params.length > 0) {
+            return '?' + params.join("&");
+        }
+        return '';
+    }
+
+</script>
+</body>
+</html>

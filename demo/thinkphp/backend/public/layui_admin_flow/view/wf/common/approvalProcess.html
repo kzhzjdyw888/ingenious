@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>审批流程</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+    <style>
+        .iframe-container {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .myFrame {
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+
+<body class="pear-container">
+
+<div class="layui-tab layui-tab-brief layui-form" lay-filter="setting-form" id="setting-form">
+    <ul class="layui-tab-title">
+        <li class="layui-this" lay-id="1">表单</li>
+        <li lay-id="2">流程图</li>
+        <li lay-id="3">审批记录</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <!-- 表单区域 -->
+            <div id="approval-process-forms" class="parent iframe-container">
+            </div>
+        </div>
+        <div class="layui-tab-item" style="height: calc(100vh - 120px);">
+            <div id="approval-process-chart" class="parent iframe-container"></div>
+        </div>
+        <div class="layui-tab-item" style="height: calc(100vh - 130px);">
+            <div id="approval-process-record" class="parent iframe-container"></div>
+        </div>
+    </div>
+</div>
+<div class="bottom layui-hide" id="common-approval-process-bottom">
+    <div class="button-container">
+
+        <button type="reset" class="pear-btn  pear-btn-md" lay-active="cancel">
+            <i class="layui-icon layui-icon-refresh"></i>
+            取消
+        </button>
+        <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-active="resubmit">
+            确定
+        </button>
+    </div>
+</div>
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+    let formData;
+    let flowData;
+    let histData;
+    let mode;
+    let resubmit;
+    let isLocalForm = false;
+
+    const uniqueId = generate32BitUniqueId();
+    const PROCESS_TASK_ID = "process_task_id";
+    const PROCESS_INSTANCE_ID = "process_instance_id";
+    const TEMPLATE_PATH = "../../../view/wf/template/";//模板目录
+    const EXECUTE_API = config.api_url + "/adminapi/wf/process_task/execute";
+    let util = layui.util;
+
+
+    //接受参数
+    window.addEventListener('message', function (event) {
+        let params = event.data;
+        mode = params.mode !== undefined ? params.mode : 'read';
+        formData = params.formData !== undefined ? params.formData : {};
+        flowData = params.flowData !== undefined ? params.flowData : {};
+        histData = params.recordData !== undefined ? params.recordData : [];
+        resubmit = params.resubmit != undefined ? params.resubmit : false;
+        init(mode)
+    });
+
+    function init(mode) {
+        switch (mode) {
+            case 'todo':
+                initForms();
+                initChat();
+                initRecord();
+                break;
+            default:
+                initForms();
+                initChat();
+                initRecord();
+                break;
+        }
+    }
+
+    function initForms() {
+        let graphData = flowData.graphData != undefined ? flowData.graphData : {};
+        let instance_url = graphData.instance_url !== undefined ? graphData.instance_url : null;
+        if (instance_url != null && instance_url !== '') {
+            if (!isExternalUrl(instance_url)) {
+                isLocalForm = true;
+                instance_url = resolveRelativeUrl(TEMPLATE_PATH + instance_url); // 替换为实际的URL
+            }
+            //调用表单ifream 显示
+            iframeRender('f_' + uniqueId, 'approval-process-forms', resolveRelativeUrl(instance_url))
+            if (!resubmit && mode == 'todo') {
+                //操作区ifream 追加
+                let url = './approvalProcessHandle.html?&' + PROCESS_INSTANCE_ID + '=' + getQueryString(PROCESS_INSTANCE_ID) + '&' + PROCESS_TASK_ID + '=' + getQueryString(PROCESS_TASK_ID);
+                iframeRender('c_' + uniqueId, 'approval-process-forms', resolveRelativeUrl(url))
+            }
+            if (resubmit) {
+                //如果是退回的显示重新提交按钮
+                let element = document.getElementById('common-approval-process-bottom');
+                if (element) {
+                    element.classList.remove('layui-hide');
+                }
+            }
+        }
+    }
+
+    function initChat() {
+        let url = './design/index.html';
+        iframeRender('p_' + uniqueId, 'approval-process-chart', resolveRelativeUrl(url))
+        let iframe = document.getElementById('p_' + uniqueId,);
+        iframe.onload = function () {
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage(flowData, '*');
+            }
+        }
+    }
+
+    function initRecord() {
+        let url = './approvalProcessRecord.html';
+        iframeRender('r_' + uniqueId, 'approval-process-record', resolveRelativeUrl(url))
+        let iframe = document.getElementById('r_' + uniqueId,);
+        iframe.onload = function () {
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage(histData, '*');
+            }
+        }
+    }
+
+    /**
+     * 渲染ifream 数据
+     * @param uniqueId
+     * @param targetId
+     * @param src
+     */
+    function iframeRender(uniqueId, targetId, src) {
+        let iframe = document.createElement('iframe');
+        iframe.id = uniqueId;
+        iframe.src = src;
+        iframe.frameborder = 0;
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = 'none';
+        iframe.style.overflow = 'hidden';
+        iframe.allowFullscreen = true; // 允许全屏显示-->
+        // 添加类名-->
+        // iframe.classList.add("myFrame");
+        // 等待 iframe 内容加载完成
+        iframe.onload = function () {
+            // 获取 iframe 内部文档的高度
+            let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            let iframeBody = iframeDoc.body;
+            // 设置 iframe 的初始高度
+            let iframeHeight = iframeBody.scrollHeight;
+            iframe.style.height = iframeHeight + 30 + 'px';
+            //表单数据写入
+            if (uniqueId.startsWith('f_')) {
+                if (isLocalForm == true && formData !== undefined && formData !== '') {
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.setData(formData, resubmit);
+                    }
+                }
+            }
+            // //流程图数据传输
+            // if (uniqueId.startsWith('p_')) {
+            //     if (iframe && iframe.contentWindow) {
+            //         iframe.contentWindow.postMessage(flowData, '*');
+            //     }
+            // }
+            // //历史记录
+            // if (uniqueId.startsWith('r_')) {
+            //     if (iframe && iframe.contentWindow) {
+            //         iframe.contentWindow.postMessage(histData, '*');
+            //     }
+            // }
+            //
+            // 监听 body 元素的高度变化
+            let bodyObserver = new MutationObserver(function (mutations) {
+                // 获取 body 元素的新高度
+                let newIframeHeight = iframeBody.scrollHeight;
+                if (newIframeHeight !== iframeHeight) {
+                    iframeHeight = newIframeHeight;
+                    iframe.style.height = iframeHeight + 30 + 'px';
+                }
+            });
+            // 开始监听 body 元素的高度变化
+            bodyObserver.observe(iframeBody, {attributes: true, childList: true, subtree: true});
+        };
+        document.getElementById(targetId).appendChild(iframe);
+    }
+
+
+    function execute(data) {
+        data[PROCESS_INSTANCE_ID] = getQueryString(PROCESS_INSTANCE_ID);
+        data[PROCESS_TASK_ID] = getQueryString(PROCESS_TASK_ID);
+        layui.$.ajax({
+            url: EXECUTE_API,
+            type: 'post',
+            data: JSON.stringify({...data}),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (ret) {
+                if (ret && ret.status == 200) {
+                    layer.msg(ret.msg, {
+                        icon: 1,
+                        time: 2000
+                    }, function () {
+                        parent.refreshTable();
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    });
+                } else {
+                    layer.msg(ret.msg, {icon: 2});
+                }
+            },
+            error: function (ret) {
+                alert("出错" + ret.status + "：" + ret.responseText);
+            }
+        })
+    }
+
+    util.event('lay-active', {
+        cancel: function (self) {
+            cancel();
+        },
+        resubmit: function (self) {
+            let iframeWindow = document.getElementById('f_' + uniqueId).contentWindow;
+            let data = {};
+            if (iframeWindow && typeof iframeWindow.getData === 'function') {
+                data = iframeWindow.getData();
+            }
+            data.submit_type = 5;
+            execute(data)
+        }
+    })
+
+    function cancel() {
+        parent.layer.close(parent.layer.getFrameIndex(window.name));
+    }
+
+    /**
+     * 生成32位uuid
+     */
+    function generate32BitUniqueId() {
+        let timestamp = Date.now().toString(36); // 将时间戳转换为36进制
+        let randomPart = Math.random().toString(36).substring(2); // 生成一个随机数并转换为36
+        let uniqueId = (timestamp + randomPart).substring(0, 32);
+        return uniqueId;
+    }
+
+    /**
+     * 输出全路径
+     * @param relativeUrl
+     * @returns {string}
+     */
+    function resolveRelativeUrl(relativeUrl) {
+        let base = window.location.href;
+        let resolvedUrl = new URL(relativeUrl, base);
+        return resolvedUrl.href;
+    }
+
+    /**
+     * 是否外网模板
+     * @param url
+     * @returns {boolean}
+     */
+    function isExternalUrl(url) {
+        return /^https?:\/\//i.test(url);
+    }
+
+
+</script>
+</body>
+
+</html>

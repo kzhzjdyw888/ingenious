@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>附件管理</title>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from" lay-filter="file-list-data-query">
+            <div class="layui-form-item">
+                <label class="layui-form-label">附件类型</label>
+                <div class="layui-input-block">
+                    <ul id="selTree3" class="dtree" data-id="-1"></ul>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="real_name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="file-list-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="file-list-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="file-list-data-table" lay-filter="file-list-data-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="file-list-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="system-file-add">
+        <i class="layui-icon layui-icon-add-1"></i>上传
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="system-file-delete">
+        <i class="layui-icon layui-icon-delete"></i>删除
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="file-list-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="system-file-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="system-file-delete">删除</button>
+</script>
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "att_id";
+    const SELECT_API = config.api_url + "/adminapi/file/file";
+    const DELETE_API = config.api_url + "/adminapi/file/file/delete";
+    const CATEGORY_RESTFUL_API = config.api_url + "/adminapi/file/category";
+
+    layui.use(['table', 'form', 'jquery', 'dtree', 'laypage', 'popup', 'util', 'common'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let Dtree = layui.dtree;
+        let popup = layui.popup;
+        let util = layui.util;
+        let common = layui.common;
+        let MODULE_PATH = "view/file/list/";
+        let category = []
+
+        /**
+         * 分类获取
+         */
+        layui.$.ajax({
+            url: CATEGORY_RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+            data: {all: 1},
+            async: false,
+            success: function (ret) {
+                let data = ret.data.list != undefined ? ret.data.list : [];
+                data.unshift({
+                    "id": '',
+                    "name": "全部",
+                });
+                category = data;
+            },
+            error: function (ret) {
+                category = [{
+                    "id": '',
+                    "name": "全部",
+                }];
+            },
+        });
+
+
+        Dtree.renderSelect({
+            elem: "#selTree3",
+            data: category,
+            accordion: true,
+            icon: "-1",  // 隐藏二级图标
+            skin: "layui",
+            width: '100%',
+            selectCardHeight: "200",
+            selectInitVal: '',//默认值顶层
+            response: {
+                treeId: "id", //节点ID（必填）
+                parentId: "pid", //父节点ID（必填）
+                title: "name", //节点名称（必填）
+            },
+            selectInputName: {
+                nodeId: "pid",
+                context: "请选择父级"
+            },
+            done: function (res, $ul, first) {
+                if (first) {
+                    //首次赋值顶层
+                    Dtree.dataInit("selTree3", '');
+                    Dtree.selectVal("selTree3");
+                }
+            }
+        });
+
+
+        let cols = [
+            {
+                type: 'checkbox'
+            },
+            {
+                title: '附件名称',
+                field: 'real_name',
+                align: 'left',
+                minwidth: 120,
+                width: 200
+            },
+            {
+                title: "文件",
+                field: "satt_dir",
+                templet: function (d) {
+                    if (["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", ""].indexOf(d.ext.toLowerCase()) !== -1) {
+                        return '<img src="' + encodeURI(d['att_dir']) + '" style="max-width:32px;max-height:32px;" />';
+                    }
+                    return '<a href="' + encodeURI(d['att_dir']) + '" target="_blank">' + util.escape(d['att_dir']) + '</a>';
+                }
+            },
+            {
+                title: "文件大小",
+                field: "att_size",
+                templet: function (d) {
+                    return formatSize(d['att_size']);
+                }
+            },
+            {
+                title: '扩展名',
+                field: 'ext',
+                align: 'left',
+            },
+            {
+                title: '类别',
+                field: 'pid',
+                align: 'left',
+            },
+            {
+                title: '上传时间',
+                field: 'time',
+                align: 'left',
+                width: 170
+            },
+            {
+                title: '操作',
+                toolbar: '#file-list-table-bar',
+                align: 'left',
+                width: 150
+            }
+        ]
+
+
+        function render(param = []) {
+            table.render({
+                elem: '#file-list-data-table',
+                cols: [cols],
+                url: SELECT_API,
+                skin: "line",
+                where: {...param},
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status == 200 ? 0 : -1,
+                        "msg": "",
+                        "count": ret.data['count'] != undefined ? ret.data['count'] : (ret.data['list'].length),
+                        'data': ret.data['list']
+                    }
+                },
+                toolbar: "#file-list-table-toolbar",
+                page: true,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"],
+                done: function () {
+                    layer.photos({photos: 'div[lay-id="data-table"]', anim: 5});
+                }
+            });
+        }
+
+        // 头部搜索栏
+        form.on('submit(file-list-table-query)', function (obj) {
+            window.refreshTable()
+            return false;
+        });
+
+        // 绑定节点点击事件
+        Dtree.on("node(selTree3)", function (obj) {
+            if (!obj.param.leaf) {
+                let $div = obj.dom;
+                CommonTreet.clickSpread($div);  //调用内置函数展开节点
+                let param = {};
+                param.pid = obj.param.nodeId;
+                window.refreshTable()
+            } else {
+                let param = {};
+                param.dept_id = obj.param.nodeId;
+                window.refreshTable()
+            }
+        });
+
+        table.on('tool(file-list-data-table)', function (obj) {
+            if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event == 'remove') {
+                remove(obj);
+            }
+        })
+
+
+        table.on('toolbar(file-list-data-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            }
+        });
+
+
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'edit.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY] + '&pid=' + obj.data['pid'] + '&real_name=' + obj.data['real_name']
+            });
+        }
+
+        function remove(obj) {
+            layer.confirm('确定要删除该附件', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                let ids = obj.data[PRIMARY_KEY];
+                $.ajax({
+                    url: DELETE_API,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ids: ids}),
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status == 200) {
+                            popup.success(ret.msg, function () {
+                                obj.del();
+                            })
+                        } else {
+                            popup.failure(ret.msg)
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        /**
+         * 批量删除
+         * @param obj
+         * @returns {boolean}
+         */
+        function batchRemove(obj) {
+            //方法1：直接获得所有选择的ID
+            let checkIds = common.checkField(obj, PRIMARY_KEY);
+            if (checkIds === "") {
+                popup.failure('未选中数据')
+                return false;
+            }
+
+            layer.confirm('确定要删除这些附件', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ids: checkIds}),
+                    dataType: 'json',
+                    success: function (ret) {
+                        if (ret && ret.status == 200) {
+                            popup.success(ret.msg, function () {
+                                window.refreshTable()
+                            })
+                        } else {
+                            popup.failure(ret.msg)
+                        }
+                    },
+                    complete: function () {
+                        layer.close(loading);
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        render();
+
+        /**
+         * 刷新
+         */
+        window.refreshTable = function () {
+            let data = form.val('file-list-data-query');
+            let where = Object.keys(data).filter(function (key) {
+                return data[key] !== '';
+            }).reduce(function (obj, key) {
+                obj[key] = data[key];
+                return obj;
+            }, {});
+            table.reloadData("file-list-data-table", {
+                scrollPos: "fixed",
+                where: {...where}
+            });
+        }
+
+        // 格式化文件大小
+        let formatSize = function (value) {
+            if (null == value || "" === value) {
+                return "0 Bytes";
+            }
+            let unitArr = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+            let index = 0;
+            let srcSize = parseFloat(value);
+            index = Math.floor(Math.log(srcSize) / Math.log(1024));
+            let size = srcSize / Math.pow(1024, index);
+            size = size.toFixed(2);
+            return size + unitArr[index];
+        }
+    })
+</script>
+</body>
+</html>

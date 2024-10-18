@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>审批操作</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+<div class="layui-form" lay-filter="operating">
+    <div class="layui-form-item">
+        <label class="layui-form-label required">审批意见</label>
+        <div class="layui-input-block">
+            <textarea placeholder="请输入内容" class="layui-textarea" width="100%" name="tf_approval_comment"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item operation">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-block">
+            <input type="checkbox" lay-filter="checkbox-filter" name="tf_is_assign_next_node_operator"
+                   title="指定下一节点处理人" value=1>
+            <input type="checkbox" lay-filter="checkbox-filter" name="tf_is_cc" title="是否抄送" value=1>
+            <input type="checkbox" lay-filter="checkbox-filter" name="tf_is_jump" title="是否跳转" value=1>
+        </div>
+    </div>
+    <div class="layui-form-item show" data-name="tf_is_assign_next_node_operator" style="display: none;">
+        <label class="layui-form-label">下一节点处理人</label>
+        <div class="layui-input-block" style="width:450px;">
+            <div name="tf_next_node_operator" lay-filter="tf_next_node_operator" id="tf_next_node_operator">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item show" data-name="tf_is_cc" style="display: none;">
+        <label class="layui-form-label">抄送给</label>
+        <div class="layui-input-block" style="width:450px;">
+            <!-- <input type="text" class="layui-input" name="tf_cc_actors" min="0.5" step="0.5" placeholder="请输入数字"
+                value="" /> -->
+            <div name="tf_cc_actors" lay-filter="tf_cc_actors" id="tf_cc_actors">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item show" data-name="tf_is_jump" style="display: none;">
+        <label class="layui-form-label">跳转节点</label>
+        <div class="layui-input-block" style="width:450px;">
+            <select name="task_name" id="task_name">
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item operation">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-block">
+            <div style="float: right;">
+                <button class="pear-btn pear-btn-primary pear-btn-md  layui-border-blue layui-btn-sm "
+                        lay-active="consent">
+                    <i class="layui-icon layui-icon-ok layui-font-12"></i>
+                    同意
+                </button>
+                <button class="layui-btn layui-btn-primary layui-border-red pear-btn-md" lay-active="refuse">
+                    <i class="layui-icon layui-icon-close layui-font-12"></i>
+                    拒绝
+                </button>
+                <button class="layui-btn layui-btn-primary layui-border-black pear-btn-md" lay-active="takeBefore">
+                    <i class="layui-icon layui-icon-return layui-font-12"></i>
+                    退回上一步
+                </button>
+                <button class="layui-btn layui-btn-primary layui-border-black pear-btn-md"
+                        lay-active="takeInitiator">
+                    <i class="layui-icon layui-icon-release layui-font-12"></i>
+                    退回发起人
+                </button>
+                <button class="layui-btn layui-btn-primary layui-border-black pear-btn-md" lay-active="jump">
+                    <i class="layui-icon layui-icon-radio layui-font-12"></i>
+                    跳转
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+    layui.use(["common", "form", "jquery", "util", "popup", "xmSelect"], function () {
+        let form = layui.form;
+        let util = layui.util;
+        let popup = layui.popup;
+        let $ = layui.jquery;
+        let xmSelect = layui.xmSelect;
+
+        const PROCESS_TASK_ID = 'process_task_id';
+        const PROCESS_INSTANCE_ID = 'process_instance_id';
+        const PROCESS_TASK_NAME_API = config.api_url + "/adminapi/wf/process_task/jump_able_task_name_list";
+        const CANDIDATE_PAGE_API = config.api_url + "/adminapi/wf/other/candidate_page";
+        const CARBON_PAGE_API = config.api_url + "/adminapi/wf/other/carbon_page"
+
+
+        //下一节点处理人
+        function nextNodeOperator() {
+            layui.xmSelect.render({
+                el: '#tf_next_node_operator',
+                name: 'tf_next_node_operator',
+                filterable: true,
+                remoteSearch: true,
+                paging: true,//开启分页
+                pageRemote: true,//远程分页
+                pageEmptyShow: false,//没有数据不展示分页
+                direction: 'down',
+                prop: {
+                    name: 'real_name',
+                    value: 'id',
+                },
+                remoteMethod: function (val, cb, show, pageIndex) {
+                    let process_task_id = getQueryString(PROCESS_TASK_ID);
+                    $.ajax({
+                        url: CANDIDATE_PAGE_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {process_task_id, limit: 5, page: pageIndex},
+                        success: function (ret) {
+                            let data = ret.data['list'] != undefined ? ret.data['list'] : []
+                            let size = Math.ceil(ret.data['count'] / 5)
+                            cb(data, size)
+                        },
+                        error: function (ret) {
+                            cb([], 0)
+                        }
+                    });
+                },
+                data: [],
+                on: function (data) {
+                    let arr = data.arr
+                    let stringArr = []
+                    $.each(arr, function (index, item) {
+                        stringArr.push(item.value)
+                    });
+                    $('input[name="tf_next_node_operator"]').val(stringArr.join(','))
+                    form.render();
+                }
+            })
+        }
+
+        function ccActors() {
+            layui.xmSelect.render({
+                el: '#tf_cc_actors',
+                name: 'tf_cc_actors',
+                filterable: true,
+                remoteSearch: true,
+                paging: true,//开启分页
+                pageRemote: true,//远程分页
+                pageEmptyShow: false,//没有数据不展示分页
+                direction: 'down',
+                prop: {
+                    name: 'real_name',
+                    value: 'id',
+                },
+                remoteMethod: function (val, cb, show, pageIndex) {
+                    $.ajax({
+                        url: CARBON_PAGE_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {search: val, limit: 5, page: pageIndex},
+                        success: function (ret) {
+                            let data = ret.data['list'] != undefined ? ret.data['list'] : []
+                            let size = Math.ceil(ret.data['count'] / 5)
+                            cb(data, size)
+                        },
+                        error: function (ret) {
+                            cb([], 0)
+                        }
+                    });
+                },
+                data: [],
+                on: function (data) {
+                    let arr = data.arr
+                    let stringArr = []
+                    $.each(arr, function (index, item) {
+                        stringArr.push(item.value)
+                    });
+                    $('input[name="tf_cc_actors"]').val(stringArr.join(','))
+                    form.render();
+                }
+            })
+        }
+
+        // 监听checkbox选择事件
+        form.on('checkbox(checkbox-filter)', function (data) {
+            var checked = data.elem.checked; // 当前checkbox是否被选中
+            var name = data.elem.name; // 当前checkbox的name属性
+            // 使用jQuery选择器找到对应的节点并设置其显示状态
+            $('.show[data-name="' + name + '"]').toggle(checked);
+            if (name === 'tf_is_jump' && checked) {
+                jumpAbleTaskNameList(getQueryString(PROCESS_INSTANCE_ID))
+            }
+            if (name === 'tf_is_jump' && !checked) {
+                const taskSelect = document.getElementById('task_name');
+                while (taskSelect.firstChild.nextElementSibling) {
+                    taskSelect.removeChild(taskSelect.firstChild.nextElementSibling);
+                }
+            }
+
+            //下一节点处理人
+            if (name === 'tf_is_assign_next_node_operator' && checked) {
+                nextNodeOperator();
+
+            }
+            if (name === 'tf_is_assign_next_node_operator' && !checked) {
+                form.val('operating', {tf_next_node_operator: ''})
+            }
+            //抄送人员
+            if (name === 'tf_is_cc' && checked) {
+                ccActors();
+            }
+            if (name === 'tf_is_cc' && !checked) {
+                form.val('operating', {tf_cc_actors: ''})
+            }
+
+            form.render();
+        });
+
+
+        util.event('lay-active', {
+            consent: function (othis) {
+                let data = form.val('operating');
+                data.submit_type = 1;
+                if (verification(data)) {
+                    window.parent.execute(data);
+                }
+            }
+            , refuse: function (othis) {
+                let data = form.val('operating');
+                data.submit_type = 2;
+                if (verification(data)) {
+                    window.parent.execute(data);
+
+                }
+            }
+            , takeBefore: function (othis) {
+                let data = form.val('operating');
+                data.submit_type = 3;
+                if (verification(data)) {
+                    window.parent.execute(data);
+
+                }
+            }
+            , takeInitiator: function (othis) {
+                let data = form.val('operating');
+                data.submit_type = 6;
+                if (verification(data)) {
+                    window.parent.execute(data);
+
+                }
+
+            }
+            , jump: function (othis) {
+                let data = form.val('operating');
+                data.submit_type = 4;
+                if (verification(data)) {
+                    if (data.task_name === '') {
+                        popup.failure('请选择跳转节点');
+                        return false;
+                    }
+                    window.parent.execute(data);
+                }
+            }
+        });
+
+        function verification(data) {
+            if (data.submit_type == undefined || data.submit_type === '') {
+                return false;
+            }
+            if (data.submit_type == undefined || data.tf_approval_comment === '') {
+                popup.failure('请填写审批意见');
+                return false;
+            }
+
+            if (data.tf_is_assign_next_node_operator !== undefined && data.tf_is_assign_next_node_operator !== '') {
+                if (data.tf_next_node_operator === undefined || data.tf_next_node_operator === '') {
+                    popup.failure('下一节点处理人不能为空');
+                    return false;
+                }
+            }
+            if (data.tf_is_cc !== undefined && data.tf_is_cc !== '') {
+                if (data.tf_cc_actors === undefined || data.tf_cc_actors === '') {
+                    popup.failure('抄送处理人不能为空');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function jumpAbleTaskNameList(process_instance_id) {
+            $.ajax({
+                url: PROCESS_TASK_NAME_API,
+                type: 'post',
+                data: JSON.stringify({process_instance_id}),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        // 获取 select 元素
+                        const taskSelect = document.getElementById('task_name');
+                        taskSelect.innerHTML = '';
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.text = '请选择';
+                        taskSelect.appendChild(option);
+                        ret.data.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.value;
+                            option.text = item.label;
+                            taskSelect.appendChild(option);
+                        });
+                        form.render();
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }
+            })
+
+        }
+
+        //查看详情的时候赋值不可操作
+        if (getQueryString('operation') == 'done') {
+            $('.operation').each(function () {
+                this.style.display = 'none';
+            });
+        }
+
+        window.setData = function (data, isEdit = false) {
+            form.val('operating', {tf_approval_comment: data.tf_approvalComment ?? ''})
+            if (!isEdit) {
+                window.isEdit();
+            }
+
+        }
+
+        //只读设置
+        window.isEdit = function () {
+            let inputElements = document.querySelectorAll('input');
+            let textareaElements = document.querySelectorAll('textarea');
+            let selectElements = document.querySelectorAll('select');
+            let checkboxElements = document.querySelectorAll('input[type="checkbox"]');
+            let switchElements = document.querySelectorAll('input[type="checkbox"][lay-skin="switch"]');
+            let radioElements = document.querySelectorAll('input[type="radio"]');
+            // 设置为不可编辑状态
+            inputElements.forEach(function (input) {
+                input.disabled = true;
+            });
+            textareaElements.forEach(function (textarea) {
+                textarea.disabled = true;
+            });
+            selectElements.forEach(function (select) {
+                select.disabled = true;
+            });
+            checkboxElements.forEach(function (checkbox) {
+                checkbox.disabled = true;
+            });
+            switchElements.forEach(function (switchInput) {
+                switchInput.disabled = true;
+            });
+            radioElements.forEach(function (radio) {
+                radio.disabled = true;
+            });
+            form.render();
+        }
+    });
+
+</script>
+</body>
+
+</html>

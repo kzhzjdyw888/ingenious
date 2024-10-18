@@ -43,7 +43,7 @@ class SystemMenus extends BaseModel
      */
     protected $name = 'system_menus';
 
-    protected array $insert = ['create_time', 'update_time'];
+    protected $insert = ['create_time', 'update_time'];
 
     protected $type = [
         'create_time' => 'timestamp:Y-m-d H:i:s',

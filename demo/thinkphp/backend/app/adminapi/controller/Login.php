@@ -80,7 +80,6 @@ class Login extends AuthController
             ['captchaVerification', ''],
             ['captchaType', ''],
         ], true);
-
         if ($captchaVerification != '') {
             try {
                 aj_captcha_check_two($captchaType, $captchaVerification);

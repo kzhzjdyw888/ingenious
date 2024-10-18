@@ -43,7 +43,7 @@ class SystemAdmin extends BaseModel
      */
     protected $name = 'system_admin';
 
-    protected array $insert = ['create_time', 'update_time'];
+    protected $insert = ['create_time', 'update_time'];
 
     protected $type = [
         'create_time' => 'timestamp:Y-m-d H:i:s',

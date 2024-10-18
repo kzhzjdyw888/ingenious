@@ -33,7 +33,7 @@ class SystemPermission extends BaseModel
     //软删除，查询时会自动加上 xxx IS NULL
     use \think\model\concern\SoftDelete;
 
-    protected string $deleteTime = 'delete_time';
+    protected $deleteTime = 'delete_time';
 
     /**
      * 删除当前菜单第子级菜单

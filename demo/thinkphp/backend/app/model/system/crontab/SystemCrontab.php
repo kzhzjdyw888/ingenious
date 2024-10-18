@@ -25,9 +25,9 @@ class SystemCrontab extends BaseModel
      * @var string
      */
     protected $name = 'system_timer';
-    protected string $deleteTime = 'delete_time';
+    protected $deleteTime = 'delete_time';
 
-    protected array $insert = ['create_time', 'update_time'];
+    protected $insert = ['create_time', 'update_time'];
 
     protected $type = [
         'create_time' => 'timestamp:Y-m-d H:i:s',

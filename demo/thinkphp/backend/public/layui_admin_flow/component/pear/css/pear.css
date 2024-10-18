@@ -1,0 +1,20 @@
+@import url("../../layui/css/layui.css");
+@import url("../font/iconfont.css");
+@import url("module/nprogress.css");
+@import url("module/messageCenter.css");
+@import url("module/global.css");
+@import url("module/menu.css");
+@import url("module/menuSearch.css");
+@import url("module/page.css");
+@import url("module/tabPage.css");
+@import url("module/toast.css");
+
+
+/*额外样式*/
+@import url("module/other/layout.css");
+@import url("module/other/button.css");
+@import url("module/other/dtree/font/dtreefont.css");
+@import url("module/other/dtree/dtree.css");
+@import url("module/other/iconPicker.css");
+@import url("module/other/notice.css");
+@import url("module/other/table.css");

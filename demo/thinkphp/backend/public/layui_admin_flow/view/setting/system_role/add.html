@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>角色新增</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="system_role-add-form-data-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属上级</label>
+                <div class="layui-input-block">
+                    <ul id="selTree4" class="dtree" data-id="0"></ul>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label for="" class="layui-form-label">角色名称</label>
+                <div class="layui-input-block">
+                    <input type="text" id="role_name" maxlength="16" name="role_name" lay-verify="required" placeholder="角色名称" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label for="" class="layui-form-label">排序</label>
+                <div class="layui-input-block">
+                    <input id="sort" type="number" name="sort" value="10" lay-verify="required" placeholder="排序权重" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="可用" checked>
+                    <input type="radio" name="status" value="0" title="禁用">
+                </div>
+            </div>
+
+            <!--图标-->
+            <div class="layui-form-item">
+                <div class="layui-row">
+                    <div class="layui-col-xs6">
+                        <label for="" class="layui-form-label">图标</label>
+                        <div class="layui-input-block">
+                            <div class="layui-input-inline">
+                                <input type="text" id="system_role-add-iconPicker" name="icon" value="layui-icon-group" lay-filter="system_role-add-iconPicker" class="hide">
+                            </div>
+                            <div class="layui-input-block" style="position:absolute;">
+                                <span class="pear-btn" id="clear" style="line-height: 34px;">清空</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea name="remarks" placeholder="请输入内容" class="layui-textarea"></textarea>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system_role-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm" id="system_role-add-refresh">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+<script>
+
+    const PRIMARY_KEY = "role_id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/role";
+
+    layui.use(['form', 'jquery', 'iconPicker', 'dtree'], function () {
+        let form = layui.form;
+        let Dtree = layui.dtree;
+        let $ = layui.jquery;
+        let iconPicker = layui.iconPicker;
+        let levelData = [];
+
+
+        /**
+         * 所属上级获取
+         */
+        layui.$.ajax({
+            url: RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function (ret) {
+                levelData = ret.data['list'] != undefined ? ret.data['list'] : [];
+            },
+            error: function (ret) {
+                levelData = [{
+                    "role_id": '-1',
+                    "role_name": "顶层",
+                }];
+            },
+        });
+
+
+        /**
+         * 图标选择器
+         */
+        iconPicker.render({
+            elem: '#system_role-add-iconPicker',
+            type: 'fontClass',
+            style: 'color: #5FB878;'
+            , placeholder: ''
+            , isSplit: true
+            , page: false
+            , search: true
+            , click: function (data) {
+            },
+            ready: function (d) {
+            }
+        });
+        $('#clear').click(function () {
+            iconPicker.checkIcon('system_role-add-iconPicker', "");
+        });
+
+        //添加场景
+        let method = 'POST';
+        if (getQueryString('operation') === 'add') {
+            //下拉框赋值
+            let pid = getQueryString('pid')
+            let data = flattenToTree(levelData, '-1', 'role_id', 'pid')
+            data.unshift({
+                "role_id": '-1',
+                "role_name": "顶层",
+            });
+            Dtree.renderSelect({
+                elem: "#selTree4",
+                data: data,
+                accordion: true,
+                icon: "-1",  // 隐藏二级图标
+                skin: "layui",
+                width: '100%',
+                selectCardHeight: "200",
+                selectInitVal: '-1',//默认值顶层
+                response: {
+                    treeId: "role_id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "role_name", //节点名称（必填）
+                },
+                selectInputName: {
+                    nodeId: "pid",
+                    context: "请选择父级"
+                },
+                done: function (res, $ul, first) {
+                    if (first && pid) {
+                        //首次赋值顶层
+                        Dtree.dataInit("selTree3", pid);
+                        Dtree.selectVal("selTree3");
+                    }
+                }
+            });
+        }
+
+        //修改场景
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            $.ajax({
+                url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        let data = ret.data
+                        form.val('system_role-add-form-data-filter', {
+                            'pid': data.pid,
+                            'icon': data.icon,
+                            'role_name': data.role_name,
+                            'role_code': data.role_code,
+                            'sort': data.sort,
+                            'status': data.status,
+                            'remarks': data.remarks,
+                        })
+                        //下拉框赋值
+                        let treeData = flattenToTree(levelData, '-1', 'role_id', 'pid')
+                        treeData.unshift({
+                            "role_id": '-1',
+                            "role_name": "顶层",
+                        });
+                        Dtree.renderSelect({
+                            elem: "#selTree4",
+                            data: treeData,
+                            accordion: true,
+                            line: true, // 有线树
+                            icon: "-1",  // 隐藏二级图标
+                            startNode: '-1',
+                            skin: "layui",
+                            width: '100%',
+                            selectCardHeight: "200",
+                            selectInitVal: '-1',//默认值顶层
+                            response: {
+                                treeId: "role_id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "role_name", //节点名称（必填）
+                            },
+                            request: {
+                                pid: "-1"
+                            },
+                            selectInputName: {
+                                nodeId: "pid",
+                                context: "请选择父级"
+                            },
+                            done: function (res, $ul, first) {
+                                if (first && data.pid != undefined) {
+                                    //首次赋值顶层
+                                    Dtree.dataInit("selTree4", data.pid);
+                                    Dtree.selectVal("selTree4");
+                                }
+                            }
+                        });
+                        //icon赋值
+                        iconPicker.checkIcon('system_role-add-iconPicker', data.icon);
+                        form.render()
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+            form.render();
+        }
+
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system_role-add-save)', function (data) {
+            let url = RESTFUL_API;
+            if (method === 'PUT') {
+                url = RESTFUL_API + '/' + getQueryString(PRIMARY_KEY)
+            }
+            $.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1000
+                        }, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        });
+                        return false;
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+    })
+</script>
+</body>
+</html>

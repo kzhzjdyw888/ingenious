@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>部门新增</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="form-data-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属上级</label>
+                <div class="layui-input-block">
+                    <ul id="leamus_tree" class="dtree" data-id="-1"></ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门编码</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="dept_code" placeholder="部门编码" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门名称</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="dept_name" lay-verify="required" placeholder="部门名称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">类型</label>
+                <div class="layui-input-block">
+                    <select name="dept_type">
+                        <option value="1">总公司</option>
+                        <option value="2">分公司</option>
+                        <option value="3">部门</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-block">
+                    <input id="sort" type="number" name="sort" value="10" lay-verify="required" placeholder="排序权重" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="可用" checked>
+                    <input type="radio" name="status" value="0" title="禁用">
+                </div>
+            </div>
+
+            <!--图标-->
+            <div class="layui-form-item">
+                <div class="layui-row">
+                    <div class="layui-col-xs6">
+                        <label class="layui-form-label">图标</label>
+                        <div class="layui-input-block">
+                            <div class="layui-input-inline">
+                                <input type="text" id="dept-iconPicker" name="icon" value="layui-icon-group" lay-filter="dept-iconPicker" class="hide">
+                            </div>
+                            <div class="layui-input-block" style="position:absolute;">
+                                <span class="pear-btn" id="dept-clear" style="line-height: 35px;">清空</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea name="remarks" placeholder="请输入内容" class="layui-textarea"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm" id="refresh">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/config.js"></script>
+<script src="../../../../config/permission.js"></script>
+
+<script>
+
+    const PRIMARY_KEY = "dept_id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/dept";
+
+    layui.use(['form', 'jquery','dtree','iconPicker'], function () {
+        let form = layui.form;
+        let Dtree = layui.dtree;
+        let $ = layui.jquery;
+        let iconPicker = layui.iconPicker;
+
+
+        /**
+         * 图标选择器
+         */
+        iconPicker.render({
+            elem: '#dept-iconPicker',
+            type: 'fontClass',
+            style: 'color: #5FB878;'
+            , placeholder: ''
+            , isSplit: true
+            , page: false
+            , search: true
+            , click: function (data) {
+            },
+            ready: function (d) {
+            }
+        });
+
+        $('#dept-clear').click(function () {
+            iconPicker.checkIcon('dept-iconPicker', "layui-icon-group");
+        });
+
+
+        /**
+         * 所属上级下拉渲染
+         * @param curId
+         */
+        function renderTree(curId = '-1') {
+            //处理父级选择栏目
+            layui.$.ajax({
+                url: RESTFUL_API,
+                dataType: 'JSON',
+                sync: false,
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        let data = ret.data != undefined ? ret.data : [];
+                        data.unshift({
+                            "dept_id": '-1',
+                            "dept_name": "顶层",
+                        });
+                        Dtree.renderSelect({
+                            elem: "#leamus_tree",
+                            data: data,
+                            selectInitVal: curId,
+                            selectCardHeight: '200',
+                            skin: "layui",
+                            response: {
+                                treeId: "dept_id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "dept_name", //节点名称（必填）
+                            },
+                            selectInputName: {
+                                nodeId: "pid",
+                                context: "pid_name"
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+
+        let method = 'POST';
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            get(getQueryString(PRIMARY_KEY));
+
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+        } else {
+            let id = getQueryString(PRIMARY_KEY)
+            renderTree(id !== null ? id : '-1')
+        }
+
+        form.on('submit(save)', function (data) {
+            let url = RESTFUL_API;
+            if (method === 'PUT') {
+                url = RESTFUL_API + '/' + getQueryString(PRIMARY_KEY)
+            }
+            $.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status === 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1000
+                        }, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        });
+                        return false;
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+
+        /**
+         * 详情获取
+         * @param id
+         */
+        function get(id) {
+            layui.$.ajax({
+                    url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                    method: 'GET',
+                    dataType: 'JSON',
+                    success: function (ret) {
+                        if (ret.status === 200) {
+                            let data = ret.data;
+                            form.val("form-data-filter", {
+                                "dept_code": data.dept_code,
+                                "dept_name": data.dept_name,
+                                'dept_type': data.dept_type,
+                                "sort": data.sort,
+                                "status": data.status,
+                                "remarks": data.remarks
+                            });
+                            renderTree(data.pid);
+                            form.render();
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                }
+            );
+        }
+    })
+
+    layui.$("body").on("click", function (event) {
+        layui.$("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+        layui.$("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+    });
+</script>
+</body>
+</html>

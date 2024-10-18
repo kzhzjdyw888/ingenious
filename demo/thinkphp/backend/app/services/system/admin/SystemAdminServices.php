@@ -18,7 +18,10 @@ namespace app\services\system\admin;
 //use app\services\product\product\StoreProductServices;
 //use app\services\user\UserExtractServices;
 use app\dao\system\admin\SystemAdminDao;
+use app\model\system\admin\SystemAdmin;
 use app\services\BaseServices;
+use phoenix\basic\BaseJobs;
+use phoenix\basic\BaseModel;
 use phoenix\exceptions\AdminException;
 use phoenix\services\CacheService;
 use phoenix\services\FormBuilder;
@@ -88,9 +91,10 @@ class SystemAdminServices extends BaseServices
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException|\ReflectionException
      */
-    public function verifyLogin(string $account, string $password, $isPwd = true): bool|array|Model
+    public function verifyLogin(string $account, string $password, $isPwd = true)
     {
         $adminInfo = $this->dao->accountByAdmin($account);
+
         if (!$adminInfo) return false;
         if ($isPwd) {
             if (!password_verify($password, $adminInfo->pwd)) return false;
@@ -179,6 +183,7 @@ class SystemAdminServices extends BaseServices
     {
         $adminInfo = $this->verifyLogin($account, $password, $isPwd);
         if (!$adminInfo) return false;
+
         $tokenInfo = $this->createToken($adminInfo->id, $type, $adminInfo->pwd);
 
         /** @var SystemMenusServices $services */

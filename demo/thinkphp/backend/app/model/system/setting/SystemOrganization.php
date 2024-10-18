@@ -27,7 +27,7 @@ class SystemOrganization extends BaseModel
      */
     protected $name = 'organization';
 
-    protected string $deleteTime = 'delete_time';
+    protected $deleteTime = 'delete_time';
 
     /**
      * 软删除

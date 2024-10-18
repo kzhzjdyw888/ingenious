@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>模型设计</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../../admin/css/reset.css"/>
+    <!--LogicFlow core包css-->
+    <link rel="stylesheet" href="../../../../component/logicflow/core/dist/style/index.css"/>
+    <!--LogicFlow extension包css-->
+    <link rel="stylesheet" href="../../../../component/logicflow/extension/lib/style/index.css"/>
+</head>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+
+    html,
+    body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .lf-control-see {
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/PjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+PHN2ZyB0PSIxNjQ1NjgyNDM0MzQxIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjEzNzgiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+PGRlZnM+PHN0eWxlIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPjwvZGVmcz48cGF0aCBkPSJNNTEyIDE3MS4yODM2OTJjLTI1NS4wNTQ3NjkgMC00ODUuOTI3Mzg1IDMxMi40MzgxNTQtNDk2Ljc5NzUzOCAzMjcuMzI1NTM4bDAgMC42MzAxNTRDMjYuMDcyNjE1IDUxNC4xMjY3NjkgMjU2Ljk0NTIzMSA4MjYuNDg2MTU0IDUxMiA4MjYuNDg2MTU0YzI1NS4wMTUzODUgMCA0ODUuODg4LTMxMi4zOTg3NjkgNDk2Ljc5NzUzOC0zMjcuMzI1NTM4bDAtMC42MzAxNTRDOTk3LjkyNzM4NSA0ODMuNjgyNDYyIDc2Ny4wMTUzODUgMTcxLjI4MzY5MiA1MTIgMTcxLjI4MzY5Mkw1MTIgMTcxLjI4MzY5MnpNNTEyIDI5MS4yMDk4NDZjMTE0LjU2OTg0NiAwIDIwNy43NTM4NDYgOTMuMTA1MjMxIDIwNy43NTM4NDYgMjA3LjY3NTA3N1M2MjYuNTY5ODQ2IDcwNi42Mzg3NjkgNTEyIDcwNi42Mzg3NjljLTExNC41MzA0NjIgMC0yMDcuNzUzODQ2LTkzLjE4NC0yMDcuNzUzODQ2LTIwNy43NTM4NDZTMzk3LjQ2OTUzOCAyOTEuMjA5ODQ2IDUxMiAyOTEuMjA5ODQ2TTUxMiAzOTUuMjI0NjE1Yy01Ny4yNjUyMzEgMC0xMDMuNjYwMzA4IDQ2LjQzNDQ2Mi0xMDMuNjYwMzA4IDEwMy42NjAzMDhzNDYuMzk1MDc3IDEwMy42NjAzMDggMTAzLjY2MDMwOCAxMDMuNjYwMzA4YzU3LjIyNTg0NiAwIDEwMy42MjA5MjMtNDYuNDM0NDYyIDEwMy42MjA5MjMtMTAzLjY2MDMwOFM1NjkuMjI1ODQ2IDM5NS4yMjQ2MTUgNTEyIDM5NS4yMjQ2MTV6IiBwLWlkPSIxMzc5Ij48L3BhdGg+PC9zdmc+');
+    }
+
+    .lf-control-import {
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/PjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+PHN2ZyB0PSIxNjQ1NjgyODQ5ODQ3IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjIxODMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+PGRlZnM+PHN0eWxlIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPjwvZGVmcz48cGF0aCBkPSJNODg4LjMgNzU3LjRoLTUzLjhjLTQuMiAwLTcuNyAzLjUtNy43IDcuN3Y2MS44SDE5Ny4xVjE5Ny4xaDYyOS44djYxLjhjMCA0LjIgMy41IDcuNyA3LjcgNy43aDUzLjhjNC4yIDAgNy43LTMuNCA3LjctNy43VjE1OC43YzAtMTctMTMuNy0zMC43LTMwLjctMzAuN0gxNTguN2MtMTcgMC0zMC43IDEzLjctMzAuNyAzMC43djcwNi42YzAgMTcgMTMuNyAzMC43IDMwLjcgMzAuN2g3MDYuNmMxNyAwIDMwLjctMTMuNyAzMC43LTMwLjdWNzY1LjFjMC00LjMtMy41LTcuNy03LjctNy43eiIgcC1pZD0iMjE4NCI+PC9wYXRoPjxwYXRoIGQ9Ik05MDIgNDc2SDU4OHYtNzZjMC02LjctNy44LTEwLjUtMTMtNi4zbC0xNDEuOSAxMTJjLTQuMSAzLjItNC4xIDkuNCAwIDEyLjZsMTQxLjkgMTEyYzUuMyA0LjIgMTMgMC40IDEzLTYuM3YtNzZoMzE0YzQuNCAwIDgtMy42IDgtOHYtNTZjMC00LjQtMy42LTgtOC04eiIgcC1pZD0iMjE4NSI+PC9wYXRoPjwvc3ZnPg==');
+    }
+
+    .lf-control-clear {
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/PjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+PHN2ZyB0PSIxNjQ1Nzg5MTYyODczIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjIwNDYiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+PGRlZnM+PHN0eWxlIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPjwvZGVmcz48cGF0aCBkPSJNODk5LjEgODY5LjZsLTUzLTMwNS42SDg2NGMxNC40IDAgMjYtMTEuNiAyNi0yNlYzNDZjMC0xNC40LTExLjYtMjYtMjYtMjZINjE4VjEzOGMwLTE0LjQtMTEuNi0yNi0yNi0yNkg0MzJjLTE0LjQgMC0yNiAxMS42LTI2IDI2djE4MkgxNjBjLTE0LjQgMC0yNiAxMS42LTI2IDI2djE5MmMwIDE0LjQgMTEuNiAyNiAyNiAyNmgxNy45bC01MyAzMDUuNmMtMC4zIDEuNS0wLjQgMy0wLjQgNC40IDAgMTQuNCAxMS42IDI2IDI2IDI2aDcyM2MxLjUgMCAzLTAuMSA0LjQtMC40IDE0LjItMi40IDIzLjctMTUuOSAyMS4yLTMwek0yMDQgMzkwaDI3MlYxODJoNzJ2MjA4aDI3MnYxMDRIMjA0VjM5MHogbTQ2OCA0NDBWNjc0YzAtNC40LTMuNi04LTgtOGgtNDhjLTQuNCAwLTggMy42LTggOHYxNTZINDE2VjY3NGMwLTQuNC0zLjYtOC04LThoLTQ4Yy00LjQgMC04IDMuNi04IDh2MTU2SDIwMi44bDQ1LjEtMjYwSDc3Nmw0NS4xIDI2MEg2NzJ6IiBwLWlkPSIyMDQ3Ij48L3BhdGg+PC9zdmc+');
+    }
+
+    .lf-control-save {
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/PjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+PHN2ZyB0PSIxNjQ1Nzg5MTgwOTgzIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjI4NDMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+PGRlZnM+PHN0eWxlIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPjwvZGVmcz48cGF0aCBkPSJNNDI2LjY2NjY2NyAxMjhoLTE0OS4zMzMzMzR2MjM0LjQ1MzMzM2MwIDEyLjA3NDY2NyA5LjQ1MDY2NyAyMS41NDY2NjcgMjEuMjA1MzM0IDIxLjU0NjY2N2gyOTguOTIyNjY2YzExLjYyNjY2NyAwIDIxLjIwNTMzMy05LjYgMjEuMjA1MzM0LTIxLjU0NjY2N1YxMjhoLTY0djE0OS41MDRjMCAyMy40NjY2NjctMTkuMTU3MzMzIDQyLjQ5Ni00Mi42MjQgNDIuNDk2aC00Mi43NTJBNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMSA0MjYuNjY2NjY3IDI3Ny41MDRWMTI4ek0xOTIgODk2VjY2MS41NDY2NjdDMTkyIDYwMi40NzQ2NjcgMjM5Ljc4NjY2NyA1NTQuNjY2NjY3IDI5OC44MzczMzMgNTU0LjY2NjY2N2g0MjYuMzI1MzM0QTEwNi43MDkzMzMgMTA2LjcwOTMzMyAwIDAgMSA4MzIgNjYxLjU0NjY2N1Y4OTZoNDIuNTE3MzMzQTIxLjMxMiAyMS4zMTIgMCAwIDAgODk2IDg3NC43NTJWMjczLjY2NEw3NTAuMzM2IDEyOEg3MDR2MjM0LjQ1MzMzM2MwIDU4Ljk2NTMzMy00Ny43MDEzMzMgMTA2Ljg4LTEwNi41Mzg2NjcgMTA2Ljg4SDI5OC41Mzg2NjdBMTA2LjU2IDEwNi41NiAwIDAgMSAxOTIgMzYyLjQ1MzMzM1YxMjhIMTQ5LjI0OEEyMS4yNjkzMzMgMjEuMjY5MzMzIDAgMCAwIDEyOCAxNDkuNDgyNjY3djcyNS4wMzQ2NjZDMTI4IDg4Ni40MjEzMzMgMTM3LjU3ODY2NyA4OTYgMTQ5LjQ4MjY2NyA4OTZIMTkyek00Mi42NjY2NjcgMTQ5LjQ4MjY2N0ExMDYuNjAyNjY3IDEwNi42MDI2NjcgMCAwIDEgMTQ5LjI0OCA0Mi42NjY2NjdINzY4YTQyLjY2NjY2NyA0Mi42NjY2NjcgMCAwIDEgMzAuMTY1MzMzIDEyLjUwMTMzM2wxNzAuNjY2NjY3IDE3MC42NjY2NjdBNDIuNjY2NjY3IDQyLjY2NjY2NyAwIDAgMSA5ODEuMzMzMzMzIDI1NnY2MTguNzUyQTEwNi42NDUzMzMgMTA2LjY0NTMzMyAwIDAgMSA4NzQuNTE3MzMzIDk4MS4zMzMzMzNIMTQ5LjQ4MjY2N0ExMDYuNzUyIDEwNi43NTIgMCAwIDEgNDIuNjY2NjY3IDg3NC41MTczMzNWMTQ5LjQ4MjY2N3ogbTcwNCA1MTIuMDQyNjY2YzAtMTIuMDEwNjY3LTkuNTM2LTIxLjUyNTMzMy0yMS41MDQtMjEuNTI1MzMzSDI5OC44MzczMzNDMjg2LjkzMzMzMyA2NDAgMjc3LjMzMzMzMyA2NDkuNiAyNzcuMzMzMzMzIDY2MS41NDY2NjdWODk2aDQ2OS4zMzMzMzRWNjYxLjU0NjY2N3oiIGZpbGw9IiMwMDAwMDAiIHAtaWQ9IjI4NDQiPjwvcGF0aD48L3N2Zz4=');
+    }
+
+    .lf-control-refresh {
+        background-image: url("data:image/png;base64,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");
+    }
+
+    .lf-control-exit {
+        background-image: url('data:image/png;base64,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');
+    }
+
+
+    .custom-minimap {
+        background-image: url(data:image/png;base64,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);
+    }
+
+    #lf-graph {
+        margin: 20px 20px 0px 20px;
+        width: 98%;
+        height: 100%;
+    }
+
+
+    /*tab title*/
+    .drawer-section-list ul li {
+        display: inline-block;
+        zoom: 1;
+        vertical-align: top;
+        margin-right: 20px;
+        font-size: 16px;
+        line-height: 34px;
+        color: #373d40;
+        cursor: pointer;
+    }
+
+    /*选中下划线*/
+    .drawer-section-list ul .on {
+        color: #488bff;
+        border-bottom: 1px solid #488bff;
+    }
+
+    /*列表*/
+    .drawer-section-info div {
+        text-align: left;
+        border-top: 1px solid #ececec;
+    }
+</style>
+
+<body>
+
+<!--画板-->
+<div id="lf-graph"></div>
+
+
+<!--layui依赖-->
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+
+<script type="text/javascript" src="../../../../component/logicflow/core/dist/logic-flow.js"></script>
+<!--LogicFlow的插件引入-->
+<script type="text/javascript" src="../../../../component/logicflow/extension/lib/Menu.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/extension/lib/DndPanel.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/extension/lib/Control.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/extension/lib/MiniMap.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/extension/lib/Group.js"></script>
+<!--LogicFlow定制模型引入-->
+<script type="text/javascript" src="../../../../component/logicflow/customized/start.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/task.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/fork.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/join.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/subProcess.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/wfSubProcess.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/end.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/custom.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/decision.js"></script>
+<script type="text/javascript" src="../../../../component/logicflow/customized/transition.js"></script>
+
+<script>
+
+    //相关常量
+    const PRIMARY_KEY = "id";
+    //属性面板路径
+    const URL_MAP = {
+        start: './panel/start.html',
+        decision: './panel/decision.html',
+        task: './panel/task.html',
+        custom: './panel/custom.html',
+        process: './panel/process.html',
+        fork: './panel/fork.html',
+        join: './panel/join.html',
+        subProcess: './panel/subProcess.html',
+        wfSubProcess: './panel/wfSubProcess.html',
+        end: './panel/end.html',
+        transition: './panel/transition.html'
+    };
+
+    let $ = layui.jquery;
+    let graphData = {};
+    let viewer = false;
+    let highLight = [];
+    let commitPath = null;
+    let defaultConfig = {};
+    let extendAttrConfig = {};
+    //接受父级的传参
+    window.addEventListener('message', function (event) {
+        let data = event.data;
+        graphData = data.graphData !== undefined ? data.graphData : {};
+        viewer = data.viewer !== undefined ? data.viewer : false;
+        highLight = data.highLight !== undefined ? data.highLight : [];
+        commitPath = data.commitPath !== undefined && data.commitPath !== null && data.commitPath !== '' ? data.commitPath : null;
+        defaultConfig = data.config !== undefined ? data.config : {grid: true};
+        extendAttrConfig = data.extendAttrConfig !== undefined ? data.extendAttrConfig : {};
+        init();
+        //高亮渲染
+        setHighLight(highLight);
+    });
+
+    function init() {
+        // 画布配置
+        if (viewer) {
+            defaultConfig.isSilentMode = true
+        }
+        const lf = new LogicFlow({
+            container: document.querySelector("#lf-graph"),
+            grid: {
+                size: 20,
+                visible: true,
+                type: 'dot',
+                config: {
+                    color: '#ababab',
+                    thickness: 1,
+                },
+            },
+            edgeType: 'ingenious:transition',//1.2+需要默认线类型
+            plugins: [Menu, DndPanel, Control, MiniMap, Group],
+            keyboard: {
+                enabled: true,//是否启用快捷键
+                shortcuts: [
+                    {
+                        keys: ["del"],
+                        callback: () => {
+                            if (!lf) return;
+                            const elements = lf.getSelectElements(true);
+                            lf.clearSelectElements();
+                            elements.edges.forEach((edge) => lf.deleteEdge(edge.id));
+                            elements.nodes.forEach((node) => lf.deleteNode(node.id));
+                        }
+                    }
+                ]
+            }
+        });
+        this.lf = lf;
+        this.lf.register(Task)
+        this.lf.register(Custom)
+        this.lf.register(Start)
+        this.lf.register(End)
+        this.lf.register(Decision)
+        this.lf.register(Join)
+        this.lf.register(Fork)
+        this.lf.register(Transition)
+        this.lf.register(WfSubProcess) // 2024-05-29 add by gsc 修复子流程用不了问题
+
+
+        //初始化操作栏
+        initOp(this.lf)
+        //初始化事件
+        initEvent(this.lf)
+        //初始化渲染一次
+        this.lf.render(graphData)
+    }
+
+
+    function initOp(lf) {
+        if (viewer) {
+            // 预览模式时
+            lf.extension.menu.setMenuConfig({
+                nodeMenu: [],
+                edgeMenu: []
+            })
+            return
+        }
+        //设置拖拽面板
+        lf.extension.dndPanel.setPatternItems([
+            {
+                type: 'ingenious:start',
+                text: '开始',
+                label: '开始节点',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAAH6ji2bAAAABGdBTUEAALGPC/xhBQAAAnBJREFUOBGdVL1rU1EcPfdGBddmaZLiEhdx1MHZQXApraCzQ7GKLgoRBxMfcRELuihWKcXFRcEWF8HBf0DdDCKYRZpnl7p0svLe9Zzbd29eQhTbC8nv+9zf130AT63jvooOGS8Vf9Nt5zxba7sXQwODfkWpkbjTQfCGUd9gIp3uuPP8bZ946g56dYQvnBg+b1HB8VIQmMFrazKcKSvFW2dQTxJnJdQ77urmXWOMBCmXM2Rke4S7UAW+/8ywwFoewmBps2tu7mbTdp8VMOkIRAkKfrVawalJTtIliclFbaOBqa0M2xImHeVIfd/nKAfVq/LGnPss5Kh00VEdSzfwnBXPUpmykNss4lUI9C1ga+8PNrBD5YeqRY2Zz8PhjooIbfJXjowvQJBqkmEkVnktWhwu2SM7SMx7Cj0N9IC0oQXRo8xwAGzQms+xrB/nNSUWVveI48ayrFGyC2+E2C+aWrZHXvOuz+CiV6iycWe1Rd1Q6+QUG07nb5SbPrL4426d+9E1axKjY3AoRrlEeSQo2Eu0T6BWAAr6COhTcWjRaYfKG5csnvytvUr/WY4rrPMB53Uo7jZRjXaG6/CFfNMaXEu75nG47X+oepU7PKJvvzGDY1YLSKHJrK7vFUwXKkaxwhCW3u+sDFMVrIju54RYYbFKpALZAo7sB6wcKyyrd+aBMryMT2gPyD6GsQoRFkGHr14TthZni9ck0z+Pnmee460mHXbRAypKNy3nuMdrWgVKj8YVV8E7PSzp1BZ9SJnJAsXdryw/h5ctboUVi4AFiCd+lQaYMw5z3LGTBKjLQOeUF35k89f58Vv/tGh+l+PE/wG0rgfIUbZK5AAAAABJRU5ErkJggg=='
+            },
+            {
+                type: 'ingenious:task',
+                text: '用户',
+                label: '用户任务',
+                properties: {
+                    assignee: "",
+                    back_permission: "1",
+                    perform_type: "ANY",
+                    scope: "1",
+                    task_type: "Major",
+                    field: {}
+                },
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAEFVwZaAAAABGdBTUEAALGPC/xhBQAAAqlJREFUOBF9VM9rE0EUfrMJNUKLihGbpLGtaCOIR8VjQMGDePCgCCIiCNqzCAp2MyYUCXhUtF5E0D+g1t48qAd7CCLqQUQKEWkStcEfVGlLdp/fm3aW2QQdyLzf33zz5m2IsAZ9XhDpyaaIZkTS4ASzK41TFao88GuJ3hsr2pAbipHxuSYyKRugagICGANkfFnNh3HeE2N0b3nN2cgnpcictw5veJIzxmDamSlxxQZicq/mflxhbaH8BLRbuRwNtZp0JAhoplVRUdzmCe/vO27wFuuA3S5qXruGdboy5/PRGFsbFGKo/haRtQHIrM83bVeTrOgNhZReWaYGnE4aUQgTJNvijJFF4jQ8BxJE5xfKatZWmZcTQ+BVgh7s8SgPlCkcec4mGTmieTP4xd7PcpIEg1TX6gdeLW8rTVMVLVvb7ctXoH0Cydl2QOPJBG21STE5OsnbweVYzAnD3A7PVILuY0yiiyDwSm2g441r6rMSgp6iK42yqroI2QoXeJVeA+YeZSa47gZdXaZWQKTrG93rukk/l2Al6Kzh5AZEl7dDQy+JjgFahQjRopSxPbrbvK7GRe9ePWBo1wcU7sYrFZtavXALwGw/7Dnc50urrHJuTPSoO2IMV3gUQGNg87IbSOIY9BpiT9HV7FCZ94nPXb3MSnwHn/FFFE1vG6DTby+r31KAkUktB3Qf6ikUPWxW1BkXSPQeMHHiW0+HAd2GelJsZz1OJegCxqzl+CLVHa/IibuHeJ1HAKzhuDR+ymNaRFM+4jU6UWKXorRmbyqkq/D76FffevwdCp+jN3UAN/C9JRVTDuOxC/oh+EdMnqIOrlYteKSfadVRGLJFJPSB/ti/6K8f0CNymg/iH2gO/f0DwE0yjAFO6l8JaR5j0VPwPwfaYHqOqrCI319WzwhwzNW/aQAAAABJRU5ErkJggg==',
+                className: 'important-node'
+            },
+            {
+                type: 'ingenious:custom',
+                text: '自定义任务',
+                label: '自定义任务',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAAH6ji2bAAAABGdBTUEAALGPC/xhBQAAAOVJREFUOBGtVMENwzAIjKP++2026ETdpv10iy7WFbqFyyW6GBywLCv5gI+Dw2Bluj1znuSjhb99Gkn6QILDY2imo60p8nsnc9bEo3+QJ+AKHfMdZHnl78wyTnyHZD53Zzx73MRSgYvnqgCUHj6gwdck7Zsp1VOrz0Uz8NbKunzAW+Gu4fYW28bUYutYlzSa7B84Fh7d1kjLwhcSdYAYrdkMQVpsBr5XgDGuXwQfQr0y9zwLda+DUYXLaGKdd2ZTtvbolaO87pdo24hP7ov16N0zArH1ur3iwJpXxm+v7oAJNR4JEP8DoAuSFEkYH7cAAAAASUVORK5CYII=',
+                className: 'import_icon'
+            },
+            {
+                type: 'ingenious:decision',
+                label: '条件判断',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAAHeEJUAAAAABGdBTUEAALGPC/xhBQAAAvVJREFUOBGNVEFrE0EU/mY3bQoiFlOkaUJrQUQoWMGePLX24EH0IIoHKQiCV0G8iE1covgLiqA/QTzVm1JPogc9tIJYFaQtlhQxqYjSpunu+L7JvmUTU3AgmTfvffPNN++9WSA1DO182f6xwILzD5btfAoQmwL5KJEwiQyVbSVZ0IgRyV6PTpIJ81E5ZvqfHQR0HUOBHW4L5Et2kQ6Zf7iAOhTFAA8s0pEP7AXO1uAA52SbqGk6h/6J45LaLhO64ByfcUzM39V7ZiAdS2yCePPEIQYvTUHqM/n7dgQNfBKWPjpF4ISk8q3J4nB11qw6X8l+FsF3EhlkEMfrjIer3wJTLwS2aCNcj4DbGxXTw00JmAuO+Ni6bBxVUCvS5d9aa04+so4pHW5jLTywuXAL7jJ+D06sl82Sgl2JuVBQn498zkc2bGKxULHjCnSMadBKYDYYHAtsby1EQ5lNGrQd4Y3v4Zo0XdGEmDno46yCM9Tk+RiJmUYHS/aXHPNTcjxcbTFna000PFJHIVZ5lFRqRpJWk9/+QtlOUYJj9HG5pVFEU7zqIYDVsw2s+AJaD8wTd2umgSCCyUxgGsS1Y6TBwXQQTFuZaHcd8gAGioE90hlsY+wMcs30RduYtxanjMGal8H5dMW67dmT1JFtYUEe8LiQLRsPZ6IIc7A4J5tqco3T0pnv/4u0kyzrYUq7gASuEyI8VXKvB9Odytv6jS/PNaZBln0nioJG/AVQRZvApOdhjj3Jt8QC8Im09SafwdBdvIpztpxWxpeKCC+EsFdS8DCyuCn2munFpL7ctHKp+Xc5cMybeIyMAN33SPL3ZR9QV1XVwLyzHm6Iv0/yeUuUb7PPlZC4D4HZkeu6dpF4v9j9MreGtMbxMMRLIcjJic9yHi7WQ3yVKzZVWUr5UrViJvn1FfUlwe/KYVfYyWRLSGNu16hR01U9IacajXPei0wx/5BqgInvJN+MMNtNme7ReU9SBbgntovn0kKHpFg7UogZvaZiOue/q1SBo9ktHzQAAAAASUVORK5CYII='
+            },
+            {
+                type: 'ingenious:fork',
+                label: '分支',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAASlJREFUOE+tlL9Lw1AQx78X/GuSzJ2zugqddNPBwS3BJqWCmwnq5lKcXAVHN0EFJ0EQ2pfZ3U1FKohfeaWRYl/zniZvu+P43H3vxxO0/KQJz895+D7B3tO+TCpOI2CQkwAu6WFQ7sqjhjoB/YLrQmwZ1ERTH/EGYkf15cwKDAuukbiwtUaA4TiVbSswyHkNIFKpLMTOJL8ASFQqp06SLcArj+iNMnlYGIqfcxWCjveF23EmN1VAHdDUhqmMsOA5ie5PwAoClUip7T8DgyP6+IT6lU3bz3M+Yw+NFbYObF1yVXarQ6lb2n+vzTKow2K/AoidFzs8YESBvpba53x6s6FtkthY+jkAHySSMpMT6y1b+qu/rzsK4rIn9063bAEeq1Ti+ZhGFZqSfQNEXZkVkDFbFAAAAABJRU5ErkJggg=='
+            },
+            {
+                type: 'ingenious:join',
+                label: '合并',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAASZJREFUOE+1lDFOw0AQRf83LW1SICGBRIHiUFEjkQNQkpZjYBeRkso+RQ4ALT0paJCgwnaBFFFxAkok/2gj2YrjdZyNkq12pdk382fnL7HnxT3zUAP2I92aJEnI2S7JKkA/1iuAJRDALA04cIWWwF6kexJPqwAJwyzkswu0BBqpIkyF5aIwcJV+OMlFWX6sPwDH/MdFMuLcRa6Jrb1yL9YvgRMR46McL18hP12gNaAfKwHRgdAtXrsCJL6V4z0LObUlsgMBSJjQwx2E07WLy7EyCrJHTtahjcA0YN9WwWWkM8/DA4WxbaxswB8DSgOeN/XuKtJ1TnwAeEsD3lRGbfWwrVM2xTk7pc1Rzk5pc9ROTtlKctFLI8ns2z6FprjDf7AuNrPFLgDE4owVZSkI4QAAAABJRU5ErkJggg=='
+            },
+            {
+                type: 'ingenious:end',
+                text: '结束节点',
+                label: '结束节点',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAAH6ji2bAAAABGdBTUEAALGPC/xhBQAAA1BJREFUOBFtVE1IVUEYPXOf+tq40Y3vPcmFIdSjIorWoRG0ERWUgnb5FwVhYQSl72oUoZAboxKNFtWiwKRN0M+jpfSzqJAQclHo001tKkjl3emc8V69igP3znzfnO/M9zcDcKT67azmjYWTwl9Vn7Vumeqzj1DVb6cleQY4oAVnIOPb+mKAGxQmKI5CWNJ2aLPatxWa3aB9K7/fB+/Z0jUF6TmMlFLQqrkECWQzOZxYGjTlOl8eeKaIY5yHnFn486xBustDjWT6dG7pmjHOJd+33t0iitTPkK6tEvjxq4h2MozQ6WFSX/LkDUGfFwfhEZj1Auz/U4pyAi5Sznd7uKzznXeVHlI/Aywmk6j7fsUsEuCGADrWARXXwjxWQsUbIupDHJI7kF5dRktg0eN81IbiZXiTESic50iwS+t1oJgL83jAiBupLDCQqwziaWSoAFSeIR3P5Xv5az00wyIn35QRYTwdSYbz8pH8fxUUAtxnFvYmEmgI0wYXUXcCCSpeEVpXlsRhBnCEATxWylL9+EKCAYhe1NGstUa6356kS9NVvt3DU2fd+Wtbm/+lSbylJqsqkSm9CRhvoJVlvKPvF1RKY/FcPn5j4UfIMLn8D4UYb54BNsilTDXKnF4CfTobA0FpoW/LSp306wkXM+XaOJhZaFkcNM82ASNAWMrhrUbRfmyeI1FvRBTpN06WKxa9BK0o2E4Pd3zfBBEwPsv9sQBnmLVbLEIZ/Xe9LYwJu/Er17W6HYVBc7vmuk0xUQ+pqxdom5Fnp55SiytXLPYoMXNM4u4SNSCFWnrVIzKG3EGyMXo6n/BQOe+bX3FClY4PwydVhthOZ9NnS+ntiLh0fxtlUJHAuGaFoVmttpVMeum0p3WEXbcll94l1wM/gZ0Ccczop77VvN2I7TlsZCsuXf1WHvWEhjO8DPtyOVg2/mvK9QqboEth+7pD6NUQC1HN/TwvydGBARi9MZSzLE4b8Ru3XhX2PBxf8E1er2A6516o0w4sIA+lwURhAON82Kwe2iDAC1Watq4XHaGQ7skLcFOtI5lDxuM2gZe6WFIotPAhbaeYlU4to5cuarF1QrcZ/lwrLaCJl66JBocYZnrNlvm2+MBCTmUymPrYZVbjdlr/BxlMjmNmNI3SAAAAAElFTkSuQmCC'
+            },
+            {
+                type: 'ingenious:wfSubProcess',
+                text: '子流程',
+                label: '子流程',
+                properties: {},
+                icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAiFJREFUOE+1lD9oU1EUxn/nviRVB0Hwz1SwJn0WXRylGbSTboJTKwgFwTrqoJK8lKQ0LxUEBR2UolRcDKJQVFxbFx10cNL2JSFFdHARN8Um92jSpqY2bUipdzz3vN/53vu+d4QtPrLFPNoC3XHNYDhXH2y5H4xKZiMRGwIP+vpMhZ+qvBSIqDAkymzgydh60HWB0ax2O8InNZwpJORRDeBmdQJhMPCkp2Ogm9EDhClZ4XAxKR/qwKXXPxl4crRj4LKiPMJHByYrcEIgrXCj4MntTQGj13Wv84s7wOk6QLkWpCSxaVMaD/bmdEaqvGrncK1/lSmxcT3earo4pGtAC7Ot7oujslJfAzSGmY7CbhlrVt4SGHiyql5zVx2OFZIy0Dys1af4v0A3q2cRHholPpeS1w01DYUVZbDsyddavcfXfSEh/69ZKwp7c3rTKFErlES5CAwFnuRdX98ovBfYBgzbEN2hH4SqEaaM8hboA3bPe9K/ymU3p1+MEJ9LyILr6xRKl6mQtBGmg6QcqQfd17IoVxR2APEgJef7JnS/tZRrg4pX5fOKQtfXd1hemBAPqpa7As/DizxdDDNvLaccYY8Kj61lwAi7VBhxDBdshWEM6YaRf4FL/+klYCcwXTVcLiWk6Gb1HrK8vmAy8GQkNq5RY3gC1JXTFJ012yaW00ONZdAwJXZLuyrf2L6Qke/NsenLqTuXlKC51nbBdhTyP82/ASr35RWxFgVJAAAAAElFTkSuQmCC',
+                className: 'import_icon'
+            },
+            // {
+            //     type: 'ingenious:subProcess',
+            //     text: '',
+            //     label: '子流程',
+            //     properties: {},
+            //     icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAiFJREFUOE+1lD9oU1EUxn/nviRVB0Hwz1SwJn0WXRylGbSTboJTKwgFwTrqoJK8lKQ0LxUEBR2UolRcDKJQVFxbFx10cNL2JSFFdHARN8Um92jSpqY2bUipdzz3vN/53vu+d4QtPrLFPNoC3XHNYDhXH2y5H4xKZiMRGwIP+vpMhZ+qvBSIqDAkymzgydh60HWB0ax2O8InNZwpJORRDeBmdQJhMPCkp2Ogm9EDhClZ4XAxKR/qwKXXPxl4crRj4LKiPMJHByYrcEIgrXCj4MntTQGj13Wv84s7wOk6QLkWpCSxaVMaD/bmdEaqvGrncK1/lSmxcT3earo4pGtAC7Ot7oujslJfAzSGmY7CbhlrVt4SGHiyql5zVx2OFZIy0Dys1af4v0A3q2cRHholPpeS1w01DYUVZbDsyddavcfXfSEh/69ZKwp7c3rTKFErlES5CAwFnuRdX98ovBfYBgzbEN2hH4SqEaaM8hboA3bPe9K/ymU3p1+MEJ9LyILr6xRKl6mQtBGmg6QcqQfd17IoVxR2APEgJef7JnS/tZRrg4pX5fOKQtfXd1hemBAPqpa7As/DizxdDDNvLaccYY8Kj61lwAi7VBhxDBdshWEM6YaRf4FL/+klYCcwXTVcLiWk6Gb1HrK8vmAy8GQkNq5RY3gC1JXTFJ012yaW00ONZdAwJXZLuyrf2L6Qke/NsenLqTuXlKC51nbBdhTyP82/ASr35RWxFgVJAAAAAElFTkSuQmCC',
+            //     className: 'import_icon'
+            // }
+        ])
+        //设置右键菜单
+        lf.extension.menu.setMenuConfig({
+            nodeMenu: [
+                {
+                    text: "删除",
+                    callback(node) {
+                        lf.deleteNode(node.id);
+                    },
+                },
+                {
+                    text: "编辑文本",
+                    callback: (node) => {
+                        lf.editText(node.id);
+                    }
+                },
+                {
+                    text: "属性",
+                    callback(node) {
+                        let e = {};
+                        e.data = node;
+                        propertiesPanel(e)
+
+                    }
+                }
+            ],
+            edgeMenu: [
+                {
+                    text: "删除",
+                    callback(edge) {
+                        lf.deleteEdge(edge.id);
+                    },
+                },
+                {
+                    text: "编辑文本",
+                    callback: (edge) => {
+                        lf.editText(edge.id);
+                    }
+                },
+                {
+                    text: "属性",
+                    callback(edge) {
+                        let e = {};
+                        e.data = edge;
+                        propertiesPanel(e)
+                    }
+                }
+            ],
+            graphMenu: [], // 重新右键菜单空跟false 一样
+        });
+        //控制面板
+        lf.extension.control.addItem({
+            iconClass: 'lf-control-clear',
+            title: 'clear',
+            text: '清空',
+            onClick: () => {
+                lf.clearData()
+            }
+        })
+
+        /**
+         * 控制面板-添加查看按钮
+         */
+        lf.extension.control.addItem({
+            iconClass: 'lf-control-see',
+            title: '',
+            text: '查看',
+            onClick: () => {
+                layui.use(['layer'], function () {
+                    let layer = layui.layer;
+                    layer.open({
+                        type: 2,
+                        area: ['800px', '500px'],
+                        title: '查看流程数据',
+                        maxmin: true,
+                        shade: 0.1,
+                        shadeClose: true,
+                        content: 'panel/detail.html',
+                        success: function (layero, index) {
+                            // 将数据传递给子页面
+                            let iframeWin = window[layero.find('iframe')[0]['name']];
+                            iframeWin.child(getGraphData());
+                        }, end: function (layero, index) {
+
+                        }
+                    });
+                })
+            }
+        })
+
+        /**
+         *   控制面板-添加导入按钮
+         */
+        lf.extension.control.addItem({
+            iconClass: 'lf-control-import',
+            title: '',
+            text: '导入',
+            onClick: () => {
+                layui.use(['layer'], function () {
+                    let layer = layui.layer;
+                    layer.open({
+                        type: 2,
+                        area: ['800px', '500px'],
+                        maxmin: true,
+                        title: '导入流程数据(json)',
+                        shade: 0.1,
+                        shadeClose: true,
+                        anim: 0,
+                        content: 'panel/import.html',
+                        success: function (layero, index) {
+                        }, end: function (layero, index) {
+                        }
+                    });
+                })
+            }
+        })
+
+        /**
+         *   控制面板-刷新
+         */
+        lf.extension.control.addItem({
+            iconClass: 'lf-control-refresh',
+            title: '',
+            text: '刷新',
+            onClick: () => {
+                location.replace(location.href)
+            }
+        })
+
+        /**
+         *  控制面板-保存
+         */
+        lf.extension.control.addItem({
+            iconClass: 'lf-control-save',
+            title: '',
+            text: '保存',
+            onClick: () => {
+                saveGraphData()
+            }
+        })
+
+        /**
+         *   退出设计
+         */
+        // lf.extension.control.addItem({
+        //     iconClass: "lf-control-exit",
+        //     title: "",
+        //     text: "退出",
+        //     onClick: (lf, ev) => {
+        //         layer.confirm('确认要退出吗？', function (index) {
+        //             //弹出层
+        //             // var index = parent.layer.getFrameIndex(window.name);
+        //             // parent.layer.close(index);
+        //             //关闭当前TAB
+        //             parent.layui.admin.closeCurrentTab()
+        //         })
+        //     }
+        // });
+
+        /**
+         *  小地图
+         */
+        lf.extension.control.addItem({
+            iconClass: "custom-minimap",
+            title: "",
+            text: "导航",
+            onClick: (lf, ev) => {
+                const position = lf.getPointByClient(ev.x, ev.y);
+                lf.extension.miniMap.show(
+                    position.domOverlayPosition.x - 125,
+                    position.domOverlayPosition.y + 40
+                );
+            }
+        });
+    }
+
+    function initEvent(lf) {
+        if (viewer) {
+            return;
+        }
+        // 空白区右键事件-弹出流程属性表单
+        const eventCenter = lf.graphModel.eventCenter
+        eventCenter.on('blank:contextmenu', (args) => {
+            let data = {
+                name: ('name' in graphData) ? graphData.name : '',
+                display_name: ('display_name' in graphData) ? graphData.display_name : '',
+                expire_time: ('expire_time' in graphData) ? graphData.expire_time : '',
+                instance_url: ('instance_url' in graphData) ? graphData.instance_url : '',
+                instance_no_class: ('instance_no_class' in graphData) ? graphData.instance_no_class : '',
+                type: 'ingenious:process'
+            }
+            let param = [];
+            param['data'] = data;
+            layer.open({
+                type: 2,
+                offset: 'r',
+                area: ['500px', '100%'],
+                title: false,
+                shade: 0.1,
+                closeBtn: 0,
+                shadeClose: true,
+                anim: -1,
+                skin: 'layer-anim-right',
+                move: false,
+                content: URL_MAP['process'],
+                success: function (layero, index) {
+                    let iframe = window['layui-layer-iframe' + index]; // 找到iframe层
+                    iframe.window.child(param);
+                },
+                end: function () {
+                }
+            });
+        })
+        //节点事件
+        lf.on('node:click', (data) => {
+            propertiesPanel(data)
+        })
+        //边线事件
+        lf.on('edge:click', (data) => {
+            console.log(data)
+
+
+            layui.use(['layer'], function () {
+                let layer = layui.layer;
+                let settingType = extractValueAfterDelimiter(data.data.type, ':');
+                layer.open({
+                    type: 2,
+                    offset: 'r',
+                    area: ['500px', '100%'],
+                    title: false,
+                    shade: 0.1,
+                    closeBtn: 0,
+                    shadeClose: true,
+                    anim: -1,
+                    skin: 'layer-anim-right',
+                    move: false,
+                    content: URL_MAP[settingType],
+                    success: function (layero, index) {
+                        // 将数据传递给子页面
+                        let iframe = window['layui-layer-iframe' + index]; // 找到iframe层
+                        iframe.window.child(data);
+                    }, end: function (layero, index) {
+
+                    }
+                });
+            })
+        })
+    }
+
+
+    function propertiesPanel(data) {
+        let settingType = extractValueAfterDelimiter(data.data.type, ':');
+        layer.open({
+            type: 2,
+            offset: 'r',
+            area: ['500px', '100%'],
+            title: false,
+            shade: 0.1,
+            closeBtn: 0,
+            shadeClose: true,
+            anim: -1,
+            skin: 'layer-anim-right',
+            move: false,
+            content: URL_MAP[settingType],
+            success: function (layero, index) {
+                let iframe = window['layui-layer-iframe' + index]; // 找到iframe层
+                iframe.window.child(data, extendAttrConfig);
+            },
+            end: function () {
+            }
+        });
+    }
+
+    /**
+     * 对传入类型进行截取
+     * @param string
+     * @param delimiter
+     * @returns {*}
+     */
+    function extractValueAfterDelimiter(string, delimiter) {
+        // 找到冒号在字符串中的位置
+        let delimiterIndex = string.indexOf(delimiter);
+        // 如果冒号存在于字符串中，则截取冒号后面的值
+        if (delimiterIndex !== -1) {
+            let value = string.slice(delimiterIndex + delimiter.length);
+            return value;
+        } else {
+            return string;
+        }
+    }
+
+    /**
+     * 处理表单数据
+     * @param e
+     * @returns {boolean}
+     */
+    function handlePropertyChange(e) {
+        try {
+            let type = extractValueAfterDelimiter(e.type, ':');
+            if (type === 'process') {
+                $.each(e, function (index, item) {
+                    graphData[index] = item
+                })
+            } else if (type === 'subProcess') {
+                $.each(e, function (index, item) {
+                    if (in_array(index, ['id', 'x', 'y', 'text'])) {
+                        return true;
+                    }
+                    lf.setProperties(e.id, {
+                        [index]: item
+                    })
+                });
+            } else if (in_array(type, ['start', 'fork', 'join', 'end', 'task', 'decision', 'custom', 'wfSubProcess'])) {
+                if (null != e.display_name) {
+                    lf.updateText(e.id, e.display_name)
+                }
+                //写入扩展属性
+                $.each(e, function (index, item) {
+                    if (in_array(index, ['id', 'display_name', 'type', 'x', 'y', 'text'])) {
+                        return true;
+                    }
+                    lf.setProperties(e.id, {
+                        [index]: item
+                    })
+                });
+                //重新渲染
+                lf.render(getGraphData())
+            } else if (type === 'transition') {
+                if (null != e.display_name) {
+                    lf.updateText(e.id, e.display_name)
+                }
+                //写入扩展属性
+                $.each(e, function (index, item) {
+                    if (in_array(index, ['id', 'display_name', 'type', 'x', 'y', 'text'])) {
+                        return true;
+                    }
+                    lf.setProperties(e.id, {
+                        [index]: item
+                    })
+                });
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+
+    function setHighLight(data) {
+        if (!this.lf || !data) return
+        // 设置历史节点
+        if (data && data['history_node_names'] !== undefined && Array.isArray(data['history_node_names'])) {
+            data['history_node_names'].forEach(nodeName => {
+                this.lf.setProperties(nodeName, {state: 'history'})
+            })
+        }
+        // 设置当前节点
+        if (data && data['active_node_names'] !== undefined && Array.isArray(data['active_node_names'])) {
+            data['active_node_names'].forEach(nodeName => {
+                this.lf.setProperties(nodeName, {state: 'active'})
+            })
+        }
+        // 设置历史边
+        if (data && data['history_edge_names'] && Array.isArray(data['history_edge_names'])) {
+            data['history_edge_names'].forEach(edgeName => {
+                const edgeModel = this.lf.getEdgeModelById(edgeName)
+                if (edgeModel) {
+                    edgeModel.setProperties({state: 'history'});
+                }
+            })
+        }
+    }
+
+
+    function importProcessData(data) {
+        graphData = data;
+        if (this.lf) {
+            this.lf.render(graphData)
+        }
+    }
+
+    /**
+     * 保存设计
+     */
+    function saveGraphData() {
+        if (commitPath == null || commitPath == '' || viewer == true) {
+            return false;
+        }
+        $.ajax({
+            type: 'POST',
+            url: commitPath,
+            dateType: "json",
+            contentType: 'application/json',
+            data: JSON.stringify({process_design_id: getQueryString(PRIMARY_KEY), ...getGraphData()}),
+            success: function (ret) {
+                if (ret.status === 200) {
+                    layer.msg(ret.msg, {icon: 1, time: 1500}, function () {
+                        let index = parent.layer.getFrameIndex(window.name);
+                        // parent.refreshTable();
+                        // parent.layer.close(index);
+                    });
+                } else {
+                    layer.msg(ret.msg, {icon: 2, time: 1000});
+                }
+            },
+        });
+    }
+
+    function getGraphData() {
+        return {
+            name: ('name' in graphData) ? graphData.name : '',
+            display_name: ('display_name' in graphData) ? graphData.display_name : '',
+            expire_time: ('expire_time' in graphData) ? graphData.expire_time : '',
+            instance_url: ('instance_url' in graphData) ? graphData.instance_url : '',
+            instance_no_class: ('instance_no_class' in graphData) ? graphData.instance_no_class : '',
+            type_id: ('type_id' in graphData) ? graphData.type_id : '',
+            ...lf.getGraphData()
+        }
+    }
+
+</script>
+
+</body>
+
+</html>

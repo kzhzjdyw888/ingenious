@@ -54,15 +54,15 @@ class SystemAdminDao extends BaseDao
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException|\ReflectionException
      */
-    public function accountByAdmin(string $account): array|\think\Model|null
+    public function accountByAdmin(string $account)
     {
         return $this->search(['account' => $account, 'delete_time' => null])->find();
     }
 
     /**
      * 当前账号是否可用
-     *
      * ./
+     *
      * @param string $account
      * @param string $id
      *

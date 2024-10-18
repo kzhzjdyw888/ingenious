@@ -39,7 +39,7 @@ class SystemLog extends BaseModel
      */
     protected $pk = 'id';
 
-    protected array $insert = ['create_time'];
+    protected  $insert = ['create_time'];
 
     protected $type = [
         'create_time' => 'timestamp:Y-m-d H:i:s',
