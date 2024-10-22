@@ -271,10 +271,13 @@ class ProcessTaskService extends BaseService implements ProcessTaskServiceInterf
         if (strcasecmp(ProcessConst::ADMIN_ID, $operator) === 0 || strcasecmp(ProcessConst::AUTO_ID, $operator) === 0) {
             return true;
         }
+
         // 任务操作者==执行者
-        if (strcasecmp($task->getData('operator'), $operator) === 0) {
+        $taskOperator = $task->getData('operator');
+        if ($taskOperator !== null && strcasecmp($taskOperator, $operator) === 0) {
             return true;
         }
+
         // 任务参考者==执行者
         $actorsList = $this->getTaskActor($task->getData('id'));
         if (!empty($actorsList)) {
