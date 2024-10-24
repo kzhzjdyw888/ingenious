@@ -44,7 +44,9 @@ class Dict extends ArrayObject
 
     public function remove(string $key): void
     {
-        unset($this[$key]);
+        if (isset($this[$key])) {
+            unset($this[$key]);
+        }
     }
 
     public function clear(): void

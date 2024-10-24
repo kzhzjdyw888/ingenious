@@ -20,6 +20,7 @@ use ingenious\libs\utils\Dict;
 use ingenious\libs\utils\ExpressionUtil;
 use ingenious\libs\utils\StringHelper;
 use ingenious\model\TaskModel;
+use ingenious\parser\NodeParser;
 use ingenious\processor\IHandler;
 
 class CountersignHandler implements IHandler
@@ -34,8 +35,11 @@ class CountersignHandler implements IHandler
 
     public function handle(Execution $execution): void
     {
-        $isMerged                       = false;
-        $countersignType                = $this->taskModel->getExt()->get("countersign_type", "PARALLEL");//会签类型
+        $isMerged        = false;
+        $countersignType = $this->taskModel->getCountersignType()[0];//兼容旧版本
+        if (!empty($this->taskModel->getExt()->get(NodeParser::EXT_FIELD_COUNTERSIGN_TYPE_KEY))) {
+            $countersignType = CountersignTypeEnum::codeOf($this->taskModel->getExt()->get(NodeParser::EXT_FIELD_COUNTERSIGN_TYPE_KEY), CountersignTypeEnum::PARALLEL)[0];//会签类型
+        }
         $countersignCompletionCondition = $this->taskModel->getExt()->get("countersign_completion_condition", "");//会签完成条件
         $isRejected                     = $this->taskModel->getExt()->get('countersignatureRejected', false);//会签拒绝是否驳回未实现功能
         $prefix                         = ProcessConst::COUNTERSIGN_VARIABLE_PREFIX . $this->taskModel->getName() . "_";
@@ -82,10 +86,10 @@ class CountersignHandler implements IHandler
             }
         }
 
-
         if (!$isMerged && StringHelper::equalsIgnoreCase(CountersignTypeEnum::PARALLEL[0], $countersignType)) {
             // 是否所有会签任务已完成
-            $isMerged = $execution->getEngine()->processTaskService()->getDoingTaskList($execution->getProcessInstanceId(), '');
+            $doingTasks = $execution->getEngine()->processTaskService()->getDoingTaskList($execution->getProcessInstanceId(), '');
+            $isMerged   = count($doingTasks) === 0; // 如果任务列表为空，$isMerged 为 true
             if (!$isMerged) {
                 // 未通过，更新已完成实例数量
                 $addVariable = new Dict ();
