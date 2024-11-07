@@ -30,9 +30,9 @@
 
 
 
-## 交流群
-
-交流群①：321796659
+## 交流
+- [腾讯频道【madong】](https://pd.qq.com/s/3edfwx2lm)
+- [纷传圈子](https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ)
 
 
 
@@ -42,7 +42,7 @@
 ##  安装
 *  安装Composer
 *  composer require ingen/ingenious
-*  开源不易，知识付费  详细教程请购买文档 [购买](https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ)
+
 
 
 
@@ -59,7 +59,7 @@ http://www.ingenstream.cn/
 http://layui.flow.thinkphp.ingenstream.cn/
 
 > 工作流手册：
-http://flow.doc.ingenstream.cn/#/zh-cn/  【付费】
+http://flow.doc.ingenstream.cn/#/zh-cn/
 
 ---
 
