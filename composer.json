@@ -1,5 +1,5 @@
 {
-    "name": "ingen/ingenious",
+    "name": "madong/ingenious",
     "type": "library",
     "license": "Apache-2.0",
     "description": "a php work flow engine base on ingenious-php",
@@ -11,14 +11,13 @@
     "authors": [
         {
             "name": "Mr.April",
-            "homepage": "https://gitee.com/ingenstream",
+            "homepage": "https://madong.tech",
             "email": "405784684@qq.com"
         }
     ],
     "require": {
         "php": ">=8.0",
         "ext-redis": "*",
-        "kphoen/rulerz": "^0.21.1",
         "monolog/monolog": "*",
         "ramsey/uuid": "^4.7"
     }
