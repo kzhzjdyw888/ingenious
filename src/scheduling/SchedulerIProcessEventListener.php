@@ -11,14 +11,17 @@
  * Official Website: https://madong.tech
  */
 
-namespace madong\plugin\wf\engine\scheduling;
+namespace madong\ingenious\scheduling;
 
 
-use madong\plugin\wf\engine\core\ServiceContext;
-use madong\plugin\wf\engine\event\ProcessEvent;
-use madong\plugin\wf\engine\event\IProcessEventListener;
-use madong\plugin\wf\engine\libs\utils\Dict;
-use madong\plugin\wf\enums\ProcessEventTypeEnum;
+use madong\ingenious\event\IProcessEventListener;
+use madong\ingenious\event\ProcessEvent;
+use madong\ingenious\core\ServiceContext;
+use madong\ingenious\enums\ProcessEventTypeEnum;
+use madong\helper\Dict;
+
+
+
 
 class SchedulerIProcessEventListener implements IProcessEventListener
 {

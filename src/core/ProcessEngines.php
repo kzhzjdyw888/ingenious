@@ -32,7 +32,6 @@ use madong\ingenious\enums\ProcessConstEnum;
 use madong\ingenious\enums\ProcessInstanceStateEnum;
 use madong\ingenious\enums\ProcessTaskStateEnum;
 
-
 class ProcessEngines implements IProcessEngines
 {
 
@@ -42,7 +41,6 @@ class ProcessEngines implements IProcessEngines
 
     public function __construct($config = [])
     {
-        var_dump('engines');
         $this->configure($config);
         return $this;
     }

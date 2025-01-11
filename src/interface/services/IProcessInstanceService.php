@@ -13,13 +13,6 @@
 
 namespace madong\ingenious\interface\services;
 
-
-use madong\plugin\wf\model\ProcessDefine;
-use madong\plugin\wf\model\ProcessInstance;
-use madong\plugin\wf\services\interface\Dict;
-use madong\plugin\wf\services\interface\Execution;
-use madong\plugin\wf\services\interface\TaskModel;
-
 /**
  * 流程实例服务类
  *

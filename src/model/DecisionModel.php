@@ -17,7 +17,7 @@ use madong\ingenious\core\ServiceContext;
 use madong\ingenious\ex\LFlowException;
 use madong\ingenious\interface\IExecution;
 use madong\ingenious\interface\nodes\IDecisionModel;
-use madong\ingenious\libs\traits\DynamicPropsTrait;;
+use madong\ingenious\libs\traits\DynamicPropsTrait;
 use madong\ingenious\libs\utils\Expression;
 use madong\ingenious\enums\err\LfErrEnum;
 
