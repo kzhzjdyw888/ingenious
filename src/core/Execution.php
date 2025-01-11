@@ -13,7 +13,7 @@
 
 namespace madong\ingenious\core;
 
-use madong\ingenious\interface\IDict;
+use madong\interface\IDict;
 use madong\ingenious\interface\IExecution;
 use madong\ingenious\interface\IProcessEngines;
 use madong\ingenious\interface\model\IProcessInstance;

@@ -15,7 +15,7 @@ namespace madong\ingenious\parser;
 
 use madong\ingenious\core\ServiceContext;
 use madong\ingenious\libs\utils\ArrayHelper;
-use madong\ingenious\libs\utils\Dict;
+use madong\helper\Dict;
 use madong\ingenious\libs\utils\PropertyCopier;
 use madong\ingenious\model\logicflow\LfEdge;
 use madong\ingenious\model\logicflow\LfModel;

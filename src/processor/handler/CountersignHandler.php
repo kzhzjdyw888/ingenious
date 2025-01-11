@@ -15,7 +15,7 @@ namespace madong\ingenious\processor\handler;
 
 
 use madong\ingenious\interface\IExecution;
-use madong\ingenious\libs\utils\Dict;
+use madong\helper\Dict;
 use madong\ingenious\libs\utils\Expression;
 use madong\ingenious\libs\utils\StringHelper;
 use madong\ingenious\model\TaskModel;

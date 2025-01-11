@@ -14,7 +14,7 @@
 namespace madong\ingenious\model\logicflow;
 
 use madong\ingenious\libs\traits\DynamicPropsTrait;
-use madong\ingenious\libs\utils\Dict;
+use madong\helper\Dict;
 
 /**
  * @method getText()

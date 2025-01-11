@@ -15,12 +15,13 @@ namespace madong\ingenious\libs\utils;
 
 use DateTime;
 use Exception;
+use madong\interface\IDict;
+use madong\helper\Dict;
 use madong\ingenious\core\ServiceContext;
 use madong\ingenious\ex\LFlowException;
-use madong\ingenious\interface\IDict;
 use madong\ingenious\interface\IProcessUser;
 use madong\ingenious\model\ProcessModel;
-use madong\plugin\wf\enums\ProcessConstEnum;
+use madong\ingenious\enums\ProcessConstEnum;
 
 class ProcessFlowUtils
 {

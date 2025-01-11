@@ -13,9 +13,9 @@
 
 namespace madong\ingenious\engine\model;
 
-use madong\ingenious\engine\interface\IExecution;
-use madong\ingenious\engine\interface\nodes\ISubProcessModel;
-use madong\ingenious\engine\libs\traits\DynamicPropsTrait;
+use madong\ingenious\interface\IExecution;
+use madong\ingenious\interface\nodes\ISubProcessModel;
+use madong\ingenious\libs\traits\DynamicPropsTrait;
 
 /**
  * 子流程模型

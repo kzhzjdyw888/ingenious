@@ -15,7 +15,7 @@ namespace madong\ingenious\core;
 
 use madong\ingenious\cfg\Configuration;
 use madong\ingenious\ex\LFlowException;
-use madong\ingenious\interface\IDict;
+use madong\interface\IDict;
 use madong\ingenious\interface\IExecution;
 use madong\ingenious\interface\IProcessEngines;
 use madong\ingenious\interface\model\IProcessInstance;
@@ -31,6 +31,7 @@ use madong\ingenious\enums\err\LfErrEnum;
 use madong\ingenious\enums\ProcessConstEnum;
 use madong\ingenious\enums\ProcessInstanceStateEnum;
 use madong\ingenious\enums\ProcessTaskStateEnum;
+
 
 class ProcessEngines implements IProcessEngines
 {
@@ -65,8 +66,10 @@ class ProcessEngines implements IProcessEngines
 
         // 2. 将流程定义文件转成流程模型
         $processModel = $this->processDefineService()->processDefineToModel($processDefine);
+
         // 3. 根据流程定义对象创建流程实例
         $processInstance = $this->processInstanceService()->createProcessInstance($processDefine, $operator, $args, $parentId, $parentNodeName);
+
         // 3.1根据返回实例创建历史流程实例
         $this->processInstanceHistoryService()->createHistoryProcessInstance($processInstance);
 
@@ -91,6 +94,7 @@ class ProcessEngines implements IProcessEngines
         if ($execution == null) {
             return [];
         }
+
         $processModel = $execution->getProcessModel();
 
         // 7. 根据流程任务名称获取对应的任务节点模型
@@ -180,6 +184,7 @@ class ProcessEngines implements IProcessEngines
     {
         // 1.1 根据id查询正在进行中的流程任务
         $processTask = $this->processTaskService()->getById($processTaskId);
+
         if ($processTask == null || !StringHelper::equalsIgnoreCase((string)ProcessTaskStateEnum::DOING->value, (string)$processTask->getData('task_state'))) {
             throw new LFlowException(LfErrEnum::NOT_FOUND_DOING_PROCESS_TASK->value);
         }

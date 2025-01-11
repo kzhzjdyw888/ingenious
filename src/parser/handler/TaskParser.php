@@ -13,7 +13,7 @@
 
 namespace madong\ingenious\parser\handler;
 
-use madong\ingenious\libs\utils\Dict;
+use madong\helper\Dict;
 use madong\ingenious\model\logicflow\LfNode;
 use madong\ingenious\model\NodeModel;
 use madong\ingenious\model\TaskModel;

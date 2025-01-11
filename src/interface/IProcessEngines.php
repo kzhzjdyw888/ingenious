@@ -14,6 +14,7 @@
 namespace madong\ingenious\interface;
 
 
+use madong\interface\IDict;
 use madong\ingenious\interface\model\IProcessInstance;
 use madong\ingenious\interface\services\IProcessDefineService;
 use madong\ingenious\interface\services\IProcessInstanceService;
