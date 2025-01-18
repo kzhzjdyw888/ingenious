@@ -60,7 +60,7 @@
 http://layui.flow.thinkphp.ingenstream.cn/
 
 > 工作流手册：
-http://flow.doc.ingenstream.cn/#/zh-cn/
+http://flow-docs.madong.tech
 
 ---
 
