@@ -14,7 +14,7 @@
 namespace madong\ingenious\model\logicflow;
 
 use madong\ingenious\libs\traits\DynamicPropsTrait;
-use madong\helper\Dict;
+use madong\interface\IDict;
 
 /**
  * @method getText()
@@ -32,7 +32,7 @@ class LfNode
     private string $type; // 节点类型
     private int $x; // 节点中心点x轴坐标
     private int $y; // 节点中心点y轴坐标
-    private Dict $properties; // 节点属性
+    private IDict $properties; // 节点属性
     private mixed $text; // 节点文本
 
 }

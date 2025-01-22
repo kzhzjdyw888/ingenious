@@ -14,7 +14,8 @@
 namespace madong\ingenious\parser;
 
 
-use madong\ingenious\libs\utils\Dict;
+use madong\interface\IDict;
+use madong\helper\Dict;
 use madong\ingenious\libs\utils\ProcessFlowUtils;
 use madong\ingenious\libs\utils\StringHelper;
 use madong\ingenious\model\logicflow\LfEdge;
@@ -39,6 +40,7 @@ abstract class AbstractINodeParser implements INodeParser
         if (in_array($nodeType, ['start', 'task', 'custom', 'end'])) {
             $textData = $lfNode->getText() !== null && !empty($lfNode->getText()) ? $lfNode->getText() : (object)[];
             $textDict = ProcessFlowUtils::variableToDict($textData);
+            var_dump($textDict);
             if (!empty($textDict) && $textDict instanceof Dict) {
                 $this->nodeModel->setDisplayName($textDict->get(INodeParser::TEXT_VALUE_KEY, ''));
             }
