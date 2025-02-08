@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新增定时任务</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+    <style>
+        .required-star {
+            margin-right: 5px; /* 调整小红星到标签右侧的间距 */
+            color: red; /* 小红星的颜色 */
+            align-items: center;
+            font-size: 1em;
+        }
+
+        .input-with-unit {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-unit {
+            padding-left: 7px;
+            padding-right: 7px;
+            height: 35px;
+            margin: 0;
+            line-height: 2.4;
+            border-bottom: 1px solid #E6E6E6;
+            border-top: 1px solid #E6E6E6;
+            border-right: 1px solid #E6E6E6;
+        }
+
+        #content {
+            padding-left: 5px;
+            color: #aaa;
+        }
+
+    </style>
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="add" id="crontab-add-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label" id="menu_name_label"><em class="required-star">*</em>任务名称</label>
+                <div class="layui-input-block">
+                    <select lay-filter="mark" name="mark" id="mark"></select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label"><em class="requitred-sar">*</em>执行周期</label>
+                <div class="layui-input-block">
+                    <div class="layui-input-inline">
+                        <select name="type" lay-filter="type" id="type"></select>
+                    </div>
+                    <!--每隔N秒-->
+                    <div class="layui-input-inline input-with-unit  scene layui-hide" style="width: 120px;" id="scene-second">
+                        <input type="number" class="layui-input" lay-affix="number" name="scene_second" value="0" min="0" max="59">
+                        <span class="input-unit">秒</span>
+                    </div>
+                    <!--每隔N分-->
+                    <div class="layui-input-block scene layui-hide" id="scene-minute">
+                        <div class="layui-input-inline input-with-unit" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="59" name="scene_minute">
+                            <span class="input-unit">分</span>
+                        </div>
+                    </div>
+
+                    <!--每隔N小时-->
+                    <div class="layui-input-block scene layui-hide" id="scene-hour">
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="23" name="scene_hour">
+                            <span class="input-unit">时</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="59" name="scene_hour_minute">
+                            <span class="input-unit">分</span>
+                        </div>
+                    </div>
+
+                    <!--每隔N天-->
+                    <div class="layui-input-block scene layui-hide" id="scene-day">
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="9999" name="scene_day_day">
+                            <span class="input-unit">日</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="23" name="scene_day_hour">
+                            <span class="input-unit">时</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="59" name="scene_day_minute">
+                            <span class="input-unit">分</span>
+                        </div>
+                    </div>
+                    <!--  每天-->
+                    <div class="layui-input-block scene layui-hide" id="scene-days">
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="23" name="scene_days_hour">
+                            <span class="input-unit">时</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="59" name="scene_days_minute">
+                            <span class="input-unit">分</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit second" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" name="scene_days_second" value="0" min="0" max="59">
+                            <span class="input-unit">秒</span>
+                        </div>
+                    </div>
+
+                    <!--每星期-->
+                    <div class="layui-input-block scene layui-hide" id="scene-week">
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <select name="scene_week_week">
+                                <option value="1" selected>周一</option>
+                                <option value="2">周二</option>
+                                <option value="3">周三</option>
+                                <option value="4">周四</option>
+                                <option value="5">周五</option>
+                                <option value="6">周六</option>
+                                <option value="7">周日</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="23" name="scene_week_hour">
+                            <span class="input-unit">时</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="59" name="scene_week_minute">
+                            <span class="input-unit">分</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit second" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" name="scene_week_second" value="0" min="0" max="59">
+                            <span class="input-unit">秒</span>
+                        </div>
+                    </div>
+                    <!--每月-->
+                    <div class="layui-input-block scene layui-hide" id="scene-monthly">
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="9999" name="scene_monthly_day">
+                            <span class="input-unit">日</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="23" name="scene_monthly_hour">
+                            <span class="input-unit">时</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit minute" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" value="0" min="0" max="59" name="scene_monthly_minute">
+                            <span class="input-unit">分</span>
+                        </div>
+                        <div class="layui-input-inline input-with-unit second" style="width: 120px;">
+                            <input type="number" class="layui-input" lay-affix="number" name="scene_monthly_second" value="0" min="0" max="59">
+                            <span class="input-unit">秒</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-input-block trip" style="margin-top: 10px;">
+                    <span id="content"></span>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">任务说明</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入任务说明" class="layui-textarea" name="content"></textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">是否开启</label>
+                <div class="layui-input-block">
+                    <input type="checkbox" name="is_open" lay-skin="switch" lay-filter="switchTest" title="开启|关闭">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="crontab-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const INSERT_API = config.api_url + "/adminapi/system/crontab/save";
+    const DETAIL_API = config.api_url + "/adminapi/system/crontab/info";
+    const MARK_API = config.api_url + "/adminapi/system/crontab/mark";
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'encrypt', 'popup', 'element'], function () {
+        let $ = layui.jquery;
+        let form = layui.form;
+        let popup = layui.popup;
+        let element = layui.element;
+
+        let selectOptions = [
+            {value: 1, name: '每隔多少秒'},
+            {value: 2, name: '每隔多少分钟'},
+            {value: 3, name: '每隔多少小时'},
+            {value: 4, name: '每隔多少天'},
+            {value: 5, name: '每天几点执行'},
+            {value: 6, name: '每周周几几点执行 '},
+            {value: 7, name: '每月几号几点执行'}
+        ];
+
+
+        if (getQueryString('operation') === 'add') {
+            getMark()
+            typeRender()
+        }
+
+        if (getQueryString('operation') === 'edit') {
+            getMark()
+            typeRender()
+            get(getQueryString(PRIMARY_KEY))
+        }
+
+
+        function get(id) {
+            $.ajax({
+                url: DETAIL_API + '/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        typeReverse(ret.data)
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        }
+
+
+        form.on('select(type)', function (data) {
+            // 赋值隐藏属性
+            $('.scene').each(function () {
+                if (!$(this).hasClass('layui-hide')) {
+                    $(this).addClass('layui-hide');
+                }
+            });
+            if (parseFloat(data.value) === 1) {
+                $('#scene-second').removeClass('layui-hide')
+            }
+            if (parseFloat(data.value) === 2) {
+                $('#scene-minute').removeClass('layui-hide')
+            }
+            if (parseFloat(data.value) === 3) {
+                $('#scene-hour').removeClass('layui-hide')
+            }
+            if (parseFloat(data.value) === 4) {
+                $('#scene-day').removeClass('layui-hide')
+            }
+            if (parseFloat(data.value) === 5) {
+                $('#scene-days').removeClass('layui-hide')
+            }
+            if (parseFloat(data.value) === 6) {
+                $('#scene-week').removeClass('layui-hide')
+            }
+            if (parseFloat(data.value) === 7) {
+                $('#scene-monthly').removeClass('layui-hide')
+            }
+            typeTrip()
+        });
+
+        /**
+         * 生成trip提示
+         */
+        function typeTrip() {
+            let data = typeCasting(form.val('add'))
+            let value = '';
+            if (parseFloat(data.type) === 1) {
+                value = '每隔' + data.second + '秒执行一次';
+            }
+            if (parseFloat(data.type) === 2) {
+                value = '每隔' + data.minute + '分钟执行一次';
+            }
+            if (parseFloat(data.type) === 3) {
+                value = '每隔' + data.hour + '小时的' + data.minute + '分执行一次';
+            }
+            if (parseFloat(data.type) === 4) {
+                value = '每隔' + data.day + '天的' + data.hour + '时' + data.minute + '分执行一次';
+            }
+            if (parseFloat(data.type) === 5) {
+                value = '每天' + data.hour + '时' + data.minute + '分' + data.second + '秒执行一次';
+            }
+            if (parseFloat(data.type) === 6) {
+                value = '每星期' + data.week + '的' + data.hour + '时' + data.minute + '分' + data.second + '秒执行一次';
+            }
+            if (parseFloat(data.type) === 7) {
+                value = '每月' + data.day + '日' + data.hour + '时' + data.minute + '分' + data.second + '秒执行一次';
+            }
+            $('#content').html(value);
+        }
+
+        /**
+         * input 输入框监听
+         */
+        $(document).on('input', 'input[name="scene_second"]', function () {
+            let value = $(this).val();
+            typeTrip()
+        });
+
+        // 监听 layui input 后缀点击事件
+        form.on('input-affix', function (data) {
+            let elem = data.elem; // 获取输入框 DOM 对象
+            let affix = data.affix; // 获取输入框 lay-affix 属性值
+            typeTrip()
+        });
+
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(crontab-add-save)', function (obj) {
+            let data = obj.field;
+            if (data.type === '') {
+                return false;
+            }
+            let list = typeCasting(data)
+            if (list.content === '') {
+                list.content = $('#content').html()
+            }
+            if (getQueryString('operation') === 'edit') {
+                list[PRIMARY_KEY] = getQueryString(PRIMARY_KEY)
+            }
+
+            $.ajax({
+                url: INSERT_API,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(list),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));//关闭当前页
+                            parent.refresh();
+                        })
+                    } else {
+                        popup.failure(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            return false;
+        })
+
+
+        /**
+         * 数据处理
+         * @param formData
+         * @returns {{hour: string, is_open: string, type, day: string, content: string, mark: (Document.mark|SpeechSynthesisEvent|((markName: string, markOptions?: PerformanceMarkOptions) => PerformanceMark)|*), minute: string, second: string}}
+         */
+        function typeCasting(formData) {
+            let data = {
+                content: formData.content != undefined ? formData.content : '',
+                day: "0",
+                hour: "0",
+                is_open: formData.is_open != undefined && formData.is_open == 'on' ? 1 : 0,
+                mark: formData.mark != undefined ? formData.mark : '',
+                minute: "0",
+                second: "0",
+                type: formData.type,
+            }
+            if (parseFloat(formData.type) === 1) {
+                data.second = formData.scene_second;
+            }
+            if (parseFloat(formData.type) === 2) {
+                data.minute = formData.scene_minute;
+            }
+            if (parseFloat(formData.type) === 3) {
+                data.hour = formData.scene_hour;
+                data.minute = formData.scene_hour_minute;
+            }
+            if (parseFloat(formData.type) === 4) {
+                data.day = formData.scene_day_day;
+                data.hour = formData.scene_day_hour;
+                data.minute = formData.scene_day_minute;
+            }
+            if (parseFloat(formData.type) === 5) {
+                data.hour = formData.scene_days_hour;
+                data.minute = formData.scene_days_minute;
+                data.second = formData.scene_days_second;
+            }
+            if (parseFloat(formData.type) === 6) {
+                data.week = formData.scene_week_week
+                data.hour = formData.scene_week_hour;
+                data.minute = formData.scene_week_minute;
+                data.second = formData.scene_week_second;
+            }
+            if (parseFloat(formData.type) === 7) {
+                data.day = formData.scene_monthly_day
+                data.hour = formData.scene_monthly_hour;
+                data.minute = formData.scene_monthly_minute;
+                data.second = formData.scene_monthly_second;
+            }
+            return data;
+        }
+
+        /**
+         * 编辑视图渲染
+         * @param data
+         */
+        function typeReverse(data) {
+            if (parseFloat(data.type) === 1) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_second: data.second,
+                })
+                $('#scene-second').removeClass('layui-hide')
+            }
+            if (parseFloat(data.type) === 2) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_minute: data.minute,
+                })
+                $('#scene-minute').removeClass('layui-hide')
+            }
+            if (parseFloat(data.type) === 3) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_hour: data.hour,
+                    scene_hour_minute: data.minute,
+                })
+                $('#scene-hour').removeClass('layui-hide')
+            }
+            if (parseFloat(data.type) === 4) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_day_day: data.hour,
+                    scene_day_hour: data.minute,
+                    scene_day_minute: data.minute
+                })
+                $('#scene-day').removeClass('layui-hide')
+            }
+            if (parseFloat(data.type) === 5) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_days_hour: data.hour,
+                    scene_days_minute: data.minute,
+                    scene_days_second: data.second
+                })
+                $('#scene-days').removeClass('layui-hide')
+            }
+            if (parseFloat(data.type) === 6) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_week_week: data.week,
+                    scene_week_hour: data.hour,
+                    scene_week_minute: data.minute,
+                    scene_week_second: data.second
+                })
+                $('#scene-week').removeClass('layui-hide')
+            }
+            if (parseFloat(data.type) === 7) {
+                form.val('crontab-add-form', {
+                    type: data.type,
+                    mark: data.mark,
+                    is_open: data.is_open,
+                    content: data.content,
+                    scene_monthly_day: data.week,
+                    scene_monthly_hour: data.hour,
+                    scene_monthly_minute: data.minute,
+                    scene_monthly_second: data.second
+                })
+                $('#scene-monthly').removeClass('layui-hide')
+            }
+            form.render()
+        }
+
+        function typeRender() {
+            // 使用模板引擎渲染数据
+            let type = $('#type');
+            let html = '<option value=""></option>';
+            $.each(selectOptions, function (index, item) {
+                html += '<option     value="' + item.value + '">' + item.name + '</option>';
+            })
+            type.append(html)
+            form.render();
+        }
+
+        /**
+         * 获取任务类型
+         */
+        function getMark() {
+            $.ajax({
+                url: MARK_API,
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        let html = '';
+                        $.each(ret.data, function (index, item) {
+                            html += '<option     value="' + index + '">' + item + '</option>';
+                        })
+                        $('#mark').append(html)
+                        form.render();
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        }
+    });
+
+</script>
+
+</body>
+</html>

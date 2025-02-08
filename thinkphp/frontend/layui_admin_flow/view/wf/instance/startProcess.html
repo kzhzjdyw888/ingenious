@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发起申请</title>
+    <style>
+        .left-panel {
+            width: 300px;
+            height: 100%;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .left-panel-tree {
+            height: 100%;
+            margin-left: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .05);
+        }
+
+        .content-panel {
+            margin-left: 300px;
+            padding: 0px;
+        }
+
+        .top-content {
+            height: calc(94vh - 60px);
+            overflow: auto;
+        }
+
+        .bottom-content {
+            height: 60px;
+        }
+
+        .layui-input-search {
+            width: 400px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .layui-input-search .layui-input {
+            padding-right: 30px;
+            /* 留出空间给搜索按钮 */
+        }
+
+        .layui-input-search .search-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            padding: 0 10px;
+            border: none;
+            border-radius: 0;
+            display: inline-block;
+            vertical-align: middle;
+            height: 38px;
+            line-height: 38px;
+            color: rgb(255, 255, 255);
+            text-align: center;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .layui-input-search .search-btn i {
+            font-size: 16px;
+            /* 调整图标大小 */
+        }
+
+
+        .underline-hover {
+            cursor: pointer;
+            color: cornflowerblue;
+            text-decoration: none;
+            /* 移除默认的下划线 */
+        }
+
+        .underline-hover:hover {
+            text-decoration: underline;
+            /* 鼠标移入时添加下划线 */
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        .el-divider--horizontal {
+            margin: 5px 0;
+        }
+
+        .divider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background-color: #ccc;
+            /* 可以自定义分隔线的颜色 */
+            z-index: 1;
+        }
+
+        .full-width {
+            width: 100% !important;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+    </style>
+</head>
+
+<body class="pear-container">
+
+<div class="layui-row" style="height: calc(100vh - 125px);padding: 10px;">
+    <div class="layui-col-md3" style="height: 100%;" id="instance-start-left">
+        <div class="layui-card" style="width: 300px;height: 100%;">
+            <div class="layui-tree" id="instance-start-tree"></div>
+        </div>
+    </div>
+    <!--    右侧内容-->
+    <div class="layui-col-md9  layui-card" style="height: 100%;" id="instance-start-right">
+        <div class="layui-card-body">
+            <div class="layui-inline">
+                <span id="instance-collapse-btn">
+                    <i class="layui-icon layui-icon-shrink-right"></i>
+                </span>
+                <span>&nbsp;</span>
+                <div class="layui-input-search">
+                    <input type="text" class="layui-input" placeholder="请输入搜索流程" autocomplete="off" id="display_name">
+                    <span class="layui-btn-small search-btn" onclick="startSerach()">
+                        <i class="layui-icon" style=" color: rgb(9, 9, 9);">&#xe615;</i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div id="instance-start-list" style="height: 79%;overflow: auto;padding-right: 5px;"></div>
+        <div class="layui-card-body" id="instance-start-page"></div>
+    </div>
+</div>
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>ss
+<script>
+
+    const PRIMARY_KEY = "id";
+    const LEFT_DATA_ID = 'instance-start-tree';
+    const RIGHT_DATA_ID = 'instance-start-list';
+    const RIGHT_PAGE_ID = 'instance-start-page';
+
+    const TYPE_API = config.api_url + "/adminapi/wf/category/select_tree";
+    const LIST_API = config.api_url + "/adminapi/wf/process_define/page";
+    const SAVE_FAVORITE_API = config.api_url + "/adminapi/wf/process_define/favorite/setting";
+
+
+    layui.use(['tree', 'jquery', 'laypage', 'util'], function () {
+        let tree = layui.tree;
+        let laypage = layui.laypage;
+        let $ = layui.jquery;
+        let util = layui.util;
+
+        // 初始化分页
+        let pageSize = 5; // 每页显示数量
+        let currentPage = 1; // 当前页码
+        let isRenderPage = false; // 防止重新渲染分页组件时再次触发jump事件
+        let typeId = '';
+
+        $.ajax({
+            url: TYPE_API,
+            type: 'GET',
+            dataType: 'json',
+            success: function (ret) {
+                let data = ret.data['list'] != undefined ? ret.data['list'] : [];
+                tree.render({
+                    elem: '#'.concat(LEFT_DATA_ID),
+                    id: 'process_type',
+                    defaultExpandAll: true,
+                    onlyIconControl: true,
+                    showLine: true,
+                    data: data,
+                    customName: {
+                        id: 'id',
+                        title: 'name',
+                        children: 'children'
+                    },
+                    click: function (obj) {
+                        typeId = obj.data.id != undefined ? obj.data.id : '';
+                        let param = {type_id: typeId, display_name: $('#display_name').val()}
+                        renderContent(param);
+                    }
+                });
+
+            }
+        });
+
+
+        /**
+         * 内容模板
+         */
+        function template(data) {
+            // 遍历数据生成列表项
+            const container = document.getElementById(RIGHT_DATA_ID);
+            container.innerHTML = '';
+            $.each(data, function (index, item) {
+                container.innerHTML +=
+                    `<div class="layui-card" style="width: 100%; margin-bottom: 15px;">
+                                            <div class="layui-card-header">
+                                                <div class="layui-row">
+                                                    <div class="layui-col-md9 underline-hover"   onclick="startLaunchApplication(this)" data-item='${JSON.stringify(item)}'>
+                                                        <h3>${item.display_name}</h3>
+                                                    </div>
+                                                    <div class="layui-col-md3">
+                                                        <div class="layui-row">
+                                                            <div class="layui-col-md6" style="text-align: right;">
+                                                                <span>版本</span>
+                                                                <span>${item.version}</span>
+                                                                &nbsp;
+                                                            </div>
+                                                            <div class="divider"></div>
+                                                            <div class="layui-col-md6" style="text-align: left;">
+                                                                &nbsp;
+                                                                <span  onclick="startFavorite(this)" data-item='${JSON.stringify(item)}'>
+                                                                    <span>收藏</span>
+                                                                    <i class="layui-icon layui-font-12;" style="color:red;cursor: pointer;">${item.favorite == 1 || item.favorite == '1' ? '&#xe67a;' : '&#xe67b;'}</i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="layui-card-body">
+                                                ${item.description != null ? item.description : ''}
+                                            </div>
+                                        </div>`;
+            });
+        }
+
+        window.startLaunchApplication = function (self) {
+            launchApplication(self)
+        }
+
+        window.startFavorite = function (self) {
+            favorite(self)
+        }
+
+        window.startSerach = function () {
+            let param = {type_id: '', display_name: $('#display_name').val()}
+            renderContent(param);
+        }
+
+
+        /**
+         * 分页初始化
+         */
+        laypage.render({
+            elem: RIGHT_PAGE_ID,
+            count: 0,
+            limits: [5, 10, 20, 30, 40, 50, 100],
+            layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip'],
+            jump: function (obj, first) {
+                if (!first) {
+                    currentPage = obj.curr;
+                    if (isRenderPage) {
+                        currentPage = obj.curr;
+                        let param = {display_name: $('#display_name').val(), type_id: typeId};
+                        renderContent(param);
+                    }
+                }
+            }
+        });
+
+        /**
+         * 右侧内容渲染
+         */
+        function renderContent(param) {
+            $.ajax({
+                url: LIST_API,
+                type: 'GET',
+                data: {
+                    ...param,
+                    page: currentPage,
+                    limit: pageSize
+                },
+                success: function (res) {
+                    //渲染模板
+                    let data = res.data.list != undefined ? res.data.list : [];
+                    template(data);
+
+                    //分页重新渲染
+                    laypage.render({
+                        elem: RIGHT_PAGE_ID,
+                        count: res.data.count ?? 0,
+                        limit: pageSize,
+                        curr: currentPage,
+                        limits: [5, 10, 20, 30, 40, 50, 100],
+                        layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip'],
+                        jump: function (obj, first) {
+                            isRenderPage = false;
+                            if (!first) {
+                                currentPage = obj.curr;
+                                pageSize = obj.limit;
+                                renderContent(param);
+                            }
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log(error);
+                }
+            });
+            isRenderPage = true;
+        }
+
+        //启动流程
+        function launchApplication(self) {
+            let item = JSON.parse(self.getAttribute('data-item'));
+            layer.open({
+                type: 2,
+                offset: 'r',
+                area: ['70%', '100%'],
+                title: false,
+                shade: 0.1,
+                closeBtn: 0,
+                shadeClose: true,
+                anim: -1,
+                skin: 'layer-anim-right',
+                move: true,
+                content: 'view/wf/common/launchProcess.html?operation=edit&' + PRIMARY_KEY + '=' + item[PRIMARY_KEY],
+                success: function (layero, index) {
+                }, end: function (layero, index) {
+
+                }
+            });
+
+        }
+
+        //流程收藏
+        function favorite(self) {
+            let favoriteIcon = self.querySelector('i');
+            let item = JSON.parse(self.getAttribute('data-item'));
+            let favorited = item.favorite != undefined & item.favorite == 1 ? 0 : 1;
+            item['favorite'] = favorited;
+            $.ajax({
+                url: SAVE_FAVORITE_API,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    process_define_id: item.id,
+                    favorite: favorited,
+                    id: item.process_define_favorite_id != undefined ? item.process_define_favorite_id : ''
+                },
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        if (favorited == '1' || favorited == 1) {
+                            favoriteIcon.innerHTML = '&#xe67a;';
+                        } else {
+                            favoriteIcon.innerHTML = '&#xe67b;';
+                        }
+                        //修改成功重新赋值dom
+                        self.setAttribute('data-item', JSON.stringify(item));
+                    }
+                }
+            });
+        }
+
+        //初始调用
+        renderContent({});
+
+        /**
+         * 全屏切换
+         */
+        $('#instance-collapse-btn').on('click', function () {
+            let icon = this.querySelector('i');
+            if ($('#instance-start-right').hasClass('full-width')) {
+                $('#instance-start-right').removeClass('full-width');
+                $('#instance-start-left').removeClass('hidden');
+                icon.classList.remove('layui-icon-spread-left');
+                icon.classList.add('layui-icon-shrink-right');
+            } else {
+                $('#instance-start-right').addClass('full-width');
+                $('#instance-start-left').addClass('hidden');
+                icon.classList.remove('layui-icon-shrink-right');
+                icon.classList.add('layui-icon-spread-left');
+            }
+        });
+    });
+</script>
+
+
+</body>
+
+</html>

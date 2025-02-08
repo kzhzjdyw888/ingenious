@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>我的待办</title>
+</head>
+
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">单据编号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="business_no" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">流程名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="process_define_display_name" value="" class="layui-input">
+                </div>
+            </div>
+
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="todo-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="todo-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="todo-table" lay-filter="todo-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="todo-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="approval">处理</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="surrogate">委托</button>
+</script>
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const PROCESS_TASK_ID = 'process_task_id';
+    const PROCESS_INSTANCE_ID = 'process_instance_id';
+    //layui 对应id
+    const LAYUI_TABLE_DATA_ID = "todo-table";
+    const LAYUI_TABLE_BAR_ID = "todo-table-bar";
+    const LAYUI_TABLE_TOOLBAR_ID = "todo-table-toolbar";
+    const LAYUI_TABLE_QUERY_ID = "todo-table-query";
+    const LAYUI_TABLE_RESET_ID = "todo-table-reset";
+    //当前模块的基础目录
+    const MODULE_PATH = "view/wf/task/todo/";
+    //Api相关接口
+    const LIST_API = config.api_url + "/adminapi/wf/process_task/todo/page";
+    const PROCESS_INSTANCE_DETAIL_API = config.api_url + "/adminapi/wf/process_instance/detail";
+    const PROCESS_INSTANCE_RECORD_API = config.api_url + "/adminapi/wf/process_instance/approval_record";
+    const PROCESS_INSTANCE_HIGHLIGHT_API = config.api_url + "/adminapi/wf/process_instance/highlight";
+    const PROCESS_TASK_DETAIL_API = config.api_url + "/adminapi/wf/process_task/detail";
+
+
+    layui.use(['table', 'form', 'jquery', 'common', 'popup'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let popup = layui.popup;
+        let common = layui.common;
+
+
+        let cols = [
+            {
+                title: 'ID',
+                field: 'id',
+                align: 'center',
+                sort: true,
+                hide: true,
+                width: 60
+            },
+            {
+                title: '单据编号',
+                field: 'instance_ext',
+                align: 'left',
+                minWidth: 180,
+                templet: function (d) {
+                    let data = d['instance_ext'] !== undefined ? d['instance_ext'] : [];
+                    let value = data['business_no'] != undefined ? data['business_no'] : (d['business_no'] != undefined ? d['business_no'] : '');
+                    return value != '' ? value : '';
+                }
+
+            },
+            {
+                title: '流程名称',
+                field: 'process_define_display_name',
+                align: 'left',
+                minWidth: 200
+            },
+            {
+                title: '标题',
+                field: 'ext',
+                align: 'left',
+                templet: function (d) {
+                    let data = d['ext'] !== undefined ? d['ext'] : [];
+                    let value = data['process_summary'] != undefined ? data['process_summary'] : '';
+                    return value != '' ? value : '(无标题)';
+                }
+            },
+            {
+                title: '任务名称',
+                field: 'display_name',
+                align: 'left',
+            },
+            {
+                title: '发起人',
+                field: 'instance_ext',
+                align: 'left',
+                minWidth: 120,
+                templet: function (args) {
+                    let d = args.instance_ext != undefined ? args.instance_ext : [];
+                    let value = d['u_real_name'] != undefined ? d['u_real_name'] : '';
+                    return value;
+                }
+            },
+            {
+                title: '发起时间',
+                field: 'instance_create_date',
+                align: 'left',
+                minWidth: 170
+            },
+            {
+                title: '任务创建时间',
+                field: 'create_date',
+                align: 'left',
+                minWidth: 170
+            },
+            {
+                title: '办理期限',
+                field: 'create_date',
+                align: 'left',
+                minWidth: 170,
+                hide: true
+            },
+
+            {
+                title: '操作',
+                toolbar: '#'.concat(LAYUI_TABLE_BAR_ID),
+                align: "left",
+                minWidth: 190,
+            }
+        ]
+
+
+        function render() {
+            table.render({
+                elem: "#".concat(LAYUI_TABLE_DATA_ID),
+                url: LIST_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                toolbar: "#".concat(LAYUI_TABLE_TOOLBAR_ID),
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status === 200 ? 0 : -1, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.count, // 解析数据长度
+                        "data": ret.data.list // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            })
+        }
+
+        render();
+
+        table.on('tool(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+            if (obj.event === 'approval') {
+                approval(obj);
+            }
+            if (obj.event === "surrogate") {
+                surrogate(obj);
+            }
+        });
+
+        table.on('toolbar(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+
+        });
+
+        // 头部搜索栏
+        form.on('submit(' + LAYUI_TABLE_QUERY_ID + ')', function (data) {
+            table.reload(LAYUI_TABLE_DATA_ID, {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+        function approval(obj) {
+            let url = 'view/wf/common/approvalProcess.html?operation=todo?&' + PROCESS_TASK_ID + '=' + obj.data[PROCESS_TASK_ID] + '&' + PROCESS_INSTANCE_ID + '=' + obj.data[PROCESS_INSTANCE_ID];
+            buildParamsTodo(obj.data.process_instance_id, obj.data.process_task_id).then(params => {
+                let data = obj.data ?? {};
+                let ext = data.ext;
+                if (ext.submit_type != undefined && (ext.submit_type == 6 || ext.submit_type == '6')) {
+                    //是否重新提交
+                    params.resubmit = true;
+                }
+                layer.open({
+                    type: 2,
+                    offset: 'r',
+                    // area: ['60%', '100%'],
+                    area: [common.isModile() ? '100%' : '60%', common.isModile() ? '100%' : '100%'],
+                    title: false,
+                    shade: 0.1,
+                    closeBtn: 0,
+                    shadeClose: true,
+                    anim: -1,
+                    skin: 'layer-anim-right',
+                    move: true,
+                    content: url,
+                    success: function (layero, index) {
+                        // 获取 iframe 的窗口对象
+                        let iframeWin = window[layero.find('iframe')[0].name];
+                        iframeWin.postMessage(params, '*');
+                    }
+                });
+            }).catch(error => {
+                popup.failure('构建参数失败:');
+                console.error('构建参数失败:', error);
+            });
+        }
+
+        function resubmitApplication(id) {
+            layer.open({
+                type: 2,
+                offset: 'r',
+                area: ['70%', '100%'],
+                title: false,
+                shade: 0.1,
+                closeBtn: 0,
+                shadeClose: true,
+                anim: -1,
+                skin: 'layer-anim-right',
+                move: true,
+                content: 'view/wf/common/launchProcess.html?operation=edit&id=' + id,
+                success: function (layero, index) {
+                }, end: function (layero, index) {
+
+                }
+            });
+        }
+
+
+        function surrogate(obj) {
+            let url = 'view/wf/common/surrogate.html?' + PROCESS_INSTANCE_ID + '=' + obj.data[PROCESS_INSTANCE_ID] + '&' + PROCESS_TASK_ID + '=' + obj.data[PROCESS_TASK_ID];
+            layer.open({
+                type: 2,
+                area: ['700px', '400px'],
+                title: '委托处理',
+                shade: 0.1,
+                closeBtn: 0,
+                shadeClose: true,
+                anim: -1,
+                skin: 'layer-anim-right',
+                move: true,
+                content: url,
+                btn: ['确定', '取消'],
+                success: function (layero, index) {
+                },
+                yes: function (index, layero) {
+                    let childWindow = window[layero.find('iframe')[0]['name']];
+
+                    // 调用子页面中的函数
+                    childWindow.handleChildFunction();
+
+                }
+            });
+        }
+
+        /**
+         * 刷新
+         */
+        window.refreshTable = function () {
+            table.reloadData(LAYUI_TABLE_DATA_ID, {
+                scrollPos: "fixed"
+            });
+        }
+
+        async function fetchInstanceData(id) {
+            return new Promise((resolve, reject) => {
+                layui.$.ajax({
+                    url: PROCESS_INSTANCE_DETAIL_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {id}, // 确保这里传递了 id 参数
+                    success: function (ret) {
+                        if (ret.status == 200) {
+                            resolve(ret.data); // 使用 resolve 来返回 Promise 的结果
+                        } else {
+                            reject({}); // 如果请求失败，使用 reject
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        reject({}); // 捕获错误并拒绝 Promise
+                    },
+                });
+            });
+        }
+
+        async function fetchHighLightData(id) {
+            return new Promise((resolve, reject) => {
+                layui.$.ajax({
+                    url: PROCESS_INSTANCE_HIGHLIGHT_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {id}, // 确保这里传递了 id 参数
+                    success: function (ret) {
+                        if (ret.status == 200) {
+                            resolve(ret.data); // 使用 resolve 来返回 Promise 的结果
+                        } else {
+                            reject(new Error('请求失败: ' + ret.status)); // 如果请求失败，使用 reject
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        reject(new Error('请求出错: ' + error)); // 捕获错误并拒绝 Promise
+                    },
+                });
+            });
+        }
+
+        async function fetchRecordData(id) {
+            return new Promise((resolve, reject) => {
+                layui.$.ajax({
+                    url: PROCESS_INSTANCE_RECORD_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {id}, // 确保这里传递了 id 参数
+                    success: function (ret) {
+                        if (ret.status == 200) {
+                            resolve(ret.data); // 使用 resolve 来返回 Promise 的结果
+                        } else {
+                            reject(new Error('请求失败: ' + ret.status)); // 如果请求失败，使用 reject
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        reject(new Error('请求出错: ' + error)); // 捕获错误并拒绝 Promise
+                    },
+                });
+            });
+        }
+
+        async function fetchTaskData(id) {
+            return new Promise((resolve, reject) => {
+                layui.$.ajax({
+                    url: PROCESS_TASK_DETAIL_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {id}, // 确保这里传递了 id 参数
+                    success: function (ret) {
+                        if (ret.status == 200) {
+                            resolve(ret.data);
+                        } else {
+                            reject(new Error('请求失败: ' + ret.status));
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        reject(new Error('请求出错: ' + error)); // 捕获错误并拒绝 Promise
+                    },
+                });
+            });
+        }
+
+        async function buildParamsTodo(instanceId, taskId) {
+            try {
+                const instanceData = await fetchInstanceData(instanceId);
+                const highLightData = await fetchHighLightData(instanceId);
+                const recordData = await fetchRecordData(instanceId);
+                const taskDetail = await fetchTaskData(taskId);
+                // 构建最终的参数对象
+                const params = {
+                    mode: 'todo', // 假设这是固定的，或者可以从某个请求中获取
+                    formData: instanceData['form_data'] !== undefined ? instanceData['form_data'] : {},
+                    flowData: {
+                        viewer: true,
+                        graphData: instanceData['json_object'] !== undefined ? instanceData['json_object'] : {},
+                        highLight: highLightData !== undefined ? highLightData : {},
+                    },
+                    resubmit: false,
+                    instanceData,
+                    recordData,
+                    taskDetail,
+                };
+                return params;
+            } catch (error) {
+                throw error;
+            }
+        }
+    })
+</script>
+</body>
+
+</html>

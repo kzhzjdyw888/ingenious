@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>审批记录</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+    <style>
+        body {
+            margin-left: 10px;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-timeline" id="task-history-records-timeline">
+</div>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+    //提交类型
+    const SUBMIT_TYPE = {
+        0: '发起申请',
+        1: '同意申请',
+        2: '拒绝申请',
+        3: '退回上一步',
+        4: '跳转',
+        5: '重新提交',
+        6: '退回发起人',
+        20: '拒绝申请',
+        100: '异常'
+    }
+
+
+    window.addEventListener('message', function (event) {
+        let data = event.data;
+        init(data);
+    })
+
+    function init(data) {
+        let containerId = "task-history-records-timeline";
+        let container = document.getElementById(containerId);
+        container.innerHTML = '';
+        layui.$.each(data, function (index, item) {
+            container.innerHTML += template(item);
+        });
+    }
+
+
+    function template(data) {
+        let title = data.display_name + '&nbsp;' + data.finish_time;
+        let ext = data['ext'] != undefined ? data['ext'] : [];
+        let user = ext['u_real_name'] !== undefined ? ext['u_real_name'] : '';
+        let submit = ext['submit_type'] != undefined ? ext['submit_type'] : 100;
+        let typeText = SUBMIT_TYPE[submit];
+        let opinion = ext['tf_approval_comment'] != undefined ? ext['tf_approval_comment'] : '';
+
+        let html = '<div class="layui-timeline-item">' +
+            '<i class="layui-icon layui-timeline-axis"></i>' +
+            '<div class="layui-timeline-content layui-text">' +
+            ' <h3 class="layui-timeline-title">' + title + '</h3>' +
+            ' <p><i class="layui-icon layui-icon-friends"></i> <span>' + user + '</span> <span>' + typeText + '</span></p>' +
+            '<p>' + opinion + '</p>' +
+            '</div>' +
+            '</div>';
+        return html;
+    }
+
+</script>
+
+</body>
+</html>

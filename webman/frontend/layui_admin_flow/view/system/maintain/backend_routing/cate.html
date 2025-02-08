@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加分类</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" lay-filter="backend_routing-cate-form">
+    <div class="mainBox">
+        <br/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">分类名称：</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" class="layui-input" lay-verify="required" value=""/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序：</label>
+            <div class="layui-input-inline">
+                <input type="number" name="sort" class="layui-input" value="0"/>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="backend_route-cate-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../..component/layui/layui.js"></script>
+<script src="../../../..component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const ROUTE_CATE_API = config.api_url + "/adminapi/system/route_cate";
+
+    layui.use(['form', 'notice'], function () {
+        let form = layui.form;
+        let notice = layui.notice;
+        let $ = layui.jquery;
+
+        let method = 'POST';
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+        }
+
+
+        form.on('submit(backend_route-cate-save)', function (data) {
+            if (method === 'PUT') {
+                data.field[PRIMARY_KEY] = getQueryString(PRIMARY_KEY)
+            }
+            data.field.app_name = getQueryString('app_name')
+            $.ajax({
+                url: ROUTE_CATE_API,
+                type: method,
+                data: {...data.field},
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.code !== -1) {
+                        notice.success(ret.msg)
+                        parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                        parent.routeTree();
+                        return false;
+                    } else {
+                        notice.error(ret.msg)
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                },
+            });
+            return false;
+        });
+    })
+
+</script>
+</body>
+</html>

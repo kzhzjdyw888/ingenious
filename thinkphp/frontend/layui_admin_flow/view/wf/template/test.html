@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>请假申请单</title>
+</head>
+<body>
+<div>tewagfqadsgfasd测试</div>
+
+<script>
+    layui.use(function () {
+        let laydate = layui.laydate;
+        // 日期时间选择器 - 日期和时间选择器同时显示（全面板）
+        laydate.render({
+            elem: '#start-time',
+            type: 'datetime',
+            fullPanel: true // 2.8+
+        });
+        laydate.render({
+            elem: '#end-time',
+            type: 'datetime',
+            fullPanel: true // 2.8+
+        });
+
+    })
+</script>
+</body>
+</html>

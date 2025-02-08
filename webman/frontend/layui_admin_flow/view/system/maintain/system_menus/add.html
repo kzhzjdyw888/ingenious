@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新增页面</title>
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="system-system_menus-add-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">类型</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="auth_type" lay-filter="auth_type" value="1" title="菜单" checked>
+                    <input type="radio" name="auth_type" lay-filter="auth_type" value="3" title="按钮">
+                    <input type="radio" name="auth_type" lay-filter="auth_type" value="2" title="接口">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label" id="menu_name_label">菜单名称</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="menu_name" lay-verify="required" placeholder="请输入菜单名称" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属上级</label>
+                <div class="layui-input-block">
+                    <ul id="system-system_menus-add-tree" class="dtree" data-id="0"></ul>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-hide" id="request">
+                <label class="layui-form-label">请求方式</label>
+                <div class="layui-input-block">
+                    <input name="methods" placeholder="方法" class="layui-input" id="system-system_menus-add-methods">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-hide" id="api">
+                <label class="layui-form-label">接口地址</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="api_url" placeholder="请输入接口地址" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item" id="http">
+                <label class="layui-form-label">页面地址</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="100" name="menu_path" placeholder="请输入页面地址" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">权限标识</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="32" name="unique_auth" placeholder="请输入权限标识" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item" id="picker">
+                <label for="" class="layui-form-label">图标</label>
+                <div class="layui-input-block">
+                    <div class="layui-input-inline">
+                        <input type="text" id="system-system_menus-add-iconPicker" name="icon" value="layui-icon-face-smile" lay-filter="system-system_menus-add-iconPicker" class="hide">
+                    </div>
+                    <div class="layui-input-block" style="position:absolute;">
+                        <span class="pear-btn" id="system-system_menus-add-clear" style="line-height: 34px;">清空</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-block">
+                    <input type="number" maxlength="16" name="sort" lay-verify="required" placeholder="请输入排序" class="layui-input" value="10">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is_show" value="1" title="开启" checked>
+                    <input type="radio" name="is_show" value="0" title="关闭">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入内容" class="layui-textarea" name="mark"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system-system_menus-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+
+<script>
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/menus";
+
+
+    layui.use(['form', 'element', 'iconPicker', 'jquery', 'dropdown', 'dtree'], function () {
+        let form = layui.form;
+        let element = layui.element;
+        let iconPicker = layui.iconPicker;
+        let $ = layui.jquery;
+        let Dtree = layui.dtree;
+        let dropdown = layui.dropdown;
+        let levelData = [];
+
+        /**
+         * 请求方式
+         */
+        dropdown.render({
+            elem: '#system-system_menus-add-methods'
+            , data: [
+                {
+                    title: 'POST'
+                    , id: 1
+                }, {
+                    title: 'GET'
+                    , id: 2
+                }, {
+                    title: 'PUT'
+                    , id: 3
+                }, {
+                    title: 'DELETE'
+                    , id: 4
+                }]
+            , click: function (obj) {
+                this.elem.val(obj.title);
+            }
+            , style: 'width: 235px;'
+        });
+
+        /**
+         * 所属上级获取
+         */
+        layui.$.ajax({
+            url: RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            success: function (ret) {
+                let data = ret.data
+                data.unshift({
+                    "id": '-1',
+                    "menu_name": "顶层",
+                });
+                levelData = data;
+            },
+            error: function (ret) {
+                levelData = [{
+                    "id": '-1',
+                    "menu_name": "顶层",
+                }];
+            },
+        });
+
+
+        /**
+         * ICON 图标选择器
+         */
+        iconPicker.render({
+            elem: '#system-system_menus-add-iconPicker',
+            type: 'fontClass',
+            style: 'color: #5FB878;'
+            , placeholder: ''
+            , isSplit: true
+            , page: false
+            , search: true
+            , click: function (data) {
+            },
+            ready: function (d) {
+            }
+        });
+        $('#system-system_menus-add-clear').click(function () {
+            iconPicker.checkIcon('system-system_menus-add-iconPicker', "");
+        });
+
+        /**
+         * 类型监听
+         */
+        form.on('radio(auth_type)', function (data) {
+            handover(data.value)
+        });
+
+
+        let method = 'POST';
+
+        /**
+         * 添加场景
+         */
+        if (getQueryString('operation') === 'add') {
+            //下拉框赋值
+            let pid = getQueryString('pid')
+            Dtree.renderSelect({
+                elem: "#system-system_menus-add-tree",
+                data: levelData,
+                accordion: true,
+                icon: "-1",  // 隐藏二级图标
+                skin: "layui",
+                width: '100%',
+                selectCardHeight: "200",
+                selectInitVal: '-1',//默认值顶层
+                response: {
+                    treeId: "id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "menu_name", //节点名称（必填）
+                },
+                selectInputName: {
+                    nodeId: "pid",
+                    context: "请选择父级"
+                },
+                done: function (res, $ul, first) {
+                    //首次赋值顶层
+                    Dtree.dataInit("system-system_menus-add-tree", pid);
+                    Dtree.selectVal("system-system_menus-add-tree");
+                }
+            });
+        }
+
+        /**
+         * 编辑场景
+         */
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            $.ajax({
+                url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.code !== -1) {
+                        let data = ret.data
+                        handover(data.auth_type)
+                        form.val('system-system_menus-add-form', {
+                            'pid': data.pid,
+                            'icon': data.icon,
+                            'menu_name': data.menu_name,
+                            'module': data.module,
+                            'controller': data.controller,
+                            'action': data.action,
+                            'api_url': data.api_url,
+                            'methods': data.methods,
+                            'sort': data.sort,
+                            'is_show': data.is_show,
+                            'is_show_path': data.is_show_path,
+                            'menu_path': data.menu_path,
+                            'path': data.path,
+                            'auth_type': data.auth_type,
+                            'unique_auth': data.unique_auth,
+                        })
+                        //下拉框赋值
+                        Dtree.renderSelect({
+                            elem: "#system-system_menus-add-tree",
+                            data: levelData,
+                            accordion: true,
+                            line: true, // 有线树
+                            icon: "-1",  // 隐藏二级图标
+                            startNode: '-1',
+                            skin: "layui",
+                            width: '100%',
+                            selectCardHeight: "200",
+                            selectInitVal: '-1',//默认值顶层
+                            response: {
+                                treeId: "id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "menu_name", //节点名称（必填）
+                            },
+                            request: {
+                                pid: "-1"
+                            },
+                            selectInputName: {
+                                nodeId: "pid",
+                                context: "请选择父级"
+                            },
+                            done: function (res, $ul, first) {
+                                if (first) {
+                                    //首次赋值顶层
+                                    Dtree.dataInit("system-system_menus-add-tree", data.pid);
+                                    Dtree.selectVal("system-system_menus-add-tree");
+                                }
+                            }
+                        });
+                        //icon赋值
+                        iconPicker.checkIcon('system-system_menus-add-iconPicker', data.icon);
+                        form.render()
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            form.render();
+        }
+
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system-system_menus-add-save)', function (data) {
+            let url = RESTFUL_API;
+            if (method === 'PUT') {
+                url = RESTFUL_API + '/' + getQueryString(PRIMARY_KEY)
+            }
+            $.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.code !== -1) {
+                        layer.msg(ret.msg, {icon: 1, time: 1000}, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));//关闭当前页
+                            parent.refresh();
+                        });
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            return false;
+        });
+
+        /**
+         * 类型切换
+         * @param data
+         */
+        function handover(data) {
+            if (parseFloat(data) === 1) {
+                $('input[name="menu_name"]').attr('placeholder', '请输入菜单名称');
+                $('#menu_name_label').html('菜单名称')
+                $('#api').addClass('layui-hide')
+                $('#picker').removeClass('layui-hide')
+                $('#http').removeClass('layui-hide')
+                $('#request').addClass('layui-hide')
+
+            }
+            if (parseFloat(data) === 2) {
+                $('input[name="menu_name"]').attr('placeholder', '请输入接口名称');
+                $('#menu_name_label').html('接口名称')
+                $('#api').removeClass('layui-hide')
+                $('#request').removeClass('layui-hide')
+                $('#http').addClass('layui-hide')
+                $('#picker').addClass('layui-hide')
+            }
+            if (parseFloat(data) === 3) {
+                $('input[name="menu_name"]').attr('placeholder', '请输入按钮名称');
+                $('#menu_name_label').html('按钮名称')
+                $('#api').addClass('layui-hide')
+                $('#picker').removeClass('layui-hide')
+                $('#http').removeClass('layui-hide')
+                $('#request').addClass('layui-hide')
+            }
+        }
+
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户管理</title>
+</head>
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <select name="status" lay-filter="aihao">
+                        <option value="" selected>全部</option>
+                        <option value="1">开启</option>
+                        <option value="0">关闭</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="system_admin-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="system_admin-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="system_admin-data-table" lay-filter="system_admin-data-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="system_admin-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="system-admin-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="system-admin-delete">
+        <i class="layui-icon layui-icon-delete"></i>删除
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system_admin-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="system-admin-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="dept" permission="system-admin-jobs">分配职位</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="system-admin-delete" {{ d.level== 0 ? 'disabled' : '' }}>删除</button>
+</script>
+
+
+<!--状态开关-->
+<script type="text/html" id="system_admin-status">
+    <input type="checkbox" name="status" value="{{d.id}}" permission="system-admin-status" lay-skin="switch" lay-text="" lay-filter="admin-status" {{ d.status=== 1 ? 'checked' : '' }}  {{ d.level== 0 ? 'disabled' : '' }} />
+</script>
+
+<script type="text/html" id="user-sex">
+    {{#if (d.sex == 1) { }}
+    <span>男</span>
+    {{# }else if(d.sex == 2){ }}
+    <span>女</span>
+    {{# } }}
+</script>
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/admin";
+    const SET_STATUS_API = config.api_url + "/adminapi/setting/set_status";
+    const MODULE_PATH = "view/setting/system_admin/";
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'encrypt'], function () {
+            let table = layui.table;
+            let form = layui.form;
+            let $ = layui.jquery;
+            let common = layui.common;
+            let util = layui.util;
+            let encrypt = layui.encrypt;
+
+            let cols = [
+
+                {
+                    type: 'checkbox'
+                },
+                {
+                    title: 'ID',
+                    field: 'user_id',
+                    align: 'center',
+                    sort: true,
+                    hide: true,
+                    width: 60
+                },
+
+                {
+                    title: '账号',
+                    field: 'account',
+                    align: 'left',
+                    width: 150
+                },
+                {
+                    title: '姓名',
+                    field: 'real_name',
+                    align: 'left'
+                },
+                {
+                    title: '性别',
+                    field: 'sex',
+                    align: 'center',
+                    templet: '#user-sex',
+                    width: 70
+                },
+                {
+                    title: '手机号码',
+                    field: 'cell_phone_number',
+                    align: 'left',
+                    width: 140
+                },
+                {
+                    title: '部门',
+                    field: 'orgz',
+                    align: 'left',
+                    width: 100
+                },
+                {
+                    title: '职位',
+                    field: 'post',
+                    align: 'left',
+                    width: 100
+                },
+
+                {
+                    title: '最后一次登录',
+                    field: 'cell_phone_number',
+                    align: 'left',
+                    width: 140,
+                    hide: true
+                },
+                {
+                    title: '最后一次登录ip',
+                    field: 'orgz',
+                    align: 'left',
+                    width: 100,
+                    hide: true
+                },
+                {
+                    title: '状态',
+                    field: 'post',
+                    align: 'left',
+                    templet: '#system_admin-status',
+                    width: 100
+                },
+                {
+                    title: '操作',
+                    toolbar: '#system_admin-table-bar',
+                    align: "center",
+                    fixed: "right",
+                    minWidth: 190,
+                    width: 200,
+                }
+            ]
+
+
+            function render() {
+                table.render({
+                    elem: "#system_admin-data-table",
+                    url: RESTFUL_API,
+                    page: true,
+                    cols: [cols],
+                    skin: "line",
+                    toolbar: "#system_admin-table-toolbar",
+                    autoSort: false,
+                    parseData: function (ret) {
+                        return {
+                            "code": ret.status === 200 ? 0 : -1, // 解析接口状态
+                            "msg": ret.msg, // 解析提示文本
+                            "count": ret.data.count, // 解析数据长度
+                            "data": ret.data.list // 解析数据列表
+                        };
+                    },
+                    defaultToolbar: [{
+                        title: "刷新",
+                        layEvent: "refresh",
+                        icon: "layui-icon-refresh",
+                    }, "filter", "print", "exports"]
+                })
+            }
+
+            render();
+
+            table.on('tool(system_admin-data-table)', function (obj) {
+                if (obj.event === 'remove') {
+                    remove(obj);
+                } else if (obj.event === 'edit') {
+                    edit(obj);
+                } else if (obj.event === 'dept') {
+                    dept(obj);
+                }
+            });
+
+            table.on('toolbar(system_admin-data-table)', function (obj) {
+                if (obj.event === 'add') {
+                    add();
+                } else if (obj.event === 'refresh') {
+                    refresh();
+                } else if (obj.event === 'batchRemove') {
+                    batchRemove(obj);
+                } else if (obj.event === 'recycle') {
+                    recycle(obj);
+                }
+            });
+
+            // 头部搜索栏
+            form.on('submit(system_admin-table-query)', function (data) {
+                table.reload("system_admin-data-table", {
+                    page: {
+                        curr: 1
+                    },
+                    where: data.field
+                })
+                return false;
+            });
+
+            /**
+             * 管理员状态
+             */
+            form.on('switch(admin-status)', function (data) {
+                let status = data.elem.checked ? 1 : 0;
+                let id = this.value;
+                let load = layer.load();
+
+                layui.$.ajax({
+                    url: SET_STATUS_API + '/' + id + '/' + status,
+                    type: 'PUT',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(load);
+                        if (ret && ret.status == 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1500
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1500
+                            }, function () {
+                                $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                                form.render();
+                            });
+                        }
+                    }
+
+                })
+            });
+
+            function add() {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '新增',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'add.html?operation=add'
+                });
+            }
+
+            function edit(obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '修改',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+            function dept(obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '部门设置',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'dept.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+
+            /**
+             * 删除管理员
+             * @param obj
+             */
+            function remove(obj) {
+                layer.confirm('确定要删除该管理员', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: RESTFUL_API + '/' + obj.data.id,
+                        type: 'DELETE',
+                        dataType: 'json',
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    obj.del();
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                });
+            }
+
+            /**
+             * 批量删除
+             * @param obj
+             * @returns {boolean}
+             */
+            function batchRemove(obj) {
+                //方法1：直接获得所有选择的ID
+                let checkIds = common.checkField(obj, PRIMARY_KEY);
+                if (checkIds === "") {
+                    layer.msg("未选中数据", {
+                        icon: 3,
+                        time: 1000
+                    });
+                    return false;
+                }
+                layer.confirm('确定要删除这些管理员', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: RESTFUL_API + '/batch_remove',
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({data: checkIds}),
+                        dataType: 'json',
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    window.render();
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            console.error(ret);
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        },
+                    })
+                });
+            }
+
+            form.render();
+
+            window.refresh = function (param) {
+                render();
+            }
+        }
+    )
+</script>
+</body>
+</html>

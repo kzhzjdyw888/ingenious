@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>新增配置分配</title>
+    <link rel="stylesheet" href="../../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../../admin/css/reset.css" />
+    <style>
+        .multiline-placeholder {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+<form class="layui-form" action="" id="myForm" lay-filter="system_config-list-add-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-tab layui-tab-brief" lay-filter="system_config-list-add-tabs">
+                <ul class="layui-tab-title" id="layui-tab-title">
+                    <li lay-id="text" class="layui-this">文本框</li>
+                    <li lay-id="textarea">多行文本框</li>
+                    <li lay-id="radio">单选框</li>
+                    <li lay-id="upload">文件上传</li>
+                    <li lay-id="checkbox">多选框</li>
+                    <li lay-id="select">下拉框</li>
+                    <li lay-id="switch">开关</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <!--文本框-->
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">分类</label>
+                            <div class="layui-input-block">
+                                <ul id="system_config-list-add-tree" class="dtree" data-id="0"></ul>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide" id="input_type">
+                            <label class="layui-form-label">类型</label>
+                            <div class="layui-input-block">
+                                <select name="input_type">
+                                    <option value="" selected></option>
+                                    <option value="input">文本框</option>
+                                    <option value="dateTime">日期时间</option>
+                                    <option value="date">日期</option>
+                                    <option value="time">时间</option>
+                                    <option value="color">颜色</option>
+                                    <option value="number">数字</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">配置名称</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="info" lay-verify="required" placeholder="请输入配置名称" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">字段变量</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="menu_name" lay-verify="required" placeholder="列如:test_url" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">表单说明</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="desc" placeholder="请输入表单说明" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide" id="upload_type">
+                            <label class="layui-form-label">上传类型</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="upload_type" value="1" title="单图" checked>
+                                <input type="radio" name="upload_type" value="2" title="多图">
+                                <input type="radio" name="upload_type" value="3" title="文件">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide" id="parameter">
+                            <label class="layui-form-label">配置参数</label>
+                            <div class="layui-input-block">
+                                <textarea name="parameter" placeholder="参数方式例如:&#10;1=>男&#10;2=>女&#10;3=>保密" class="layui-textarea multiline-placeholder"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide" id="default">
+                            <label class="layui-form-label">默认值</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="value" placeholder="请输入默认值" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" id="width">
+                            <label class="layui-form-label">文本宽度</label>
+                            <div class="layui-input-block">
+                                <input type="number" name="width" placeholder="请输入文本宽度" autocomplete="off" class="layui-input" value="100">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide" id="high">
+                            <label class="layui-form-label">多行文本高</label>
+                            <div class="layui-input-block">
+                                <input type="number" name="high" placeholder="请输入文本框高" autocomplete="off" class="layui-input" value="5">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide" id="verify">
+                            <label class="layui-form-label">验证规则</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="required" placeholder="多个请用,隔开列如:required:true,url:true" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">排序</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="sort" placeholder="请输入" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">状态</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="status" value="1" title="显示" checked>
+                                <input type="radio" name="status" value="0" title="隐藏">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system_config-list-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../../component/layui/layui.js"></script>
+<script src="../../../../../component/pear/pear.js"></script>
+<script src="../../../../../config/common.js"></script>
+<script src="../../../../../config/permission.js"></script>
+<script src="../../../../../config/config.js"></script>
+
+<script>
+
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/config";
+    const CATEGORY_RESTFUL_API = config.api_url + "/adminapi/setting/config_class"
+
+
+    layui.use(['form', 'popup', 'jquery', 'element', 'dtree'], function () {
+        let form = layui.form;
+        let popup = layui.popup;
+        let $ = layui.jquery;
+        let element = layui.element;
+        let Dtree = layui.dtree;
+        let method = 'POST';
+        let tabsArr = ['text', 'textarea', 'radio', 'upload', 'checkbox', 'select', 'switch'];
+        let type = 'text';
+        let categoryData = [];
+
+        /**
+         * Tabs切换事件
+         */
+        element.on('tab(system_config-list-add-tabs)', function (obj) {
+            $('#input_type').addClass('layui-hide')
+            $('#verify').addClass('layui-hide')
+            $('#high').addClass('layui-hide')
+            $('#width').addClass('layui-hide')
+            $('#parameter').addClass('layui-hide')
+            $('#default').addClass('layui-hide')
+            $('#upload_type').addClass('layui-hide')
+            let myForm = document.getElementById('myForm');
+            myForm.reset();
+            tabsRendering(tabsArr[obj.index])
+        });
+
+        /**
+         * tab选项卡渲染
+         * @param param
+         */
+        function tabsRendering(param) {
+            type = param;
+            if (param == 'text') {
+                $('#input_type').removeClass('layui-hide')
+                $('#verify').removeClass('layui-hide')
+                $('#width').removeClass('layui-hide')
+                $('#default').removeClass('layui-hide')
+            }
+            if (param == 'textarea') {
+                $('#high').removeClass('layui-hide')
+                $('#width').removeClass('layui-hide')
+                $('#default').removeClass('layui-hide')
+            }
+            if (param == 'radio') {
+                $('#parameter').removeClass('layui-hide')
+                $('#default').removeClass('layui-hide')
+            }
+            if (param == 'upload') {
+                $('#upload_type').removeClass('layui-hide')
+            }
+            if (param == 'checkbox') {
+                $('#parameter').removeClass('layui-hide')
+            }
+            if (param == 'select') {
+                $('#parameter').removeClass('layui-hide')
+            }
+            if (param == 'switch') {
+                $('#default').removeClass('layui-hide')
+            }
+            form.render()
+        }
+
+        /**
+         * 系统配置分类树
+         */
+        category()
+
+
+        /**
+         * 添加场景
+         */
+        if (getQueryString('operation') === 'add') {
+            Dtree.renderSelect({
+                elem: "#system_config-list-add-tree",
+                data: categoryData,
+                accordion: true,
+                icon: "-1",  // 隐藏二级图标
+                skin: "layui",
+                width: '100%',
+                selectCardHeight: "280",
+                selectInitVal: '',//默认值顶层
+                response: {
+                    treeId: "id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "title", //节点名称（必填）
+                },
+                selectInputName: {
+                    nodeId: "config_tab_id",
+                    context: "请选择配置分类"
+                },
+                done: function (res, $ul, first) {
+                    if (first) {
+                    }
+                }
+            });
+        }
+
+        /**
+         * 修改场景
+         */
+        if (getQueryString('operation') === 'edit') {
+            $('#layui-tab-title').remove();
+            method = 'PUT'
+            $.ajax({
+                url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        let data = ret.data
+                        form.val('system_config-list-add-form', data)
+                        tabsRendering(data.type)
+                        //下拉框赋值
+                        Dtree.renderSelect({
+                            elem: "#system_config-list-add-tree",
+                            data: categoryData,
+                            accordion: true,
+                            line: true, // 有线树
+                            icon: "-1",  // 隐藏二级图标
+                            startNode: '-1',
+                            skin: "layui",
+                            width: '100%',
+                            selectCardHeight: "200",
+                            selectInitVal: '-1',//默认值顶层
+                            response: {
+                                treeId: "id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "title", //节点名称（必填）
+                            },
+                            request: {
+                                pid: "-1"
+                            },
+                            selectInputName: {
+                                nodeId: "config_tab_id",
+                                context: "请选择配置分类"
+                            },
+                            done: function (res, $ul, first) {
+                                if (first) {
+                                    //首次赋值顶层
+                                    Dtree.dataInit("system_config-list-add-tree", data['config_tab_id']);
+                                    Dtree.selectVal("system_config-list-add-tree");
+                                }
+                            }
+                        });
+                        form.render()
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            form.render();
+        }
+
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system_config-list-add-save)', function (data) {
+            data.field.type = type;
+            $.ajax({
+                url: RESTFUL_API + (method == 'PUT' ? '/' + getQueryString(PRIMARY_KEY) : ''),
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));//关闭当前页
+                            parent.refreshTable();
+                        })
+                    } else {
+                        popup.failure(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+
+        /**
+         * 配置分类获取Tree
+         */
+        function category() {
+            layui.$.ajax({
+                url: CATEGORY_RESTFUL_API,
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        categoryData = ret.data.list
+                    }
+                },
+                error: function (ret) {
+                },
+            });
+        }
+
+        // 适配点击移除下拉框
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    });
+</script>
+
+
+</body>
+</html>

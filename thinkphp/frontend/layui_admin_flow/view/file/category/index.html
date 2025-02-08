@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>附件分类</title>
+</head>
+<body class="pear-container">
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="file-category-data-table" lay-filter="file-category-data-table"></table>
+    </div>
+</div>
+
+
+<!--表格头部按钮-->
+<script type="text/html" id="file-category-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="file-category-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="expandAll">
+        <i class="layui-icon layui-icon-spread-left"></i>展开
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="foldAll">
+        <i class="layui-icon layui-icon-shrink-right"></i>折叠
+    </button>
+</script>
+
+<!--操作栏按钮-->
+<script type="text/html" id="file-category-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="file-category-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="file-category-delete">删除</button>
+</script>
+
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+
+<script>
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/file/category";
+
+    layui.use(['table', 'form', 'jquery', 'treeTable', 'common', 'util'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let treeTable = layui.treeTable;
+        let common = layui.common;
+        let util = layui.util;
+
+
+        let MODULE_PATH = "view/file/category/";
+
+
+        let cols = [
+            {
+                title: '类别名称',
+                field: 'name',
+                minWidth: 100,
+            },
+            {
+                title: '排序',
+                field: 'sort',
+                minWidth: 170,
+                width: 170,
+            },
+            {
+                title: '备注',
+                field: 'remarks'
+            },
+
+            {
+                title: '操作',
+                field: 'operation',
+                templet: '#file-category-table-bar',
+                minWidth: 200,
+                width: 200,
+                align: 'left',
+            }
+        ]
+
+        /**
+         * 树形表格渲染
+         */
+         function render() {
+            treeTable.render({
+                elem: '#file-category-data-table',
+                cols: [cols],
+                url: RESTFUL_API,
+                where: {
+                    all: 1
+                },
+                skin: "line",
+                tree: {
+                    customName: {
+                        name: 'name',
+                        id: 'id',
+                        pid: 'pid',
+                    },
+                    data: {
+                        rootPid: '-1',
+                        isSimpleDataL: true,
+                    },
+                    view: {
+                        showIcon: false,
+                    },
+                    async: {},
+                    callback: {}
+                },
+                parseData: function (ret) {
+                    return {
+                        "code": 0,
+                        "msg": "",
+                        "count": ret.count != undefined ? ret.count : (ret.data.length),
+                        'data': ret.data.list ?? []
+                    }
+                },
+                toolbar: "#file-category-table-toolbar",
+                page: false,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+        render();
+
+
+        table.on('tool(file-category-data-table)', function (obj) {
+            if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event == 'remove') {
+                remove(obj);
+            }
+        })
+
+
+        table.on('toolbar(file-category-data-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                window.refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'expandAll') {
+                treeTable.expandAll("file-category-data-table", true);
+            } else if (obj.event === 'foldAll') {
+                treeTable.expandAll("file-category-data-table", false);
+            }
+        });
+
+         function add () {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+         function edit(obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                maxmin: true,
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+
+        function  remove(obj) {
+            layer.confirm('确定要删除该分类', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.status === 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    },
+                });
+            });
+        }
+
+        /**
+         * 刷新
+         */
+        window.refreshTable = function () {
+            table.reloadData("file-category-data-table", {
+                scrollPos: "fixed"
+            });
+        }
+
+
+        form.on('submit(file-category-table-query)', function (data) {
+            if (!data.field.name)
+                delete data.field.name;
+            let where = "";
+            for (let k in data.field)
+                where += k + '=' + data.field[k] + "&";
+
+            render(where);
+            return false;
+        });
+
+
+        form.on('switch(file-category-status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            $.ajax({
+                url: SET_STATUS_API + '/' + id + '/' + status,
+                type: 'PUT',
+                dataType: 'json',
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.status === 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1500
+                        });
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1500
+                        }, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        });
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        });
+    })
+</script>
+</body>
+</html>

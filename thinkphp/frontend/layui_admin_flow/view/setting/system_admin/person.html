@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+</head>
+<body class="pear-container">
+<style>
+    .layui-input-block input {
+        width: 300px;
+    }
+</style>
+
+<div class="layui-card">
+    <div class="layui-card-body">
+
+        <div class="layui-tab layui-tab-brief">
+            <ul class="layui-tab-title">
+                <li class="layui-this">基本信息</li>
+                <li>安全设置</li>
+            </ul>
+            <div class="layui-tab-content">
+                <!-- 基本信息 -->
+                <div class="layui-tab-item layui-show">
+                    <form class="layui-form" lay-filter="system_admin-person-filter">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">账号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="account" required lay-verify="required" autocomplete="off" class="layui-input" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">姓名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="real_name" required lay-verify="required" placeholder="请输入昵称" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">手机编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="cell_phone_number" placeholder="请输入手机编号" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">邮箱</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="email" placeholder="请输入邮箱" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">地址</label>
+                            <div class="layui-input-block">
+                                <input type="text" maxlength="16" name="address" lay-verify="required" placeholder="请输入管理员地址" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">性别</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="sex" value="1" title="男" checked>
+                                <input type="radio" name="sex" value="2" title="女">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">备注</label>
+                            <div class="layui-input-block">
+                                <textarea placeholder="请输入内容" class="layui-textarea" name="remarks"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="system_admin-person-save">
+                                    提交
+                                </button>
+                                <button type="reset" class="pear-btn pear-btn-md">
+                                    重置
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+
+                <div class="layui-tab-item">
+                    <form class="layui-form" action="" id="savePassword">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">原始密码</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="pwd" required lay-verify="required" placeholder="请输入原始密码" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">新密码</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="new_pwd" required lay-verify="required" placeholder="请输入新密码" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">确认新密码</label>
+                            <div class="layui-input-block">
+                                <input type="password" name="conf_pwd" required lay-verify="required" placeholder="请再次输入新密码" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="savePassword">
+                                    提交
+                                </button>
+                                <button type="reset" class="pear-btn pear-btn-md">
+                                    重置
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+
+    const PRIMARY_KEY = "id";
+    const DETAIL_API = config.api_url + "/adminapi/setting/info";
+    const UPDATE_ADMIN_API = config.api_url + "/adminapi/setting/update_admin";
+
+    layui.use(["form", "popup", "jquery", 'encrypt'], function () {
+        let form = layui.form;
+        let $ = layui.jquery;
+        let encrypt = layui.encrypt;
+        let admin_data = {}
+
+
+        /**
+         * 管理员基本信息提交
+         */
+        form.on("submit(system_admin-person-save)", function (data) {
+            $.ajax({
+                url: UPDATE_ADMIN_API,
+                dataType: "json",
+                type: "PUT",
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                success: function (res) {
+                    if (res.status === 200) {
+                        window.info()
+                        return layui.popup.success(res.msg);
+                    } else {
+                        return layui.popup.failure(res.msg);
+                    }
+                }
+            });
+            return false;
+        });
+
+        /**
+         * 管理员安全设置提交
+         */
+        form.on("submit(savePassword)", function (data) {
+            if (Object.keys(admin_data).length === 0) {
+                return false;
+            }
+            if (data.field.pwd === '') {
+                return false
+            }
+            admin_data.pwd = data.field.pwd = encrypt.md5(data.field.pwd)
+            admin_data.new_pwd = encrypt.md5(data.field.new_pwd)
+            admin_data.conf_pwd = encrypt.md5(data.field.conf_pwd)
+            $.ajax({
+                url: UPDATE_ADMIN_API,
+                dataType: "json",
+                type: "PUT",
+                contentType: 'application/json',
+                data: JSON.stringify(admin_data),
+                success: function (res) {
+                    if (res.status === 200) {
+                        layui.popup.success(res.msg);
+                    } else {
+                        layui.popup.failure(res.msg);
+                    }
+                    setTimeout(function () {
+                        $("#savePassword")[0].reset();
+                        form.render()
+                    }, 1000)
+                }
+            });
+            return false;
+        });
+
+
+        /**
+         * 获取基本资料
+         */
+        window.info = function () {
+            layui.$.ajax({
+                url: DETAIL_API,
+                dataType: "json",
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        admin_data = ret.data ?? [];
+                        form.val("system_admin-person-filter", ret.data);
+                    }
+                }
+            });
+        }
+        window.info()
+    });
+
+</script>
+
+</body>
+</html>

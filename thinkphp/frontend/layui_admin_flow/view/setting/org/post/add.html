@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="form-data-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属部门</label>
+                <div class="layui-input-block">
+                    <div class="layui-form-select downpanel">
+                        <ul id="dept-tree" class="tree"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属上级</label>
+                <div class="layui-input-block">
+                    <ul id="post-tree" class="tree"></ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">职位代码</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="post_code" lay-verify="required" placeholder="职位代码" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">职位名称</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="post_name" lay-verify="required" placeholder="职位名称" class="layui-input">
+                </div>
+            </div>
+
+            <!--图标-->
+            <div class="layui-form-item">
+                <div class="layui-row">
+                    <div class="layui-col-xs6">
+                        <label class="layui-form-label">图标</label>
+                        <div class="layui-input-block">
+                            <div class="layui-input-inline">
+                                <input type="text" id="post-add-iconPicker" name="icon" value="layui-icon-group" lay-filter="post-add-iconPicker" class="hide">
+                            </div>
+                            <div class="layui-input-block" style="position:absolute;">
+                                <span class="pear-btn" id="post-add-clear" style="line-height: 35px;">清空</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea name="remarks" placeholder="请输入内容" class="layui-textarea"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm" id="refresh">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/config.js"></script>
+<script src="../../../../config/permission.js"></script>
+
+
+<script>
+
+    const PRIMARY_KEY = "post_id";
+
+    const RESTFUL_API = config.api_url + "/adminapi/setting/post";
+    const DEPT_RESTFUL_API = config.api_url + "/adminapi/setting/dept";
+
+    layui.use(['form', 'dtree', 'jquery', 'iconPicker'], function () {
+        let form = layui.form;
+        let Dtree = layui.dtree;
+        let $ = layui.jquery;
+        let iconPicker = layui.iconPicker;
+
+        iconPicker.render({
+            elem: '#post-add-iconPicker',
+            type: 'fontClass',
+            style: 'color: #5FB878;'
+            , placeholder: ''
+            , isSplit: true
+            , page: false
+            , search: true
+            , click: function (data) {
+            },
+            ready: function (d) {
+            }
+        });
+
+        $('#post-add-clear').click(function () {
+            iconPicker.checkIcon('post-add-iconPicker', "layui-icon-group");
+        });
+
+        /**
+         * 部门列表获取
+         */
+        function deptTree(value = '') {
+            layui.$.ajax({
+                url: DEPT_RESTFUL_API,
+                dataType: 'JSON',
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        Dtree.render({
+                            elem: '#dept-tree',
+                            onlyIconControl: true, //是否仅允许节点左侧图标控制展开收缩
+                            data: ret.data,
+                            select: true,
+                            selectTips: '请选择部门',
+                            selectCardHeight: "200",
+                            selectInitVal: value,
+                            skin: 'layui',
+                            selectInputName: {
+                                nodeId: "dept_id",
+                                context: "dept_name"
+                            },
+                            response: {
+                                treeId: "dept_id", //节点ID（必填）
+                                parentId: "pid", //父节点ID（必填）
+                                title: "dept_name", //节点名称（必填）
+                            },
+                            done: function (res, $ul, first) {
+                                if (first) {
+
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+
+        let data = [];
+        data.unshift({
+            "post_id": '-1',
+            "post_name": "顶层",
+        });
+
+        //部门点击事件
+        Dtree.on('node("dept-tree")', function (obj) {
+            let param = Dtree.selectVal("dept-tree");
+            postTree(param['dept_id'])
+        });
+
+
+        Dtree.render({
+            elem: '#post-tree',
+            select: true,
+            width: "100%",
+            selectCardHeight: "200",
+            data: [],
+            skin: 'layui',
+            selectInputName: {
+                nodeId: "pid",
+                context: "pid_name"
+            },
+            response: {
+                treeId: "post_id",
+                parentId: "pid",
+                title: "post_name",
+            },
+            selectTips: '请选择上级',
+            done: function (res, $ul, first) {
+                if (first) {
+                }
+            }
+        });
+
+
+        /**
+         * 职位所属渲染
+         * @param dept_id
+         * @param selected
+         */
+        function postTree(dept_id, selected = '') {
+            //处理父级选择栏目
+            layui.$.ajax({
+                url: RESTFUL_API,
+                data: {'dept_id': dept_id},
+                dataType: 'JSON',
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        //重新渲染职位
+                        let data = ret.data ?? [];
+                        data.unshift({
+                            "post_id": '-1',
+                            "post_name": "顶层",
+                        });
+                        //选择部门重新渲染父级
+                        Dtree.reload("post-tree", {
+                            data: data,
+                            selectInitVal: selected
+                        });
+                    }
+                }
+            });
+        }
+
+
+        let method = 'POST';
+        if (getQueryString('operation') == 'add') {
+            deptTree()
+        }
+
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            get(getQueryString(PRIMARY_KEY));
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+        }
+
+        form.on('submit(save)', function (data) {
+            let url = RESTFUL_API;
+            if (method === 'PUT') {
+                url = RESTFUL_API + '/' + getQueryString(PRIMARY_KEY)
+            }
+
+            layui.$.ajax({
+                url: url,
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1000
+                        }, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        });
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                    }
+                    return false;
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+
+        /**
+         * 详情获取
+         * @param id
+         */
+        function get(id) {
+            layui.$.ajax({
+                    url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY),
+                    method: 'GET',
+                    dataType: 'JSON',
+                    success: function (ret) {
+                        if (ret.status === 200) {
+                            let data = ret.data;
+                            form.val("form-data-filter", {
+                                "pid": data.pid,
+                                "post_code": data.post_code,
+                                "post_name": data.post_name,
+                                'dept_id': data.dept_id,
+                                "sort": data.sort,
+                                'icon': data.icon,
+                                "remarks": data.remarks
+                            });
+                            deptTree(data.dept_id);
+                            postTree(data.dept_id, data.pid);
+                            form.render();
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }
+                }
+            );
+        }
+
+
+        // 点击任何地方关闭下拉树
+        layui.$("body").on("click", function (event) {
+            layui.$("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            layui.$("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    })
+
+</script>
+</body>
+</html>

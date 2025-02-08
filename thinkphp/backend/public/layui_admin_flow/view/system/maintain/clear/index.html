@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>刷新缓存</title>
+    <style>
+        .container {
+            position: relative;
+        }
+
+        .item {
+            margin-top: 200px;
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body class="pear-container">
+<div class="layui-card">
+    <div class="container">
+        <div class="item">
+            <button class="pear-btn pear-btn-primary pear-btn-sm" lay-on="cache">清除缓存</button>
+            <button class="pear-btn pear-btn-primary pear-btn-sm" lay-on="log">清除日志</button>
+        </div>
+    </div>
+</div>
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const REFRESH_CACHE_API = config.api_url + "/adminapi/system/refresh_cache/cache";
+    const REFRESH_CACHE_LOG_API = config.api_url + "/adminapi/system/refresh_cache/log";
+
+    layui.use(['form', 'jquery', 'notice'], function () {
+        let layer = layui.layer;
+        let util = layui.util;
+        let notice = layui.notice;
+
+        util.on('lay-on', {
+            "cache": function () {
+                layer.confirm('清除缓存,确定要清除缓存吗？', {icon: 3}, function (index) {
+                    layui.$.ajax({
+                        url: REFRESH_CACHE_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (ret) {
+                            if (ret && ret.code != -1) {
+                                notice.success(ret.msg)
+                            } else {
+                                notice.error(ret.msg)
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        },
+                        complete: function () {
+                            layer.close(index);
+                        }
+                    })
+                }, function () {
+                    notice.success("取消成功")
+                });
+            },
+            "log": function () {
+                layer.confirm('清除日志,确定要清除日志吗？', {icon: 3}, function (index) {
+                    layui.$.ajax({
+                        url: REFRESH_CACHE_LOG_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (ret) {
+                            if (ret && ret.code != -1) {
+                                notice.success(ret.msg)
+                            } else {
+                                notice.error(ret.msg)
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        },
+                        complete: function () {
+                            layer.close(index);
+                        }
+                    })
+                }, function () {
+                    notice.success("取消成功")
+                });
+            }
+        })
+    })
+
+
+</script>
+</body>
+</html>

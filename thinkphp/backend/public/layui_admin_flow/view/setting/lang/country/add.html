@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+
+<body>
+<form class="layui-form" action="" lay-filter="form-val-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属地区</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="name" lay-verify="required" placeholder="请输入所属地区" class="layui-input">
+                    <div class="tips-info">例如：中国、香港、德国</div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言识别码</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="code" lay-verify="required" placeholder="请输入语言识别码" class="layui-input">
+                    <div class="tips-info">浏览器语言识别码</div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">关联语言</label>
+                <div class="layui-input-block">
+                    <select name="type_id" id="type_id">
+                        <option value="">请选择关联语言</option>
+                    </select>
+                    <div class="tips-info">请选择关联语言，语言类型是由您自行添加的</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const DETAIL_API = config.api_url + "/adminapi/setting/lang_country";
+    const INSERT_API = config.api_url + "/adminapi/setting/lang_country/save";
+    const SELECT_TYPE_API = config.api_url + "/adminapi/setting/lang_code/type";
+
+    layui.use(['form', 'jquery', 'laytpl', 'encrypt', 'popup'], function () {
+        let form = layui.form;
+        let encrypt = layui.encrypt;
+        let popup = layui.popup;
+        let $ = layui.jquery;
+
+        let method = 'POST';
+        langList();
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+            get();
+        }
+
+
+        //监听事件
+        form.on('submit(save)', function (data) {
+            if (data.field.password)
+                data.field.password = encrypt.md5(data.field.password);
+            else
+                delete data.field.password;
+
+            $.ajax({
+                url: INSERT_API + '/' + (method == 'POST' ? '0' : getQueryString(PRIMARY_KEY)),
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        })
+                        return false;
+                    } else {
+                        popup.failure(ret.msg);
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+            return false;
+        });
+
+
+        //获取用户信息并渲染
+        function get() {
+            $.ajax({
+                url: DETAIL_API + '/' + getQueryString(PRIMARY_KEY), // 请求路径
+                type: "GET", //请求方式
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status != 200) {
+                        popup.failure(ret.msg);
+                        return;
+                    }
+                    let list = ret.data;
+                    form.val('form-val-filter', {
+                        'code': list.code,
+                        'name': list.name,
+                        'type_id': list.type_id,
+                    })
+                    form.render();
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        }
+
+        function langList() {
+            layui.$.ajax({
+                url: SELECT_TYPE_API, // 请求路径
+                type: "GET", //请求方式
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        let data = ret.data.list ?? [];
+                        let html = '';
+                        layui.$.each(data['lang_type'], function (index, item) {
+                            html += '<option value="' + item.value + '">"' + item.title + '"</option>'
+                        })
+                        layui.$('#type_id').append(html);
+                    }
+                    form.render();
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            })
+        }
+    })
+</script>
+</body>
+
+</html>

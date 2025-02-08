@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>权限管理</title>
+</head>
+
+<body class="pear-container">
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="system-system_menus-table" lay-filter="system-system_menus-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="system-system_menus-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="system-menu-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-success pear-btn-md" lay-event="expandAll">
+        <i class="layui-icon layui-icon-spread-left"></i>
+        展开
+    </button>
+    <button class="pear-btn pear-btn-success pear-btn-md" lay-event="foldAll">
+        <i class="layui-icon layui-icon-shrink-right"></i>
+        折叠
+    </button>
+</script>
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system-system_menus-table-bar">
+    <div style="width: 100%">
+        {{#if (d.auth_type == 1|| d.auth_type== 3) { }}
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="rule" permission="system-menu-select">选择权限</button>
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="next" permission="system-menu-add">添加下级</button>
+        {{# } }}
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="system-menu-edit">编辑</button>
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="system-menu-delete">删除</button>
+    </div>
+</script>
+
+
+<script type="text/html" id="system-system_menus-permission-status">
+    <input type="checkbox" name="status" value="{{d.id}}" lay-skin="switch" lay-text="" lay-filter="system-system_menus-permission-status"
+           {{ d.is_show== 1 ? 'checked' : '' }} />
+</script>
+
+<script type="text/html" id="icon">
+    <i class="layui-icon {{d.icon}}"></i>
+</script>
+
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+
+<script>
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/menus";
+
+    layui.use(['table', 'form', 'jquery', 'treeTable', 'common', 'notice'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let treeTable = layui.treeTable;
+        let common = layui.common;
+        let notice = layui.notice;
+
+        let MODULE_PATH = "view/system/maintain/system_menus/";
+
+        let cols = [
+            {
+                title: '名称',
+                field: 'menu_name',
+                minWidth: 200,
+            },
+            {
+                title: '图标',
+                field: 'icon',
+                templet: '#icon',
+                width: 60,
+                align: 'center',
+            },
+            {
+                title: '前端权限',
+                field: 'unique_auth',
+                minWidth: 200,
+            },
+
+            {
+                title: '菜单路径',
+                field: 'menu_path',
+                align: 'left',
+                templet: function (d) {
+                    let myArray = ['', '菜单', '接口', '按钮'];
+                    let prefix = myArray[d.auth_type] !== undefined && myArray[d.auth_type] != '' ? (myArray[d.auth_type]) += ': ' : '';
+                    if (d.auth_type === 2) {
+                        return prefix + '[' + d.methods + ']' + d.api_url;
+                    }
+                    return prefix + d.menu_path;
+                }
+            },
+            {
+                title: '启用',
+                field: 'is_show',
+                templet: '#system-system_menus-permission-status',
+                width: 100,
+                align: 'center',
+            },
+            {
+                title: '备注',
+                field: 'menu_name',
+                align: 'left',
+            },
+            {
+                title: '操作',
+                toolbar: '#system-system_menus-table-bar',
+                minWidth: 260,
+                align: 'left',
+            }
+        ]
+
+        function render() {
+            treeTable.render({
+                elem: '#system-system_menus-table',
+                cols: [cols],
+                url: RESTFUL_API,
+                skin: "line",
+                tree: {
+                    customName: {
+                        name: 'menu_name',
+                        id: 'id',
+                        pid: 'pid',
+                        // icon:'icon'
+                    },
+                    data: {
+                        rootPid: '-1',
+                        isSimpleDataL: true,
+                    },
+                    view: {
+                        showIcon: false,
+                    },
+                    async: {},
+                    callback: {}
+                },
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status === 200 ? 0 : -1,
+                        "msg": "",
+                        "count": ret.count != undefined ? ret.count : (ret.data.length),
+                        'data': ret.data
+                    }
+                },
+                toolbar: "#system-system_menus-table-toolbar",
+                page: false,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+
+
+        }
+
+
+        table.on('tool(system-system_menus-table)', function (obj) {
+            if (obj.event === 'remove') {
+                remove(obj);
+            } else if (obj.event === 'next') {
+                next(obj)
+            } else if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event === 'rule') {
+                rule(obj)
+            }
+        })
+
+
+        table.on('toolbar(system-system_menus-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'expandAll') {
+                treeTable.expandAll("system-system_menus-table", true);
+            } else if (obj.event === 'foldAll') {
+                treeTable.expandAll("system-system_menus-table", false);
+            }
+        });
+
+        /**
+         * 添加
+         */
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        /**
+         * 添加下一级
+         * @param obj
+         */
+        function next(obj) {
+            layer.open({
+                type: 2,
+                title: '添加',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '900px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add&pid=' + obj.data.id
+            });
+        }
+
+        /**
+         * 编辑
+         * @param obj
+         */
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '900px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&id=' + obj.data.id
+            });
+        }
+
+        /**
+         * 权限列表
+         * @param obj
+         */
+        function rule(obj) {
+            layer.open({
+                type: 2,
+                title: '权限列表',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '900px', common.isModile() ? '100%' : '500px'],
+                content: MODULE_PATH + 'rule.html?operation=add&id=' + obj.data.id
+            });
+        }
+
+
+        /**
+         * 删除
+         * @param obj
+         */
+        function remove(obj) {
+            layer.confirm('确定要删除该权限', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.code !== -1) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        render()
+
+        /**
+         * 刷新
+         */
+        window.refresh = function () {
+            render();
+        }
+
+        /**
+         * 状态切换
+         */
+        form.on('switch(status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            $.ajax({
+                url: RESTFUL_API + '/show/' + id,
+                type: 'PUT',
+                data: {is_show: status},
+                dataType: 'json',
+
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.code !== -1) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1500
+                        });
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1500
+                        }, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        });
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        });
+    })
+
+
+    /**
+     * 将树形转换成tree符合的扁平化数组
+     * @param data
+     * @param parentId
+     * @returns {*[]}
+     */
+    function flattenData(data) {
+        let result = [];
+        let stack = [...data];
+
+        while (stack.length > 0) {
+            let node = stack.pop();
+            let newItem = {...node};
+            newItem.children = undefined;
+            result.push(newItem);
+
+            if (node.children && node.children.length > 0) {
+                stack = stack.concat(node.children);
+            }
+        }
+        return result;
+    }
+
+</script>
+</body>
+
+</html>

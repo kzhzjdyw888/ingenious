@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>导入流程数据</title>
+    <link rel="stylesheet" href="../../../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../../../admin/css/reset.css"/>
+</head>
+<body>
+<div class="layui-form" lay-filter="detail">
+    <div class="mainBox">
+        <div class="main-container">
+            <textarea id="json" name="json" placeholder="" class="layui-textarea" rows="18"></textarea>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="button" class="pear-btn pear-btn-primary pear-btn-md" lay-on="design_panel_import_confirm">
+                <i class="pear-icon pear-icon-select"></i>
+                确认
+            </button>
+        </div>
+    </div>
+</div>
+<form class="layui-form" action="">
+
+</form>
+<!--layui依赖-->
+    <script src="../../../../../component/layui/layui.js"></script>
+    <script src="../../../../../component/pear/pear.js"></script>
+    <script src="../../../../../config/config.js"></script>
+    <script src="../../../../../component/logicflow/customized/properties.js"></script>
+<script>
+
+    layui.use(['jquery', 'util', 'popup'], function () {
+        let $ = layui.jquery
+        let util = layui.util
+        let popup = layui.popup
+
+        /**
+         * 点击事件
+         */
+        util.on('lay-on', {
+            design_panel_import_confirm: function () {
+                let string = $('#json').val()
+                if (isJSON(string)) {
+                    let jsonStrAfter = JSON.parse(string)
+                    window.parent.importProcessData(jsonStrAfter)
+                    popup.success('导入成功', function () {
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    })
+                } else {
+                    popup.failure('格式错误')
+                }
+            }
+        })
+
+        /**
+         * 验证是否JSON字符串
+         * @param string
+         * @returns {boolean}
+         */
+        function isJSON(string) {
+            try {
+                JSON.parse(string);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

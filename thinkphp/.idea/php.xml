@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MessDetectorOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PHPCSFixerOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PHPCodeSnifferOptionsConfiguration">
+    <option name="highlightLevel" value="WARNING" />
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PhpIncludePathManager">
+    <include_path>
+      <path value="$PROJECT_DIR$/backend/vendor/doctrine/lexer" />
+      <path value="$PROJECT_DIR$/backend/vendor/doctrine/deprecations" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/framework" />
+      <path value="$PROJECT_DIR$/backend/vendor/firebase/php-jwt" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-filesystem" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-captcha" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-image" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-helper" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-orm" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-multi-app" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-template" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-queue" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-view" />
+      <path value="$PROJECT_DIR$/backend/vendor/topthink/think-trace" />
+      <path value="$PROJECT_DIR$/backend/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/backend/vendor/carbonphp/carbon-doctrine-types" />
+      <path value="$PROJECT_DIR$/backend/vendor/workerman/crontab" />
+      <path value="$PROJECT_DIR$/backend/vendor/workerman/channel" />
+      <path value="$PROJECT_DIR$/backend/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/backend/vendor/workerman/workerman" />
+      <path value="$PROJECT_DIR$/backend/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/backend/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/backend/vendor/stanley-cheung/protobuf-php" />
+      <path value="$PROJECT_DIR$/backend/vendor/volcengine/volc-sdk-php" />
+      <path value="$PROJECT_DIR$/backend/vendor/composer" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/compiler" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/event" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/consistency" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/file" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/exception" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/math" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/iterator" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/regex" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/protocol" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/stream" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/ruler" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/visitor" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/ustring" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/cache" />
+      <path value="$PROJECT_DIR$/backend/vendor/hoa/zformat" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/container" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/clock" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/http-factory" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/http-client" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/backend/vendor/grpc/grpc" />
+      <path value="$PROJECT_DIR$/backend/vendor/psr/simple-cache" />
+      <path value="$PROJECT_DIR$/backend/vendor/ingen/ingenious" />
+      <path value="$PROJECT_DIR$/backend/vendor/brick/math" />
+      <path value="$PROJECT_DIR$/backend/vendor/xaboy/form-builder" />
+      <path value="$PROJECT_DIR$/backend/vendor/karka/ingenious" />
+      <path value="$PROJECT_DIR$/backend/vendor/google/gax" />
+      <path value="$PROJECT_DIR$/backend/vendor/google/auth" />
+      <path value="$PROJECT_DIR$/backend/vendor/kphoen/rulerz" />
+      <path value="$PROJECT_DIR$/backend/vendor/google/protobuf" />
+      <path value="$PROJECT_DIR$/backend/vendor/league/mime-type-detection" />
+      <path value="$PROJECT_DIR$/backend/vendor/league/flysystem" />
+      <path value="$PROJECT_DIR$/backend/vendor/ramsey/collection" />
+      <path value="$PROJECT_DIR$/backend/vendor/nesbot/carbon" />
+      <path value="$PROJECT_DIR$/backend/vendor/spatie/macroable" />
+      <path value="$PROJECT_DIR$/backend/vendor/ramsey/uuid" />
+      <path value="$PROJECT_DIR$/backend/vendor/phpenum/phpenum" />
+      <path value="$PROJECT_DIR$/backend/vendor/monolog/monolog" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/http-foundation" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/deprecation-contracts" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/polyfill-ctype" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/inflector" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/polyfill-intl-grapheme" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/polyfill-php80" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/polyfill-mbstring" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/process" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/polyfill-php81" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/string" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/property-access" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/translation-contracts" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/translation" />
+      <path value="$PROJECT_DIR$/backend/vendor/symfony/var-dumper" />
+      <path value="$PROJECT_DIR$/backend/vendor/doctrine/annotations" />
+    </include_path>
+  </component>
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.0" />
+  <component name="PhpStanOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PsalmOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+</project>

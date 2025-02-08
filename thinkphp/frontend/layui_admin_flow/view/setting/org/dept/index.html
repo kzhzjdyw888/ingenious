@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>组织管理</title>
+</head>
+<body class="pear-container">
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="dept-table" lay-filter="dept-table"></table>
+    </div>
+</div>
+
+
+<!--表格头部按钮-->
+<script type="text/html" id="dept-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="setting-dept-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="expandAll">
+        <i class="layui-icon layui-icon-spread-left"></i>展开
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="foldAll">
+        <i class="layui-icon layui-icon-shrink-right"></i>折叠
+    </button>
+</script>
+
+<!--操作栏按钮-->
+<script type="text/html" id="dept-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="setting-dept-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="setting-dept-delete">删除</button>
+</script>
+
+<script type="text/html" id="icon">
+    <i class="layui-icon {{d.icon}}"></i>
+</script>
+
+
+<!--类型-->
+<script type="text/html" id="org-type">
+    {{# if(d.type == 1){ }}
+    <span>总公司</span>
+    {{# } else if (d.type ==2){ }}
+    <span>分公司</span>
+    {{# } else { }}
+    <span>部门</span>
+    {{# } }}
+</script>
+
+
+<script type="text/html" id="dept-status">
+    <input type="checkbox" name="status" value="{{d.dept_id}}" permission="setting-dept-status" lay-skin="switch" lay-filter="status" {{ d.status? 'checked' : '' }}  {{d.level=='0' ? 'disabled' : '' }} />
+</script>
+
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "dept_id";
+    //layui 对应id
+    const LAYUI_TABLE_DATA_ID = "dept-table";
+    const LAYUI_TABLE_BAR_ID = "dept-table-bar";
+    const LAYUI_TABLE_TOOLBAR_ID = "dept-table-toolbar";
+    const LAYUI_TABLE_QUERY_ID = "dept-table-query";
+    const LAYUI_TABLE_RESET_ID = "dept-table-reset";
+    //当前模块的基础目录
+    const MODULE_PATH = "view/setting/org/dept/";
+
+    const RESTFUL_API = config.api_url + "/adminapi/setting/dept";
+    const SET_STATUS_API = config.api_url + "/adminapi/setting/dept/set_status"
+
+    layui.use(['table', 'form', 'jquery', 'treeTable', 'common', 'util'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let treeTable = layui.treeTable;
+        let common = layui.common;
+        let util = layui.util;
+
+
+        let cols = [
+            {
+                title: '部门名称',
+                field: 'dept_name',
+                minWidth: 200,
+            },
+            {
+                title: '部门代码',
+                field: 'dept_code',
+                width: 100,
+                hide: true
+            },
+            {
+                title: "图标",
+                field: "icon",
+                hied: true,
+                templet: function (d) {
+                    return '<i class="layui-icon ' + util.escape(d["icon"]) + '"></i>';
+                }
+            },
+            {
+                title: '类型',
+                field: 'dept_type',
+                templet: '#dept-type',
+                width: 150,
+                align: 'left'
+            },
+            {
+                title: '排序',
+                field: 'sort',
+                width: 60,
+            },
+            {
+                title: '启用',
+                field: 'status',
+                templet: '#dept-status',
+                width: 90,
+                align: 'center',
+            },
+            {
+                title: '操作',
+                field: 'operation',
+                templet: '#'.concat(LAYUI_TABLE_BAR_ID),
+                width: 150,
+                align: 'center',
+            }
+        ]
+
+        /**
+         * 树形表格渲染
+         */
+        function render() {
+            treeTable.render({
+                elem: '#'.concat(LAYUI_TABLE_DATA_ID),
+                cols: [cols],
+                url: RESTFUL_API,
+                skin: "line",
+                tree: {
+                    customName: {
+                        name: 'dept_name',
+                        id: 'dept_id',
+                        pid: 'pid',
+                        // icon:'icon'
+                    },
+                    data: {
+                        rootPid: '-1',
+                        isSimpleDataL: true,
+                    },
+                    view: {
+                        showIcon: false,
+                    },
+                    async: {},
+                    callback: {}
+                },
+                parseData: function (ret) {
+                    return {
+                        "code": 0,
+                        "msg": "",
+                        "count": ret.count != undefined ? ret.count : (ret.data.length),
+                        'data': ret.data
+                    }
+                },
+                size: "lg",
+                toolbar: "#".concat(LAYUI_TABLE_TOOLBAR_ID),
+                page: false,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+        render();
+
+
+        table.on('tool(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+            if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event == 'remove') {
+                remove(obj);
+            }
+        })
+
+
+        table.on('toolbar(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'expandAll') {
+                treeTable.expandAll(LAYUI_TABLE_DATA_ID, true);
+            } else if (obj.event === 'foldAll') {
+                treeTable.expandAll(LAYUI_TABLE_DATA_ID, false);
+            }
+        });
+
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                maxmin: true,
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+
+        function remove(obj) {
+            layer.confirm('确定要删除该部门', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                // let loading = layer.load();
+                $.ajax({
+                    url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        // layer.close(loading);
+                        if (ret && ret.status === 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        window.refresh = function () {
+            render();
+        }
+
+
+        form.on('submit(' + LAYUI_TABLE_QUERY_ID + ')', function (data) {
+            if (!data.field.name)
+                delete data.field.name;
+            let where = "";
+            for (let k in data.field)
+                where += k + '=' + data.field[k] + "&";
+
+            window.render(where);
+            return false;
+        });
+
+
+        form.on('switch(status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            $.ajax({
+                url: SET_STATUS_API + '/' + id + '/' + status,
+                type: 'PUT',
+                dataType: 'json',
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.status === 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1500
+                        });
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1500
+                        }, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        });
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        });
+    })
+</script>
+</body>
+</html>

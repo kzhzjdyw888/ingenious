@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>流程追踪</title>
+</head>
+
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">流水号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="business_no" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">流程名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="display_name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="management-table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="management-table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="management-table" lay-filter="management-table"></table>
+    </div>
+</div>
+
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="management-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="detail" >详情</button>
+    <button class="pear-btn pear-btn-xs tool-btn {{# if(d.state !== 10){ }}layui-btn-disabled{{# } }}" {{# if(d.state !== 10){ }}disabled{{# } }} lay-event="back" >撤回</button>
+    <button class="pear-btn pear-btn-xs tool-btn  {{# if(d.state == 10||d.state == 20){ }}layui-btn-disabled{{# } }}" lay-event="delete" {{# if(d.state== 10||d.state== 20){ }}disabled{{# } }} >删除</button>
+</script>
+
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const PROCESS_TASK_ID = "process_task_id";
+    const PROCESS_INSTANCE_ID = "process_instance_id";
+
+    //layui 对应id
+    const LAYUI_TABLE_DATA_ID = "management-table";
+    const LAYUI_TABLE_BAR_ID = "management-table-bar";
+    const LAYUI_TABLE_TOOLBAR_ID = "management-table-toolbar";
+    const LAYUI_TABLE_QUERY_ID = "management-table-query";
+    const LAYUI_TABLE_RESET_ID = "management-table-reset";
+    //当前模块的基础目录
+    const MODULE_PATH = "view/wf/instance/";
+
+    //Api相关接口
+    const LIST_API = config.api_url + "/adminapi/wf/process_instance/management";
+    const READ_API = config.api_url + "/adminapi/wf/process_instance/detail";
+    const SAVE_API = config.api_url + "/adminapi/wf/process_instance/save";
+    const EDIT_API = config.api_url + "/adminapi/wf/process_instance/edit";
+    const STATE_API = config.api_url + "/adminapi/wf/process_instance/state";
+    const UPDATE_API = config.api_url + "/adminapi/wf/process_instance/update";
+    const DELETE_API = config.api_url + "/adminapi/wf/process_instance/cascade_delete";
+    const WITHDRAW_API = config.api_url + "/adminapi/wf/process_instance/withdraw";
+    const PROCESS_INSTANCE_DETAIL_API = config.api_url + "/adminapi/wf/process_instance/detail";
+    const PROCESS_INSTANCE_RECORD_API = config.api_url + "/adminapi/wf/process_instance/approval_record";
+    const PROCESS_INSTANCE_HIGHLIGHT_API = config.api_url + "/adminapi/wf/process_instance/highlight";
+
+
+    layui.use(['table', 'form', 'jquery', 'common', 'popup'], function () {
+            let table = layui.table;
+            let form = layui.form;
+            let $ = layui.jquery;
+            let popup = layui.popup;
+            let state = {
+                10: '进行中',
+                20: '已完成',
+                30: '已撤回',
+                40: '强制终止',
+                45: '拒绝',
+                50: '挂起',
+                99: '已废弃',
+            };
+
+
+            let cols = [
+                {
+                    type: 'checkbox'
+                },
+                {
+                    title: 'ID',
+                    field: 'id',
+                    align: 'center',
+                    sort: true,
+                    hide: true,
+                    width: 60
+                },
+                {
+                    title: '流水号',
+                    field: 'business_no',
+                    align: 'left',
+                    minWidth: 180
+                },
+                {
+                    title: '流程名称',
+                    field: 'process_name',
+                    align: 'left'
+                },
+                {
+                    title: '标题',
+                    field: 'ext',
+                    align: 'left',
+                    templet: function (d) {
+                        let data = d['ext'] !== undefined ? d['ext'] : [];
+                        let value = data['process_summary'] != undefined ? data['process_summary'] : '';
+                        return value != '' ? value : '(无标题)';
+                    }
+                },
+                {
+                    title: '流程状态',
+                    field: 'state',
+                    align: 'left',
+                    width: 150,
+                    templet: function (d) {
+                        let key = d.state ?? 99;
+                        return state[key] != undefined ? state[key] : '';
+                    }
+                },
+                {
+                    title: '发起人',
+                    field: 'ext',
+                    align: 'left',
+                    width: 150,
+                    templet: function (d) {
+                        let data = d['ext'] !== undefined ? d['ext'] : [];
+                        let value = data['u_real_name'] != undefined ? data['u_real_name'] : '';
+                        return value;
+                    }
+                },
+                {
+                    title: '发起时间',
+                    field: 'create_time',
+                    align: 'left',
+                    width: 170
+                },
+                {
+                    title: '操作',
+                    toolbar: '#'.concat(LAYUI_TABLE_BAR_ID),
+                    align: "left",
+                    minWidth: 190,
+                    width: 200,
+                }
+            ]
+
+
+            function render() {
+                table.render({
+                    elem: "#".concat(LAYUI_TABLE_DATA_ID),
+                    url: LIST_API,
+                    page: true,
+                    cols: [cols],
+                    skin: "line",
+                    toolbar: "#".concat(LAYUI_TABLE_TOOLBAR_ID),
+                    autoSort: false,
+                    parseData: function (ret) {
+                        return {
+                            "code": ret.status === 200 ? 0 : -1, // 解析接口状态
+                            "msg": ret.msg, // 解析提示文本
+                            "count": ret.data.count, // 解析数据长度
+                            "data": ret.data.list // 解析数据列表
+                        };
+                    },
+                    defaultToolbar: [{
+                        title: "刷新",
+                        layEvent: "refresh",
+                        icon: "layui-icon-refresh",
+                    }, "filter", "print", "exports"]
+                })
+            }
+
+            render();
+
+            table.on('tool(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+                if (obj.event === 'detail') {
+                    detail(obj);
+                } else if (obj.event === 'back') {
+                    withdraw(obj);
+                } else if (obj.event == 'delete') {
+                    del(obj)
+                }
+            });
+
+            table.on('toolbar(' + LAYUI_TABLE_DATA_ID + ')', function (obj) {
+                if (obj.event === 'refresh') {
+                    window.refreshTable()
+                } else if (obj.event === 'batchRemove') {
+                    batchRemove(obj);
+                }
+            });
+
+            // 头部搜索栏
+            form.on('submit(' + LAYUI_TABLE_QUERY_ID + ')', function (data) {
+                table.reload(LAYUI_TABLE_DATA_ID, {
+                    page: {
+                        curr: 1
+                    },
+                    where: data.field
+                })
+                return false;
+            });
+
+
+            /**
+             * 详情
+             */
+            function detail(obj) {
+                let taskId = obj.data[PROCESS_TASK_ID] != undefined ? obj.data[PROCESS_TASK_ID] : null;
+                let url = 'view/wf/common/approvalProcess.html';
+                buildParams(obj.data[PRIMARY_KEY]).then(params => {
+                    layer.open({
+                        type: 2,
+                        offset: 'r',
+                        area: ['60%', '100%'],
+                        title: false,
+                        shade: 0.1,
+                        closeBtn: 0,
+                        shadeClose: true,
+                        anim: -1,
+                        skin: 'layer-anim-right',
+                        move: true,
+                        content: url,
+                        success: function (layero, index) {
+                            // 获取 iframe 的窗口对象
+                            let iframeWin = window[layero.find('iframe')[0].name];
+                            iframeWin.postMessage(params, '*');
+                        }
+                    });
+                }).catch(error => {
+                    popup.failure('流程实例不完整:');
+                    console.error('构建参数失败 流程实例不完整:', error);
+                });
+            }
+
+            async function buildParams(instanceId) {
+                try {
+                    const instanceData = await fetchInstanceData(instanceId);
+                    const highLightData = await fetchHighLightData(instanceId);
+                    const recordData = await fetchRecordData(instanceId);
+                    // 构建最终的参数对象
+                    const params = {
+                        mode: 'instance',
+                        formData: instanceData['form_data'] !== undefined ? instanceData['form_data'] : {},
+                        flowData: {
+                            viewer: true,
+                            graphData: instanceData['json_object'] !== undefined ? instanceData['json_object'] : {},
+                            highLight: highLightData !== undefined ? highLightData : {},
+                        },
+                        instanceData,
+                        recordData,
+                    };
+                    return params;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            async function fetchInstanceData(id) {
+                return new Promise((resolve, reject) => {
+                    layui.$.ajax({
+                        url: PROCESS_INSTANCE_DETAIL_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {id}, // 确保这里传递了 id 参数
+                        success: function (ret) {
+                            if (ret.status == 200) {
+                                resolve(ret.data); // 使用 resolve 来返回 Promise 的结果
+                            } else {
+                                reject({}); // 如果请求失败，使用 reject
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            reject({}); // 捕获错误并拒绝 Promise
+                        },
+                    });
+                });
+            }
+
+            async function fetchHighLightData(id) {
+                return new Promise((resolve, reject) => {
+                    layui.$.ajax({
+                        url: PROCESS_INSTANCE_HIGHLIGHT_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {id}, // 确保这里传递了 id 参数
+                        success: function (ret) {
+                            if (ret.status == 200) {
+                                resolve(ret.data); // 使用 resolve 来返回 Promise 的结果
+                            } else {
+                                reject(new Error('请求失败: ' + ret.status)); // 如果请求失败，使用 reject
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            reject(new Error('请求出错: ' + error)); // 捕获错误并拒绝 Promise
+                        },
+                    });
+                });
+            }
+
+            async function fetchRecordData(id) {
+                return new Promise((resolve, reject) => {
+                    layui.$.ajax({
+                        url: PROCESS_INSTANCE_RECORD_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {id}, // 确保这里传递了 id 参数
+                        success: function (ret) {
+                            if (ret.status == 200) {
+                                resolve(ret.data); // 使用 resolve 来返回 Promise 的结果
+                            } else {
+                                reject(new Error('请求失败: ' + ret.status)); // 如果请求失败，使用 reject
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            reject(new Error('请求出错: ' + error)); // 捕获错误并拒绝 Promise
+                        },
+                    });
+                });
+            }
+
+            /**
+             * 撤回流程
+             * @param obj
+             */
+            function withdraw(obj) {
+                layer.confirm('此操作将撤回流程, 是否继续?', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    $.ajax({
+                        url: WITHDRAW_API,
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        data: JSON.stringify({id: obj.data['id']}),
+                        success: function (ret) {
+                            if (ret && ret.status == 200) {
+                                popup.success(ret.msg, function () {
+                                    window.refreshTable();
+                                })
+                            } else {
+                                popup.failure(ret.msg);
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                });
+            }
+
+            /**
+             * 删除指定数据
+             * @param obj
+             */
+            function del(obj) {
+                layer.confirm('此操作将永久删除该记录, 是否继续?', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    $.ajax({
+                        url: DELETE_API,
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        data: JSON.stringify({id: obj.data['id']}),
+                        success: function (ret) {
+                            if (ret && ret.status == 200) {
+                                popup.success(ret.msg, function () {
+                                    obj.del();
+                                })
+                            } else {
+                                popup.failure(ret.msg);
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        }
+                    })
+                });
+            }
+
+
+            /**
+             * 刷新
+             */
+            window.refreshTable = function () {
+                table.reloadData(LAYUI_TABLE_DATA_ID, {
+                    scrollPos: "fixed"
+                });
+            }
+        }
+    )
+</script>
+</body>
+
+</html>

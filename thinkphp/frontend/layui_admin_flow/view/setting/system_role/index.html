@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>角色管理</title>
+</head>
+<body class="pear-container">
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="system_role-data-table" lay-filter="system_role-data-table"></table>
+    </div>
+</div>
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="system_role-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="system-role-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="expandAll">
+        <i class="layui-icon layui-icon-spread-left"></i>展开
+    </button>
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="foldAll">
+        <i class="layui-icon layui-icon-shrink-right"></i>折叠
+    </button>
+</script>
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system_role-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="system-role-edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="auth" permission="system-role-auth">权限</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="dept" permission="system-role-dept">分配组织</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="post" permission="system-role-post">分配职位</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="system-role-delete" {{d.is_super=='1' ? 'disabled' : '' }}>删除</button>
+</script>
+
+
+<script type="text/html" id="system_role-icon">
+    <i class="layui-icon {{d.icon}}"></i>
+</script>
+
+<script type="text/html" id="system_role-super">
+    {{#if (d.is_super == 1) { }}
+    <span>是</span>
+    {{#  } else { }}
+    <span>否</span>
+    {{# } }}
+</script>
+
+<script type="text/html" id="system_role-status">
+    <input type="checkbox" name="status" value="{{d.role_id}}" permission="system-role-status" lay-skin="switch" lay-text="" lay-filter="system_role-status" {{ d.status? 'checked' : '' }}  {{d.is_super=='1' ? 'disabled' : '' }}/>
+</script>
+
+<script src="../../../config/common.js"></script>
+<script src="../../../config/config.js"></script>
+<script src="../../../config/permission.js"></script>
+
+<script>
+    const PRIMARY_KEY = "role_id";
+
+    const RESTFUL_API = config.api_url + "/adminapi/setting/role";
+    const SET_STATUS_API = config.api_url + "/adminapi/setting/role/set_status"
+
+
+    layui.use(['table', 'form', 'jquery', 'treeTable', 'common'], function () {
+            let table = layui.table;
+            let form = layui.form;
+            let $ = layui.jquery;
+            let treeTable = layui.treeTable;
+            let common = layui.common;
+
+
+            let MODULE_PATH = "view/setting/system_role/";
+            let cols = [
+                {
+                    title: '名称',
+                    field: 'role_name',
+                    minWidth: 120,
+                },
+                {
+                    title: '代码',
+                    field: 'role_code',
+                    minWidth: 120,
+                    width: 150,
+                    hide: true,
+                },
+                {
+                    title: '图标',
+                    field: 'icon',
+                    templet: '#system_role-icon',
+                    width: 60,
+                    align: 'center',
+                    hide: true,
+                },
+                {
+                    title: '超级角色',
+                    field: 'is_super',
+                    templet: '#system_role-super',
+                    width: 90,
+                    align: 'center',
+                },
+                {
+                    title: '排序',
+                    field: 'sort',
+                    width: 60,
+                },
+                {
+                    title: '启用',
+                    field: 'status',
+                    templet: '#system_role-status',
+                    width: 90,
+                    align: 'center',
+                },
+                {
+                    title: "创建时间",
+                    field: "create_time",
+                    width: 170,
+                },
+                {
+                    title: "更新时间",
+                    field: "update_time",
+                    width: 170,
+                },
+                {
+                    title: '操作',
+                    field: 'operation',
+                    toolbar: "#system_role-table-bar",
+                    fixed: "right",
+                    width: 340,
+                    align: 'center',
+                }
+            ]
+
+
+            function render() {
+                $request({
+                    url: RESTFUL_API,
+                    type: 'GET',
+                    dataType: 'json',
+                }).then(function (ret) {
+                    let data = flattenToTree(ret.data.list, '-1', 'role_id', 'pid')
+                    treeTable.render({
+                        elem: '#system_role-data-table',
+                        cols: [cols],
+                        data: data,
+                        skin: "line",
+                        tree: {
+                            iconIndex: 0,
+                            isPidData: true,
+                            customName: {
+                                name: 'role_name',
+                                id: 'role_id',
+                                pid: 'pid',
+                                // icon:'icon'
+                            },
+                            data: {
+                                rootPid: '-1',
+                                isSimpleDataL: true,
+                            },
+                            view: {
+                                showIcon: false,
+                            },
+                            async: {},
+                            callback: {}
+                        },
+                        parseData: function (ret) {
+                            // return {
+                            //     "code": ret.status === 200 ? 0 : -1,
+                            //     "msg": "",
+                            //     "count": ret.data.count != undefined ? ret.data.count : (ret.data.list.length),
+                            //     'data': ret.data.list
+                            // }
+                        },
+                        toolbar: "#system_role-table-toolbar",
+                        page: true,
+                        defaultToolbar: [{
+                            title: "刷新",
+                            layEvent: "refresh",
+                            icon: "layui-icon-refresh",
+                        }, "filter", "print", "exports"]
+                    });
+                })
+            }
+
+            // window.render = function () {
+            //
+            // }
+
+
+            render();
+
+
+            table.on('tool(system_role-data-table)', function (obj) {
+                if (obj.event === 'edit') {
+                    edit(obj);
+                } else if (obj.event === 'auth') {
+                    auth(obj);
+                } else if (obj.event == 'dept') {
+                    dept(obj);
+                } else if (obj.event == 'post') {
+                    post(obj);
+                } else if (obj.event == 'user') {
+                    user(obj);
+                } else if (obj.event == 'remove') {
+                    remove(obj);
+                }
+            })
+
+
+            table.on('toolbar(system_role-data-table)', function (obj) {
+                if (obj.event === 'add') {
+                    add();
+                } else if (obj.event === 'refresh') {
+                    window.refresh();
+                } else if (obj.event === 'batchRemove') {
+                    batchRemove(obj);
+                } else if (obj.event === 'expandAll') {
+                    treeTable.expandAll("system_role-data-table", true);
+                } else if (obj.event === 'foldAll') {
+                    treeTable.expandAll("system_role-data-table", false);
+                }
+            });
+
+            function add() {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '新增',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'add.html?operation=add'
+                });
+            }
+
+            function edit(obj) {
+                layer.open({
+                    type: 2,
+                    title: '修改',
+                    maxmin: true,
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+            function remove(obj) {
+                layer.confirm('确定要删除该角色', {
+                    icon: 3,
+                    title: '提示'
+                }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                        type: 'DELETE',
+                        dataType: 'json',
+                        success: function (ret) {
+                            layer.close(loading);
+                            if (ret && ret.status == 200) {
+                                layer.msg(ret.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function () {
+                                    obj.del();
+                                });
+                            } else {
+                                layer.msg(ret.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        },
+                        error: function (ret) {
+                            alert("出错" + ret.status + "：" + ret.responseText);
+                        },
+                    });
+                });
+            }
+
+            function auth(obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '权限设置',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'auth.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+            function dept(obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '分配组织',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'dept.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+            function post(obj) {
+                layer.open({
+                    type: 2,
+                    maxmin: true,
+                    title: '分配职位',
+                    shade: 0.1,
+                    area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                    content: MODULE_PATH + 'post.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+                });
+            }
+
+
+            // 刷新表格数据
+            window.refresh = function (param) {
+                render()
+            }
+
+
+            form.on('submit(system_role-table-query)', function (data) {
+                if (!data.field.name)
+                    delete data.field.name;
+                let where = "";
+                for (let k in data.field)
+                    where += k + '=' + data.field[k] + "&";
+
+                render(where);
+                return false;
+            });
+
+
+            /**
+             * 切换状态
+             */
+            form.on('switch(system_role-status)', function (data) {
+                let status = data.elem.checked ? 1 : 0;
+                let id = this.value;
+                let load = layer.load();
+                $.ajax({
+                    url: SET_STATUS_API + '/' + id + '/' + status,
+                    type: 'PUT',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(load);
+                        if (ret && ret.status == 200) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1500
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1500
+                            }, function () {
+                                $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                                form.render();
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    },
+                });
+            });
+        }
+    )
+</script>
+</body>
+</html>

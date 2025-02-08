@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+    <style>
+        .label-left {
+            text-align: left;
+        }
+
+        .ml-15 {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+<form class="layui-form" lay-filter="file-edit-form-filter">
+    <div class="mainBox">
+        <div class="main-container mr-5">
+            <div class="layui-form-item">
+                <label class="layui-form-label label-left">附件类型</label>
+                <div class="layui-input-block">
+                    <ul id="file-list-edit-tree" class="dtree" data-id="-1"></ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label label-left">附件名称</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" name="real_name">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit=""
+                    lay-filter="file-list-edit-save">
+                提交
+            </button>
+            <button type="button" class="pear-btn pear-btn-md" lay-on="close">
+                关闭
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = 'att_id';
+    const CATEGORY_RESTFUL_API = config.api_url + "/adminapi/file/category";
+    const UPDATE_API = config.api_url + "/adminapi/file/file/update";
+    layui.use(['jquery', 'dtree', 'util', 'form', 'popup'], function () {
+        let Dtree = layui.dtree;
+        let util = layui.util;
+        let form = layui.form;
+        let popup = layui.popup;
+        let $ = layui.$;
+        let category = [];
+        let method = 'POST';
+
+        /**
+         * 分类获取
+         */
+        layui.$.ajax({
+            url: CATEGORY_RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+            data: {all: 1},
+            async: false,
+            success: function (ret) {
+                let data = ret.data.list != undefined ? ret.data.list : [];
+                data.unshift({
+                    "id": '-1',
+                    "name": "默认",
+                });
+                category = data;
+            },
+            error: function (ret) {
+                category = [{
+                    "id": '-1',
+                    "name": "默认",
+                }];
+            },
+        });
+
+        if (getQueryString('operation') == 'edit') {
+            method = 'PUT'
+            let pid = getQueryString('pid')
+            //下拉框赋值
+            Dtree.renderSelect({
+                elem: "#file-list-edit-tree",
+                data: category,
+                accordion: true,
+                line: true, // 有线树
+                icon: "-1",  // 隐藏二级图标
+                startNode: '-1',
+                skin: "layui",
+                width: '100%',
+                selectCardHeight: "200",
+                selectInitVal: pid,//默认值顶层
+                response: {
+                    treeId: "id", //节点ID（必填）
+                    parentId: "pid", //父节点ID（必填）
+                    title: "name", //节点名称（必填）
+                },
+                request: {
+                    pid: "-1"
+                },
+                selectInputName: {
+                    nodeId: "pid",
+                    context: "请选择父级"
+                },
+                done: function (res, $ul, first) {
+                    if (first) {
+                        //首次赋值顶层
+                        Dtree.dataInit("file-list-edit-tree", pid);
+                        Dtree.selectVal("file-list-edit-tree");
+                    }
+                }
+            });
+            form.val('file-edit-form-filter', {
+                "real_name": getQueryString('real_name')
+            })
+        }
+
+        form.on("submit(file-list-edit-save)", function () {
+            let data = layui.form.val("file-edit-form-filter");
+            layui.$.ajax({
+                url: UPDATE_API + '/' + getQueryString(PRIMARY_KEY),
+                type: method,
+                dateType: "json",
+                data: data,
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.refreshTable();
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        });
+                    } else {
+                        popup.failure(ret.msg);
+                    }
+                }
+            });
+            return false;
+        });
+
+
+        /**
+         * 关闭上传页面
+         */
+        util.on('lay-on', {
+            'close': function () {
+                parent.layer.close(parent.layer.getFrameIndex(window.name));
+            }
+        })
+
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    });
+</script>
+</body>
+</html>

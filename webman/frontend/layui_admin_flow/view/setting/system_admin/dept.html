@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员部门设置</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+</head>
+<body>
+<form class="layui-form" action="" lay-filter="system_admin-dept-form-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">职员账号</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="account" lay-verify="required" placeholder="" class="layui-input" readonly>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">职员名称</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="real_name" placeholder="" class="layui-input" readonly>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门名称</label>
+                <div class="layui-input-block">
+                    <ul id="dept-tree" class="dtree" data-id="-1"></ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">职位名称</label>
+                <div class="layui-input-block">
+                    <ul id="post-tree" class="dtree" data-id="-1" style="height: 150px;"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system_admin-dept-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/config.js"></script>
+<script src="../../../config/permission.js"></script>
+
+
+<script>
+
+    const PRIMARY_KEY = "id";
+    const SAVE_API = config.api_url + "/adminapi/setting/set_admin_position";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/admin";
+    const DEPT_RESTFUL_API = config.api_url + "/adminapi/setting/dept";
+    const POST_RESTFUL_API = config.api_url + "/adminapi/setting/post";
+
+    layui.use(['form', 'dtree', 'jquery'], function () {
+        let form = layui.form;
+        let Dtree = layui.dtree;
+        let $ = layui.jquery;
+        let userData = [];
+
+
+        //场景处理
+        if (getQueryString('operation') === 'edit') {
+            get(getQueryString(PRIMARY_KEY), deptTree);
+
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+        }
+
+        /**
+         * 获取详情
+         * @param id
+         * @param callback
+         */
+        function get(id, callback) {
+            $.ajax({
+                url: RESTFUL_API + '/' + id,
+                dataType: 'JSON',
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        let data = ret.data ?? [];
+                        form.val("system_admin-dept-form-filter", {
+                            "account": data.account,
+                            "real_name": data.real_name,
+                        });
+                        callback(data)
+                        form.render()
+                    }
+                }
+            });
+        }
+
+        Dtree.render({
+            elem: '#post-tree',
+            data: [],
+            select: true,
+            accordion: false,
+            iconfont: ["layui-icon", "dtreefont", "iconfont"],
+            line: true,
+            skin: "layui",
+            width: "100%",
+            selectCardHeight: 170,
+            selectInputName: {
+                nodeId: "post_id",
+                context: "post_name"
+            },
+            response: {
+                treeId: "post_id",
+                parentId: "pid",
+                title: "post_name",
+            },
+            done: function (res, $url, first) {
+                if (first) {
+
+                }
+            }
+        })
+
+        /**
+         * 组织树获取
+         * @param data
+         */
+        function deptTree(data) {
+            $.ajax({
+                url: DEPT_RESTFUL_API,
+                dataType: 'JSON',
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        //仅节点左侧图标控制收缩
+                        Dtree.render({
+                            elem: '#dept-tree',
+                            data: ret.data,
+                            select: true,
+                            skin: 'layui',
+                            selectCardHeight: 170,
+                            selectInputName: {
+                                nodeId: "dept_id",
+                                context: "dept_name"
+                            },
+                            response: {
+                                treeId: "dept_id",
+                                parentId: "pid",
+                                title: "dept_name",
+                            },
+                            done: function (res, $ul, first) {
+                                let init_value = data['dept_id'] != undefined ? data['dept_id'] : '';
+                                if (first && init_value) {
+                                    Dtree.dataInit("dept-tree", init_value);
+                                    Dtree.selectVal("dept-tree")
+                                    postTree(init_value, data)
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        /**
+         * 选择部门重新渲染职位
+         */
+        Dtree.on('node("dept-tree")', function (obj) {
+            let param = Dtree.selectVal("dept-tree");
+            postTree(param['dept_id'], userData)
+        });
+
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+
+
+        /**
+         * 职位树
+         * @param data
+         */
+        function postTree(dept_id, data) {
+            $.ajax({
+                url: POST_RESTFUL_API,
+                dataType: 'JSON',
+                data: {dept_id: dept_id},
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        //选择部门重新渲染父级
+                        Dtree.reload("post-tree", {
+                            data: ret.data,
+                            done: function (res, $ul, first) {
+                                let init_value = data['post_id'] != undefined ? data['post_id'] : '';
+                                if (first && init_value) {
+                                    Dtree.dataInit("post-tree", init_value);
+                                    Dtree.selectVal("post-tree")
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+        }
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system_admin-dept-save)', function (data) {
+            $.ajax({
+                url: SAVE_API + '/' + getQueryString(PRIMARY_KEY),
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status === 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1000
+                        }, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        });
+                        return false;
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+
+        // 点击任何地方关闭下拉树
+        layui.$("body").on("click", function (event) {
+            layui.$("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            layui.$("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    })
+</script>
+</body>
+</html>

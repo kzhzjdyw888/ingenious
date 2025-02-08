@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+</head>
+
+<body>
+<form class="layui-form" action="" lay-filter="system_admin-form-data-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">账号</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="account" lay-verify="required" placeholder="请输入管理员账号" class="layui-input" id="account">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-input-block">
+                    <input type="text" id="real_name" maxlength="16" name="real_name" lay-verify="required" placeholder="请输入管理员姓名" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input type="password" maxlength="16" name="pwd" placeholder="请输入管理员密码" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">手机</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="cell_phone_number" lay-verify="required" placeholder="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Email</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="email" lay-verify="required" placeholder="请输入管理员Email" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">地址</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="address" lay-verify="required" placeholder="请输入管理员地址" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="sex" value="1" title="男" checked>
+                    <input type="radio" name="sex" value="2" title="女">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="checkbox" name="status" lay-skin="switch" lay-filter="switchTest" title="ON|OFF">
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入内容" class="layui-textarea" name="remarks"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="system_admin-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/admin";
+
+
+    layui.use(['form', 'jquery', 'laytpl', 'encrypt'], function () {
+        let form = layui.form;
+        let encrypt = layui.encrypt;
+        let $ = layui.jquery;
+        let method = 'POST';
+
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+            getAdmin();
+        }
+
+        /**
+         * 获取表单数据
+         */
+        function getAdmin() {
+            $.ajax({
+                url: RESTFUL_API + '/' + getQueryString(PRIMARY_KEY), // 请求路径
+                type: "GET", //请求方式
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status === 200) {
+                        let data = ret.data;
+                        form.val('system_admin-form-data-filter', {
+                            'account': data.account,
+                            'real_name': data.real_name,
+                            'cell_phone_number': data.cell_phone_number,
+                            'address': data.address,
+                            'sex': data.sex,
+                            'email': data.email,
+                            'status': data.status,
+                            'remarks': data.remarks,
+                        })
+                        form.render();
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        }, function () {
+                        });
+                        return;
+                    }
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+        }
+
+        /**
+         * 表单提交
+         */
+        form.on('submit(system_admin-add-save)', function (data) {
+            if (data.field.pwd) {
+                data.field.pwd = encrypt.md5(data.field.pwd);
+            } else {
+                delete data.field.pwd;
+            }
+            if (method === 'PUT') {
+                data.field[PRIMARY_KEY] = getQueryString(PRIMARY_KEY)
+            }
+            data.field.sex = data.field.sex === '男' ? 1 : 2;
+            data.field.status = data.field.status === 'on' ? 1 : 2;
+            $.ajax({
+                url: RESTFUL_API + (method === 'PUT' ? '/' + getQueryString(PRIMARY_KEY) : ''),
+                type: method,
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status === 200) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 1000
+                        }, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        });
+                        return false;
+                    } else {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        });
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+            return false;
+        });
+    })
+</script>
+</body>
+
+</html>

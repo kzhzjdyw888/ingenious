@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>委托处理</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+</head>
+
+<body>
+<form class="layui-form" lay-filter="surrogate">
+    <div class="layui-form-item" style="margin-top: 30px;">
+        <label class="layui-form-label">请选择代理人</label>
+        <div class="layui-input-block" style="width: 450px;">
+            <div id="actor_ids"></div>
+        </div>
+    </div>
+</form>
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+
+<script>
+    const PROCESS_TASK_ID = 'process_task_id';
+    const USER_SELECT_API = config.api_url + "/adminapi/wf/process_task/user";
+    const SURROGATE_API = config.api_url + "/adminapi/wf/process_task/surrogate";
+
+    layui.use(["common", "form", "jquery", "util", "popup", "xmSelect"], function () {
+        let form = layui.form;
+        let util = layui.util;
+        let popup = layui.popup;
+        let $ = layui.jquery;
+        let xmSelect = layui.xmSelect;
+
+        let actor = layui.xmSelect.render({
+            el: '#actor_ids',
+            name: 'actor_ids',
+            filterable: true,
+            remoteSearch: true,
+            paging: true,//开启分页
+            pageRemote: true,//远程分页
+            pageEmptyShow: false,//没有数据不展示分页
+            prop: {
+                name: 'real_name',
+                value: 'id',
+            },
+            remoteMethod: function (val, cb, show, pageIndex) {
+                let process_task_id = getQueryString(PROCESS_TASK_ID);
+                $.ajax({
+                    url: USER_SELECT_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {process_task_id, limit: 5, page: pageIndex, name: val},
+                    success: function (ret) {
+                        let data = ret.data['list'] != undefined ? ret.data['list'] : []
+                        let size = Math.ceil(ret.data['count'] / 5)
+                        cb(data, size)
+                    },
+                    error: function (ret) {
+                        cb([], 0)
+                    }
+                });
+            },
+            data: [],
+            on: function (data) {
+                let arr = data.arr
+                let stringArr = []
+                $.each(arr, function (index, item) {
+                    stringArr.push(item.value)
+                });
+                $('input[name="actor_ids"]').val(stringArr.join(','))
+                form.render();
+            }
+        })
+
+        //表单提交
+        window.handleChildFunction = function () {
+            let data = form.val('surrogate');
+            data[PROCESS_TASK_ID] = getQueryString(PROCESS_TASK_ID);
+            if (data.actor_ids === '') {
+                popup.failure('请选择代理人');
+                return false;
+            }
+            if (data[PROCESS_TASK_ID] === '') {
+                popup.failure('参数异常请稍后重试');
+                return false;
+            }
+            $.ajax({
+                url: SURROGATE_API,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({...data}),
+                success: function (ret) {
+                    popup.success(ret.msg, function () {
+                        parent.refreshTable();
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    });
+                },
+                error: function (ret) {
+                    popup.failure(ret.msg);
+                }
+            });
+        }
+
+        //关闭弹出层
+        window.cancel = function () {
+            parent.layer.close(parent.layer.getFrameIndex(window.name));
+        }
+
+    })
+
+</script>
+</body>
+
+</html>

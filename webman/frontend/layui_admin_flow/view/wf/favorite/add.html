@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>添加收藏</title>
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="../../../admin/css/reset.css"/>
+    <style>
+        .left {
+            width: 30%;
+            height: calc(100vh - 60px);
+            float: left;
+            overflow: auto;
+            /*background-color: #f2f2f2;*/
+        }
+
+        .right {
+            width: 70%;
+            height: calc(100vh - 100px);
+            float: left;
+            overflow: auto;
+            /*background-color: #e6e6e6;*/
+        }
+
+
+        .layui-input-search {
+            width: 400px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .layui-input-search .layui-input {
+            padding-right: 30px;
+            /* 留出空间给搜索按钮 */
+        }
+
+        .layui-input-search .search-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            padding: 0 10px;
+            border: none;
+            border-radius: 0;
+            display: inline-block;
+            vertical-align: middle;
+            height: 38px;
+            line-height: 38px;
+            color: rgb(255, 255, 255);
+            text-align: center;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .layui-input-search .search-btn i {
+            font-size: 16px;
+            /* 调整图标大小 */
+        }
+    </style>
+</head>
+<body>
+<div class="layui-card-body">
+    <div style="float: left;width: 30%">
+        <span style="line-height: 38px;">集团流程库</span>
+    </div>
+    <div style="float: left;width: 70%">
+        <div class="layui-input-search" style="float: right;">
+            <input type="text" class="layui-input" placeholder="请输入搜索流程" autocomplete="off" id="display_name">
+            <span class="layui-btn-small search-btn" onclick="startSerach()">
+            <i class="layui-icon" style=" color: rgb(9, 9, 9);">&#xe615;</i>
+        </span>
+        </div>
+    </div>
+    <div>
+        <div class="left">
+            <div class="layui-tree" id="instance-start-tree"></div>
+        </div>
+        <div class="right">
+            <div id="instance-start-list">
+            </div>
+        </div>
+    </div>
+    <script src="../../../component/layui/layui.js"></script>
+    <script src="../../../component/pear/pear.js"></script>
+    <script src="../../../config/common.js"></script>
+    <script src="../../../config/permission.js"></script>
+    <script src="../../../config/config.js"></script>
+    <script>
+
+        const PRIMARY_KEY = "id";
+        const LEFT_DATA_ID = 'instance-start-tree';
+        const RIGHT_DATA_ID = 'instance-start-list';
+
+        const TYPE_API = config.api_url + "/adminapi/wf/category/select_tree";
+        const LIST_API = config.api_url + "/adminapi/wf/process_define/page";
+        const SAVE_FAVORITE_API = config.api_url + "/adminapi/wf/process_define/favorite/setting";
+
+
+        layui.use(['tree', 'jquery', 'util'], function () {
+            let tree = layui.tree;
+            let $ = layui.jquery;
+            let util = layui.util;
+
+            // 初始化分页
+            let isRenderPage = false; // 防止重新渲染分页组件时再次触发jump事件
+            let typeId = '';
+
+            $.ajax({
+                url: TYPE_API,
+                type: 'GET',
+                dataType: 'json',
+                success: function (ret) {
+                    let data = ret.data['list'] != undefined ? ret.data['list'] : [];
+                    tree.render({
+                        elem: '#'.concat(LEFT_DATA_ID),
+                        id: 'process_type',
+                        defaultExpandAll: true,
+                        onlyIconControl: true,
+                        showLine: true,
+                        data: data,
+                        customName: {
+                            id: 'id',
+                            title: 'name',
+                            children: 'children'
+                        },
+                        click: function (obj) {
+                            typeId = obj.data.id != undefined ? obj.data.id : '';
+                            let param = {type_id: typeId, display_name: $('#display_name').val()}
+                            renderContent(param);
+                        }
+                    });
+
+                }
+            });
+
+
+            /**
+             * 内容模板
+             */
+            function template(data) {
+                // 遍历数据生成列表项
+                const container = document.getElementById(RIGHT_DATA_ID);
+                container.innerHTML = '';
+                $.each(data, function (index, item) {
+                    container.innerHTML +=
+                        `<div class="layui-row layui-card-body">
+                    <div class="layui-col-sm8">
+                        <div class="grid-demo grid-demo-bg1">
+                            <span>${item.display_name}</span><span>${item.version != undefined ? item.version : 'v1'}</span>
+                            &nbsp;&nbsp;
+                        </div>
+                    </div>
+                    <div class="layui-col-sm4">
+                         <span onclick="startFavorite(this)" data-item='${JSON.stringify(item)}' style="float: right;">
+                              <span>版本</span>
+                              <span>${item.version}</span>
+                              |
+                              <span>收藏</span>
+                                 <i class="layui-icon layui-font-12;" style="color:red;cursor: pointer;">${item.favorite == 1 || item.favorite == '1' ? '&#xe67a;' : '&#xe67b;'}</i>
+                         </span>
+                    </div>
+                </div>`;
+                });
+            }
+
+
+            window.startFavorite = function (self) {
+                favorite(self)
+            }
+
+            window.startSerach = function () {
+                let param = {type_id: '', display_name: $('#display_name').val()}
+                renderContent(param);
+            }
+
+
+            /**
+             * 右侧内容渲染
+             */
+            function renderContent(param) {
+                $.ajax({
+                    url: LIST_API,
+                    type: 'GET',
+                    data: {
+                        ...param,
+                        page: 0,
+                        limit: 0
+                    },
+                    success: function (res) {
+                        //渲染模板
+                        let data = res.data.list != undefined ? res.data.list : [];
+                        template(data);
+
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(error);
+                    }
+                });
+                isRenderPage = true;
+            }
+
+            function favorite(self) {
+                let favoriteIcon = self.querySelector('i');
+                let item = JSON.parse(self.getAttribute('data-item'));
+                let favorited = item.favorite != undefined & item.favorite == 1 ? 0 : 1;
+                item['favorite'] = favorited;
+                $.ajax({
+                    url: SAVE_FAVORITE_API,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        process_define_id: item.id,
+                        favorite: favorited,
+                        id: item.process_define_favorite_id != undefined ? item.process_define_favorite_id : ''
+                    },
+                    success: function (ret) {
+                        if (ret.status == 200) {
+                            if (favorited == '1' || favorited == 1) {
+                                favoriteIcon.innerHTML = '&#xe67a;';
+                            } else {
+                                favoriteIcon.innerHTML = '&#xe67b;';
+                            }
+                            //修改成功重新赋值dom
+                            self.setAttribute('data-item', JSON.stringify(item));
+                        }
+                    }
+                });
+            }
+
+            //初始调用
+            renderContent({});
+        });
+    </script>
+
+
+</body>
+
+</html>

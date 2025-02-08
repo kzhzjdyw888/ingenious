@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>配置分类</title>
+</head>
+
+<body class="pear-container">
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="system_config-category-table" lay-filter="system_config-category-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="system_config-category-table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="config-tab-add">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-success pear-btn-md" lay-event="expandAll">
+        <i class="layui-icon layui-icon-spread-left"></i>
+        展开
+    </button>
+    <button class="pear-btn pear-btn-success pear-btn-md" lay-event="foldAll">
+        <i class="layui-icon layui-icon-shrink-right"></i>
+        折叠
+    </button>
+</script>
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system_config-category-table-bar">
+    <div style="width: 100%">
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="list" permission="config-tab-list">配置列表</button>
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="config-tab-edit">编辑</button>
+        <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="config-tab-delete">删除</button>
+    </div>
+</script>
+
+
+<script type="text/html" id="system_config-category-status">
+    <input type="checkbox" permission="config-tab-status" name="status" value="{{d.id}}" lay-skin="switch" lay-text="" lay-filter="system_config-category-status"
+           {{ d.status== 1 ? 'checked' : '' }} />
+</script>
+
+<script type="text/html" id="icon">
+    <i class="layui-icon {{d.icon}}"></i>
+</script>
+
+
+<script src="../../../../../config/common.js"></script>
+<script src="../../../../../config/permission.js"></script>
+<script src="../../../../../config/config.js"></script>
+
+
+<script>
+    const PRIMARY_KEY = "id";
+    const RESTFUL_API = config.api_url + "/adminapi/setting/config_class";
+    const SET_STATUS_API = config.api_url + "/adminapi/setting/config_class/set_status";
+
+
+    layui.use(['table', 'form', 'jquery', 'treeTable', 'common', 'popup'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let treeTable = layui.treeTable;
+        let common = layui.common;
+        let popup = layui.popup;
+
+        let MODULE_PATH = "view/system/maintain/system_config/category/";
+
+        let cols = [
+            {
+                title: '分类名称',
+                field: 'title',
+            },
+
+            {
+                title: '分类字段',
+                field: 'eng_title',
+            },
+
+            {
+                title: '状态',
+                field: 'status',
+                templet: '#system_config-category-status',
+                align: 'center',
+            },
+            {
+                title: '操作',
+                toolbar: '#system_config-category-table-bar',
+                minWidth: 260,
+                width: 260,
+                align: 'left',
+            }
+        ]
+
+        function render() {
+            treeTable.render({
+                elem: '#system_config-category-table',
+                cols: [cols],
+                url: RESTFUL_API,
+                skin: "line",
+                tree: {
+                    customName: {
+                        name: 'title',
+                        id: 'id',
+                        pid: 'pid',
+                    },
+                    data: {
+                        rootPid: '0',
+                        isSimpleDataL: true,
+                    },
+                    view: {
+                        showIcon: false,
+                    },
+                    async: {},
+                    callback: {}
+                },
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status === 200 ? 0 : -1,
+                        "msg": "",
+                        "count": ret.count != undefined ? ret.count : (ret.data.length),
+                        'data': ret.data.list
+                    }
+                },
+                toolbar: "#system_config-category-table-toolbar",
+                page: false,
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+
+
+        }
+
+
+        table.on('tool(system_config-category-table)', function (obj) {
+            if (obj.event === 'remove') {
+                remove(obj);
+            } else if (obj.event === 'list') {
+                list(obj)
+            } else if (obj.event === 'edit') {
+                edit(obj);
+            }
+        })
+
+
+        table.on('toolbar(system_config-category-table)', function (obj) {
+            if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'refresh') {
+                refresh();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            } else if (obj.event === 'expandAll') {
+                treeTable.expandAll("system_config-category-table", true);
+            } else if (obj.event === 'foldAll') {
+                treeTable.expandAll("system_config-category-table", false);
+            }
+        });
+
+        function list(obj) {
+            let url = 'view/system/maintain/system_config/list/';
+            layer.open({
+                type: 2,
+                maxmin: true,
+                scrollbar: false,
+                title: '配置列表',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '100%', common.isModile() ? '100%' : '100%'],
+                content: url + 'index.html?operation=list&id=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+        /**
+         * 添加
+         */
+        function add() {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                title: '新增',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=add'
+            });
+        }
+
+        /**
+         * 编辑
+         * @param obj
+         */
+        function edit(obj) {
+            layer.open({
+                type: 2,
+                title: '修改',
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '900px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'add.html?operation=edit&' + PRIMARY_KEY + '=' + obj.data[PRIMARY_KEY]
+            });
+        }
+
+        /**
+         * 删除
+         * @param obj
+         */
+        function remove(obj) {
+            layer.confirm('确定要删除该权限', {
+                icon: 3,
+                title: '提示'
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: RESTFUL_API + '/' + obj.data[PRIMARY_KEY],
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (ret) {
+                        layer.close(loading);
+                        if (ret && ret.code !== -1) {
+                            layer.msg(ret.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(ret.msg, {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function (ret) {
+                        alert("出错" + ret.status + "：" + ret.responseText);
+                    }, //表示如果请求响应出现错误，会执行的回调函数
+                });
+            });
+        }
+
+        render()
+
+        /**
+         * 刷新
+         */
+        window.refresh = function () {
+            render();
+        }
+
+        /**
+         * 状态切换
+         */
+        form.on('switch(system_config-category-status)', function (data) {
+            let status = data.elem.checked ? 1 : 0;
+            let id = this.value;
+            let load = layer.load();
+            $.ajax({
+                url: SET_STATUS_API + '/' + id + '/' + status,
+                type: 'PUT',
+                dataType: 'json',
+                success: function (ret) {
+                    layer.close(load);
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg)
+                    } else {
+                        popup.failure(ret.msg, function () {
+                            $(data.elem).prop('checked', !$(data.elem).prop('checked'));
+                            form.render();
+                        })
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                },
+            });
+        });
+    })
+</script>
+</body>
+
+</html>

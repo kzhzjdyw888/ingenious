@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>数据库管理</title>
+    <style>
+        .active {
+            border-color: #57a3f3;
+            color: #57a3f3;
+        }
+
+        .dateButtons {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body class="pear-container">
+
+<div class="layui-tab layui-tab-brief">
+    <ul class="layui-tab-title layui-card-body">
+        <li class="layui-this">数据库列表</li>
+        <li>备份列表</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-card-body">
+                <table id="system_databackup-table" lay-filter="system_databackup-table" class="my-table"></table>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <table id="system_databackup-backups-table" lay-filter="system_databackup-backups-table" class="my-table"></table>
+        </div>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="backup">
+        <i class="layui-icon layui-icon-log"></i>
+        备份
+    </button>
+    <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="optimize">
+        <i class="layui-icon layui-icon-engine"></i>
+        优化
+    </button>
+    <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="repair">
+        <i class="layui-icon layui-icon-util"></i>
+        修复
+    </button>
+</script>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system_databackup-table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="details" permission="">详情</button>
+</script>
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="system_databackup-tables-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="import" permission="">导入</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="defile" permission="">删除</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="download" permission="">下载</button>
+</script>
+
+
+<script src="../../../../confing/common.js"></script>
+<script src="../../../../confing/permission.js"></script>
+<script src="../../../../confing/config.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "name";
+    const SELECT_BACKUP_API = config.api_url + "/adminapi/system/backup/select"
+    const SELECT_FILE_API = config.api_url + "/adminapi/system/backup/file_list"
+    const BACKUP_API = config.api_url + "/adminapi/system/backup/backup"
+    const OPTIMIZE_API = config.api_url + "/adminapi/system/backup/optimize"
+    const REPAIR_API = config.api_url + "/adminapi/system/backup/repair"
+    const IMPORT_API = config.api_url + "/adminapi/system/backup/import"
+    const DELETE_FILE_API = config.api_url + "/adminapi/system/backup/del_file"
+    const DOWNLOAD_API = config.api_url + "/adminapi/system/backup/download"
+
+    layui.use(['table', 'form', 'jquery', 'common', 'util', 'encrypt', 'notice'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let common = layui.common;
+        let util = layui.util;
+        let encrypt = layui.encrypt;
+        let notice = layui.notice;
+
+        let MODULE_PATH = "view/system/maintain/system_databackup/";
+        form.render();
+
+
+        let cols = [
+            {
+                type: 'checkbox'
+            },
+            {
+                title: '表名称',
+                field: 'name',
+                align: 'left',
+                width: 120
+            },
+            {
+                title: '备注',
+                field: 'comment',
+                align: 'left',
+            },
+            {
+                title: '类型',
+                field: 'engine',
+                align: 'left',
+            },
+            {
+                title: '大小',
+                field: 'data_length',
+                align: 'left',
+            },
+            {
+                title: '更新时间',
+                field: 'update_time',
+                width: 170,
+                align: "left",
+            },
+            {
+                title: '行数',
+                field: 'rows',
+                align: "left",
+            },
+            {
+                title: '操作',
+                toolbar: '#system_databackup-table-bar',
+                align: 'center',
+                width: 130
+            }
+        ]
+
+        let colsx = [
+            {
+                title: '备份名称',
+                field: 'filename',
+                align: 'left',
+                width: 200
+            },
+            {
+                title: 'part',
+                field: 'part',
+                align: 'left',
+            },
+            {
+                title: '大小',
+                field: 'size',
+                align: 'left',
+            },
+            {
+                title: 'compress',
+                field: 'compress',
+                align: 'left',
+            },
+            {
+                title: '时间',
+                field: 'backtime',
+                width: 170,
+                align: "left",
+            },
+            {
+                title: '操作',
+                toolbar: '#system_databackup-tables-bar',
+                align: 'center',
+                width: 170
+            }
+        ]
+
+
+        function render () {
+            table.render({
+                elem: "#system_databackup-table",
+                url: SELECT_BACKUP_API,
+                page: false,
+                cols: [cols],
+                skin: "line",
+                toolbar: "#table-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status == 200 ? 0 : -1, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.count, // 解析数据长度
+                        "data": ret.data.list // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+
+            table.render({
+                elem: "#system_databackup-backups-table",
+                url: SELECT_FILE_API,
+                page: false,
+                cols: [colsx],
+                skin: "line",
+                toolbar: "#backups-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.status == 200 ? 0 : -1, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.count, // 解析数据长度
+                        "data": ret.data.list // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            });
+        }
+
+        render();
+
+        table.on('tool(system_databackup-table)', function (obj) {
+            if (obj.event === 'details') {
+                details(obj);
+            }
+        });
+
+        table.on('tool(system_databackup-backups-table)', function (obj) {
+            if (obj.event === 'import') {
+                imports(obj);
+            } else if (obj.event === 'defile') {
+                defile(obj);
+            } else if (obj.event === 'download') {
+                download(obj);
+            }
+        });
+
+
+        table.on('toolbar(system_databackup-table)', function (obj) {
+            if (obj.event === 'backup') {
+                backup(obj);
+            } else if (obj.event === 'optimize') {
+                optimize(obj);
+            } else if (obj.event === 'repair') {
+                repair(obj);
+            } else if (obj.event === 'refresh') {
+                table.reload("system_databackup-table", {})
+            }
+        });
+
+        table.on('toolbar(system_databackup-backups-table)', function (obj) {
+            if (obj.event === 'refresh') {
+                table.reload("system_databackup-backups-table", {})
+            }
+        });
+
+
+        function  backup(obj) {
+            let checkIds = common.checkField(obj, 'name');
+            if (checkIds === "") {
+                notice.error("请选择表")
+                return false;
+            }
+            let field = {tables: checkIds};
+            $.ajax({
+                url: BACKUP_API,
+                type: 'put',
+                contentType: 'application/json',
+                data: JSON.stringify(field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        table.reload("system_databackup-backups-table", {})
+                        notice.success(ret.msg)
+                    } else {
+                        notice.error(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                }
+            })
+        }
+
+         function optimize (obj) {
+            let checkIds = common.checkField(obj, 'name');
+            if (checkIds === "") {
+                notice.error("请选择表")
+                return false;
+            }
+            let field = {tables: checkIds};
+            $.ajax({
+                url: OPTIMIZE_API,
+                type: 'put',
+                contentType: 'application/json',
+                data: JSON.stringify(field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        notice.success(ret.msg)
+                    } else {
+                        notice.error(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                }
+            })
+        }
+
+         function repair (obj) {
+            let checkIds = common.checkField(obj, 'name');
+            if (checkIds === "") {
+                notice.error("请选择表")
+                return false;
+            }
+            let field = {tables: checkIds};
+            $.ajax({
+                url: REPAIR_API,
+                type: 'put',
+                contentType: 'application/json',
+                data: JSON.stringify(field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        notice.success(ret.msg)
+                    } else {
+                        notice.error(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                }
+            })
+
+        }
+
+        function imports (obj) {
+            $.ajax({
+                url: IMPORT_API,
+                type: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify(obj.data),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        notice.success(ret.msg)
+                    } else {
+                        notice.error(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                }
+            })
+
+        }
+         function defile (obj) {
+            let field = {filename: obj.data.time}
+            $.ajax({
+                url: DELETE_FILE_API,
+                type: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify(field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        notice.success(ret.msg)
+                        obj.del();
+                    } else {
+                        notice.error(ret.msg)
+                    }
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                }
+            })
+
+        }
+
+        function download (obj) {
+            $.ajax({
+                url: DOWNLOAD_API,
+                type: 'GET',
+                data: {time: obj.data.time},
+                dataType: 'json',
+                success: function (ret) {
+                },
+                error: function (ret) {
+                    notice.error("出错" + ret.status + "：" + ret.responseText)
+                }
+            })
+        }
+
+
+        function details (obj) {
+            let title = '【' + obj.data.name + '】' + obj.data.comment
+            layer.open({
+                type: 2,
+                maxmin: true,
+                shadeClose: true,
+                title: title,
+                shade: 0.1,
+                area: [common.isModile() ? '100%' : '800px', common.isModile() ? '100%' : '450px'],
+                content: MODULE_PATH + 'details.html?operation=edit&tablename=' + obj.data.name
+            });
+        }
+
+
+        window.refresh = function (param) {
+            render();
+        }
+    })
+</script>
+</body>
+</html>

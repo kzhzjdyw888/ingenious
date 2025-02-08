@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../../admin/css/reset.css" />
+</head>
+
+<body>
+<form class="layui-form" action="" lay-filter="lang-list-add-filter">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言名称</label>
+                <div class="layui-input-block">
+                    <input type="text" maxlength="16" name="language_name" lay-verify="required" placeholder="语言名称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">语言标识</label>
+                <div class="layui-input-block">
+                    <select name="file_name" id="file_name">
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">是否默认</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is_default" value="1" title="开启">
+                    <input type="radio" name="is_default" value="0" title="关闭" checked>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="开启" checked>
+                    <input type="radio" name="status" value="0" title="关闭">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="" lay-filter="lang-list-add-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+<script src="../../../../component/layui/layui.js"></script>
+<script src="../../../../component/pear/pear.js"></script>
+<script src="../../../../config/common.js"></script>
+<script src="../../../../config/permission.js"></script>
+<script src="../../../../config/config.js"></script>
+<script>
+
+    const PRIMARY_KEY = "id";
+    const DETAIL_API = config.api_url + "/adminapi/setting/lang_type/get";
+    const INSERT_API = config.api_url + "/adminapi/setting/lang_type/insert";
+    const SELECT_COUNTRY_API = config.api_url + "/adminapi/setting/lang_type/list";
+
+
+    layui.use(['form', 'jquery', 'laytpl', 'encrypt', 'popup'], function () {
+        let form = layui.form;
+        let encrypt = layui.encrypt;
+        let $ = layui.jquery;
+        let popup = layui.popup;
+
+        let method = 'POST';
+        countryList();
+        if (getQueryString('operation') === 'edit') {
+            method = 'PUT';
+            layui.$("button[type='reset']").click(function () {
+                location.reload();
+            })
+            get();
+        }
+
+
+        //监听事件
+        form.on('submit(lang-list-add-save)', function (data) {
+            if (data.field.password)
+                data.field.password = encrypt.md5(data.field.password);
+            else
+                delete data.field.password;
+
+            $.ajax({
+                url: INSERT_API + '/' + (method == 'POST' ? '0' : getQueryString(PRIMARY_KEY)),
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret && ret.status == 200) {
+                        popup.success(ret.msg, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name)); //关闭当前页
+                            parent.refresh();
+                        })
+                        return false;
+                    } else {
+                        popup.failure(ret.msg)
+                        return false;
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+
+            return false;
+        });
+
+
+        //获取用户信息并渲染
+        function get() {
+            $.ajax({
+                url: DETAIL_API, // 请求路径
+                type: "GET", //请求方式
+                contentType: 'application/json',
+                data: {[PRIMARY_KEY]: getQueryString(PRIMARY_KEY)},
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status === 200) {
+                        layer.msg(ret.msg, {
+                            icon: 2,
+                            time: 1000
+                        }, function () {
+                        });
+                        return;
+                    }
+                    let list = ret.data;
+                    form.val('lang-list-add-filter', {
+                        'language_name': list.language_name,
+                        'file_name': list.file_name,
+                        'is_default': list.is_default,
+                        'status': list.status,
+                    })
+                    form.render();
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    console.error(ret);
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            });
+        }
+
+        function countryList() {
+            layui.$.ajax({
+                url: SELECT_COUNTRY_API, // 请求路径
+                type: "GET", //请求方式
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (ret) {
+                    if (ret.status == 200) {
+                        let data = ret.data.list ?? [];
+                        let html = '';
+                        layui.$.each(data, function (index, item) {
+                            html += '<option value="' + item.file_name + '">"' + item.language_name + '"</option>'
+                        })
+                        layui.$('#file_name').append(html);
+                    }
+                    form.render();
+                }, //响应成功后的回调函数
+                error: function (ret) {
+                    console.error(ret);
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }, //表示如果请求响应出现错误，会执行的回调函数
+            })
+        }
+    })
+</script>
+</body>
+
+</html>

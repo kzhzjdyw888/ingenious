@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../component/pear/css/pear.css" />
+	<link rel="stylesheet" href="../../../admin/css/reset.css" />
+    <style>
+        .label-left {
+            text-align: left;
+        }
+
+        .ml-15 {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div class="mainBox">
+        <div class="main-container mr-5">
+            <div class="layui-form-item">
+                <label class="layui-form-label label-left">附件类型</label>
+                <div class="layui-input-block">
+                    <ul id="file-list-add-tree" class="dtree" data-id="-1"></ul>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label label-left">选择文件</label>
+                <div class="layui-input-block">
+                    <button type="button" class="pear-btn pear-btn-primary pear-btn-md" id="file-list-add-upload-files">选择多文件</button>
+                </div>
+            </div>
+            <div class="layui-form-item ml-15">
+                <div class="layui-upload">
+                    <div class="layui-upload-list">
+                        <table class="layui-table" lay-skin="line">
+                            <colgroup>
+                                <col style="min-width: 100px;width: 200px">
+                                <col width="150">
+                                <col width="120" style="text-align: center;">
+                                <col width="260">
+                                <col style="min-width: 150px;width: 170px;text-align: left;">
+                            </colgroup>
+                            <thead>
+                            <th>文件名</th>
+                            <th>大小</th>
+                            <th>文件</th>
+                            <th>上传进度</th>
+                            <th>操作</th>
+                            </thead>
+                            <tbody id="file-list-add-upload-demo-files-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" id="file-list-add-upload-action">
+                开始上传
+            </button>
+            <button type="button" class="pear-btn pear-btn-md" lay-on="close">
+                关闭
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="../../../component/layui/layui.js"></script>
+<script src="../../../component/pear/pear.js"></script>
+<script src="../../../config/common.js"></script>
+<script src="../../../config/permission.js"></script>
+<script src="../../../config/config.js"></script>
+<script>
+
+    const UPLOAD_API = config.api_url + "/adminapi/file/upload"
+    const CATEGORY_RESTFUL_API = config.api_url + "/adminapi/file/category";
+    layui.use(['upload', 'element', 'jquery', 'dtree', 'util', 'popup'], function () {
+        let upload = layui.upload;
+        let element = layui.element;
+        let Dtree = layui.dtree;
+        let util = layui.util;
+        let popup = layui.popup;
+        let $ = layui.$;
+        let category = [];
+
+        /**
+         * 分类获取
+         */
+        layui.$.ajax({
+            url: CATEGORY_RESTFUL_API,
+            type: 'GET',
+            dataType: 'json',
+            data: {all: 1},
+            async: false,
+            success: function (ret) {
+                let data = ret.data.list != undefined ? ret.data.list : [];
+                data.unshift({
+                    "id": '-1',
+                    "name": "默认",
+                });
+                category = data;
+            },
+            error: function (ret) {
+                category = [{
+                    "id": '-1',
+                    "name": "默认",
+                }];
+            },
+        });
+
+        Dtree.renderSelect({
+            elem: "#file-list-add-tree",
+            data: category,
+            accordion: true,
+            icon: "-1",  // 隐藏二级图标
+            skin: "layui",
+            width: '100%',
+            selectCardHeight: "200",
+            selectInitVal: '-1',//默认值顶层
+            response: {
+                treeId: "id", //节点ID（必填）
+                parentId: "pid", //父节点ID（必填）
+                title: "name", //节点名称（必填）
+            },
+            selectInputName: {
+                nodeId: "pid",
+                context: "请选择父级"
+            },
+            done: function (res, $ul, first) {
+                if (first) {
+                    //首次赋值顶层
+                    Dtree.dataInit("file-list-add-tree", '-1');
+                    Dtree.selectVal("file-list-add-tree");
+                }
+            }
+        });
+
+
+        // 制作多文件上传表格
+        let uploadListIns = upload.render({
+            elem: '#file-list-add-upload-files',
+            elemList: $('#file-list-add-upload-demo-files-list'),
+            url: UPLOAD_API,
+            accept: 'file',
+            multiple: true,
+            number: 10,
+            auto: false,
+            bindAction: '#file-list-add-upload-action',
+            data: {},
+            before: function (obj) {
+                //追加表单数据
+                let pid = $('[name="pid"]').val();
+                this.data.pid = pid != undefined ? pid : '-1';
+            },
+            choose: function (obj) {
+                let that = this;
+                let files = this.files = obj.pushFile(); // 将每次选择的文件追加到文件队列
+                // 读取本地文件
+                obj.preview(function (index, file, result) {
+                    let html = '/';
+                    if (file.type.match(/image.*/)) {
+                        html = '<img src="' + URL.createObjectURL(file) + '" alt="' + file.name + '" style="width: 100px;height: 80px;">'
+                    }
+                    let tr = $(['<tr id="upload-' + index + '">',
+                        '<td>' + file.name + '</td>',
+                        '<td>' + (file.size / 1024).toFixed(1) + 'kb</td>',
+                        '<td>' + html + '</td>',
+                        '<td><div class="layui-progress" lay-filter="progress-demo-' + index + '"><div class="layui-progress-bar" lay-percent=""></div></div></td>',
+                        '<td>',
+                        '<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>',
+                        '<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>',
+                        '</td>',
+                        '</tr>'].join(''));
+
+                    // 单个重传
+                    tr.find('.demo-reload').on('click', function () {
+                        obj.upload(index, file);
+                    });
+
+                    // 删除
+                    tr.find('.demo-delete').on('click', function () {
+                        delete files[index]; // 删除对应的文件
+                        tr.remove(); // 删除表格行
+                        // 清空 input file 值，以免删除后出现同名文件不可选
+                        uploadListIns.config.elem.next()[0].value = '';
+                    });
+
+                    that.elemList.append(tr);
+                    element.render('progress'); // 渲染新加的进度条组件
+                });
+            },
+            done: function (res, index, upload) {
+                // 成功的回调
+                let that = this;
+                if (res.status == 200) { // 上传成功
+                    let tr = that.elemList.find('tr#upload-' + index)
+                    let tds = tr.children();
+                    tds.eq(3).html(''); // 清空操作
+                    delete this.files[index]; // 删除文件队列已经上传成功的文件
+                    return;
+                } else {
+                    popup.failure(res.msg)
+                    that.error(index, upload);
+                }
+            },
+            allDone: function (obj) {
+                // 多文件上传完毕后的状态回调
+                parent.refreshTable();
+            },
+            error: function (index, upload) { // 错误回调
+                let that = this;
+                let tr = that.elemList.find('tr#upload-' + index);
+                let tds = tr.children();
+                // 显示重传
+                tds.eq(4).find('.demo-reload').removeClass('layui-hide');
+            },
+            progress: function (n, elem, e, index) { // 注意：index 参数为 layui 2.6.6 新增
+                element.progress('progress-demo-' + index, n + '%'); // 执行进度条。n 即为返回的进度百分比
+            }
+
+        });
+
+        /**
+         * 关闭上传页面
+         */
+        util.on('lay-on', {
+            'close': function () {
+                parent.layer.close(parent.layer.getFrameIndex(window.name));
+            }
+        })
+    });
+</script>
+</body>
+</html>
