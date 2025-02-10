@@ -19,6 +19,12 @@ use madong\ingenious\interface\IExecution;
 use madong\ingenious\model\SubProcessModel;
 use madong\ingenious\processor\IHandler;
 
+/**
+ *
+ * 启动子流程
+ * @author Mr.April
+ * @since  1.0
+ */
 class StartSubProcessHandler implements IHandler
 {
 

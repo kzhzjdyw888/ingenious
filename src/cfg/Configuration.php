@@ -50,6 +50,12 @@ use madong\plugin\wf\services\ProcessTaskService;
 use madong\plugin\wf\services\ProcessTypeService;
 use mysql_xdevapi\Exception;
 
+/**
+ *
+ * 流程引擎配置类
+ * @author Mr.April
+ * @since  1.0
+ */
 class Configuration implements IConfiguration
 {
 
