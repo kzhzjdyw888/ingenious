@@ -29,22 +29,9 @@
 
 
 
-
-## 交流
-- [腾讯频道【madong】](https://pd.qq.com/s/3edfwx2lm)
-- [纷传圈子](https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ)
-
-
-
-
-
-
 ##  安装
 *  安装Composer
 *  composer require madong/ingenious
-
-
-
 
 
 
@@ -53,7 +40,13 @@
 ---
 
 > 官方：
-http://www.madong.tech/
+https://www.madong.tech/
+
+>腾讯频道
+[pd52261144](https://pd.qq.com/s/3edfwx2lm)
+
+>纷传圈子
+[https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ](https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ)
 
 
 ---
