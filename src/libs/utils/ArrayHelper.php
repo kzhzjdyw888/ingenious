@@ -159,17 +159,28 @@ class ArrayHelper
      *
      * @return array
      */
-    public static function jsonToArray(string|array $input): array
+    public static function jsonToArray(string|array|object $input): array
     {
+        // 如果输入是数组，直接返回
         if (is_array($input)) {
             return $input;
         }
+
+        // 如果输入是对象，转换为 JSON 字符串
+        if (is_object($input)) {
+            $input = json_encode($input);
+        }
+
+        // 解码 JSON 字符串
         $decoded = json_decode($input, true);
+
+        // 检查 JSON 解码是否出错
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new InvalidArgumentException('Invalid JSON string provided: ' . json_last_error_msg());
         }
+
         return $decoded;
-    }
+}
 
     /**
      * 参数过滤处理
