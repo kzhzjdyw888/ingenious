@@ -40,7 +40,7 @@ class ServiceContext implements IServiceContext
         $builder = new \DI\ContainerBuilder();
         $builder->addDefinitions($context);
         $builder->useAutowiring(true);
-        $builder->useAnnotations(false);
+//        $builder->useAnnotations(false); 7.x开始废弃默认开启
         self::$container = $builder->build();
     }
 
