@@ -40,7 +40,6 @@ abstract class AbstractINodeParser implements INodeParser
         if (in_array($nodeType, ['start', 'task', 'custom', 'end'])) {
             $textData = $lfNode->getText() !== null && !empty($lfNode->getText()) ? $lfNode->getText() : (object)[];
             $textDict = ProcessFlowUtils::variableToDict($textData);
-            var_dump($textDict);
             if (!empty($textDict) && $textDict instanceof Dict) {
                 $this->nodeModel->setDisplayName($textDict->get(INodeParser::TEXT_VALUE_KEY, ''));
             }
