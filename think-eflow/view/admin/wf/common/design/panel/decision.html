@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>属性面板</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+    <style>
+        .decimal-label {
+            width: 100px;
+        }
+
+        .decimal-item {
+            width: 290px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layui-tab layui-tab-brief layui-form" lay-filter="setting-form" id="setting-form">
+        <ul class="layui-tab-title">
+            <li class="layui-this" lay-id="1">节点属性</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="main-container">
+                <h5>基本属性</h5>
+                <div class="layui-form-item">
+                    <label class="layui-form-label decimal-label">任务ID：</label>
+                    <div class="layui-input-inline decimal-item">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="id" class="layui-input"
+                            readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label decimal-label">任务类型：</label>
+                    <div class="layui-input-inline decimal-item">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="type"
+                            class="layui-input" readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label decimal-label">决策表达式：</label>
+                    <div class="layui-input-inline decimal-item">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="expr"
+                            class="layui-input" value="">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label decimal-label">处理类：</label>
+                    <div class="layui-input-inline decimal-item">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="handle_class"
+                            class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label decimal-label">前置拦截器：</label>
+                    <div class="layui-input-inline decimal-item">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="pre_interceptors"
+                            class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label decimal-label">后置拦截器：</label>
+                    <div class="layui-input-inline decimal-item">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="post_interceptors"
+                            class="layui-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--layui依赖-->
+<script src="/static/component/layui/layui.js?v=2.8.12"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+<script src="/static/component/logicflow/customized/properties.js"></script>
+    <script>
+        window.child = function (obj) {
+            layui.use(['element', 'jquery', 'form', 'colorpicker'], function () {
+                let colorpicker = layui.colorpicker;
+                let element = layui.element;
+                let $ = layui.jquery;
+                let form = layui.form;
+                let newObj = initializationData(obj)
+
+                //渲染单据
+                form.val('setting-form', newObj)
+                form.render();
+
+                /**
+                 * 监听input change事件
+                 */
+                $(function () {
+                    $("#setting-form input").off("change").change(function () {
+                        let newData = form.val('setting-form');
+                        propertyKeysSet(newData)
+                    })
+                })
+
+            })
+        };
+    </script>
+
+
+</body>
+
+</html>

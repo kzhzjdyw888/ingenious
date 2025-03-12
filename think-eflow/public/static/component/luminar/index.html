@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th=http://www.thymeleaf.org>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=0,maximum-scale=0,user-scalable=yes,shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>表单设计器</title>
+    <link rel="stylesheet" href="component/luminar/css/luminar.css"/>
+</head>
+
+<body class="layui-layout-body">
+<!--<button type="button" id="test">aa</button>-->
+<input type="hidden" th:value="${formId}" id="fromId">
+<div style="height: 100%; width: 100%;" id="formdesigner">
+
+</div>
+
+<!--引入layui模块-->
+<script type="text/javascript" src="component/layui/layui.js"></script>
+<script type="text/javascript" src="component/luminar/luminar.js"></script>
+<!--外部扩展js-->
+<script type="text/javascript" src="component/luminar/js/Sortable/Sortable.js"></script>
+<script type="text/javascript" src="component/luminar/js/htmlformat.js"></script>
+<script type="text/javascript" src="component/luminar/js/jsformat.js"></script>
+<script type="text/javascript" src="component/luminar/js/iceEditor/iceEditor.js"></script>
+<script>
+
+    layui.use(['layer', 'jquery', 'formField', 'formDesigner'], function () {
+        var $ = layui.jquery;
+        var formDesigner = layui.formDesigner;
+        var data = [];
+        var render = formDesigner.render({
+            data: data,
+            elem: '#formdesigner'
+        });
+
+
+        /**
+         * 保存设计
+         */
+        $('.saveJson').on('click', function () {
+               let designData=  render.getData()
+            console.log(designData)
+        });
+    });
+</script>
+
+</body>
+
+</html>

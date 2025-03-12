@@ -1,0 +1,187 @@
+<?php /*a:1:{s:63:"C:\DATA\MyMotion\think-eflow\view\admin\wf\designer\update.html";i:1740649179;}*/ ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+</head>
+<body>
+
+<form class="layui-form" action="">
+
+    <div class="mainBox">
+        <div class="main-container mr-5">
+            <div class="layui-form-item">
+                <label class="layui-form-label required">流程类型</label>
+                <div class="layui-input-block">
+                    <ul id="designer-add-tree" class="dtree" data-id="0"></ul>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label required">显示名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="display_name" required lay-verify="required" autocomplete="off" class="layui-input" placeholder="">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label required">唯一编码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required lay-verify="required" autocomplete="off" class="layui-input" placeholder="">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">模型描述</label>
+                <div class="layui-input-block">
+                    <input type="text" name="description" lay-verify="" autocomplete="off" class="layui-input" placeholder="">
+                </div>
+            </div>
+
+
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="" class="layui-textarea" name="remark"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit=""
+                    lay-filter="save">
+                保存
+            </button>
+            <button type="reset" class="pear-btn pear-btn-md">
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+
+
+<script src="/static/component/layui/layui.js?v=2.8.12"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+
+<script>
+    const PRIMARY_KEY = "id";
+    const CATEGORY_API = "/admin/wf.category/select";
+    const UPDATE_API = "/admin/wf.designer/update";
+    const SELECT_API = "/admin/wf.designer/show" + location.search;
+    // 字段设置
+    layui.use(["common", "popup", "form", "jquery", "dtree"], function () {
+        let popup = layui.popup;
+        let form = layui.form;
+        let Dtree = layui.dtree;
+        let $ = layui.jquery;
+        let superiorData = [];
+
+        /**
+         * 所属上级获取
+         */
+        layui.$.ajax({
+            url: CATEGORY_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            data: {page: 1, limit: 9999},
+            success: function (ret) {
+                let data = ret.data.items != undefined ? ret.data.items : [];
+                superiorData = data;
+            },
+            error: function (ret) {
+                superiorData = [];
+            },
+        });
+
+
+        layui.$.ajax({
+            url: SELECT_API,
+            dataType: "json",
+            success: function (res) {
+
+                // 给表单初始化数据
+                layui.each(res.data, function (key, value) {
+                    let obj = $('*[name="' + key + '"]');
+                    if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
+                    if (obj[0].nodeName.toLowerCase() === "textarea") {
+                        obj.val(layui.util.escape(value));
+                    } else {
+                        obj.attr("value", value);
+                    }
+                });
+                Dtree.renderSelect({
+                    elem: "#designer-add-tree",
+                    data: superiorData,
+                    accordion: true,
+                    icon: "-1",  // 隐藏二级图标
+                    skin: "layui",
+                    width: '100%',
+                    selectCardHeight: "200",
+                    selectInitVal: res.data.type_id ?? 0,//默认值顶层
+                    response: {
+                        treeId: "id", //节点ID（必填）
+                        parentId: "pid", //父节点ID（必填）
+                        title: "name", //节点名称（必填）
+                    },
+                    selectInputName: {
+                        nodeId: "type_id",
+                        context: "请选择父级"
+                    },
+                    done: function (res, $ul, first) {
+                        if (first) {
+                            //首次赋值顶层
+                            Dtree.dataInit("designer-add-tree", '0');
+                            Dtree.selectVal("designer-add-tree");
+                        }
+                    }
+                });
+            }
+        });
+
+
+        /**
+         * 表单提交
+         */
+        form.on("submit(save)", function (data) {
+            if (data.field['type_id'] == undefined || data.field['type_id'] == '' || data.field['type_id'] == '0') {
+                popup.failure('请选择流程类型');
+                return false;
+            }
+            data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
+            layui.$.ajax({
+                url: UPDATE_API,
+                type: 'post',                dateType: "json",
+                contentType: 'application/json',
+
+                data: JSON.stringify(data.field),
+                success: function (ret) {
+                    if (ret.code !== 1) {
+                        popup.success(ret.msg, function () {
+                            parent.refreshTable();
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        });
+                    } else {
+                        popup.failure(ret.msg);
+                    }
+                }
+            });
+            return false;
+        });
+
+        $("body").on("click", function (event) {
+            $("div[dtree-id][dtree-select]").removeClass("layui-form-selected");
+            $("div[dtree-id][dtree-card]").removeClass("dtree-select-show layui-anim layui-anim-upbit");
+        });
+    });
+
+
+</script>
+
+</body>
+</html>

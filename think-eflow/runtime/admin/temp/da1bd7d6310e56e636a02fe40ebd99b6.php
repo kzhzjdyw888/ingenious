@@ -1,0 +1,552 @@
+<?php /*a:1:{s:72:"C:\DATA\MyMotion\think-eflow\view\admin\wf\common\task\handle\index.html";i:1740723552;}*/ ?>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>处理待办</title>
+    <link rel="stylesheet" href="/static/component/luminar/component/luminar/css/luminar.css"/>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center; /* 垂直居中 */
+            min-height: 100vh; /* 使用min-height来确保容器至少占满整个视口 */
+            background-color: #f2f2f2;
+            padding: 20px;
+            box-sizing: border-box; /* 计算边框和内边距在内部的宽度和高度 */
+            overflow: auto; /* 添加overflow属性来实现垂直滚动 */
+        }
+
+        .form-container {
+            width: 210mm; /* A4宽度 */
+            background-color: #fff;
+            padding: 25px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container .layui-form-item {
+            margin-bottom: 20px;
+        }
+
+        .form-container .form-buttons {
+            text-align: right; /* 将按钮放置在右侧 */
+        }
+
+        .form-footer {
+            /*background-image: url('your-background-image-url'); !* 设置背景图 *!*/
+            background-size: cover;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .side-toolbar {
+            right: 20px;
+            bottom: 120px;
+            z-index: 1001;
+            margin-top: -60px;
+            position: fixed;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-align: end;
+            -ms-flex-align: end;
+            align-items: flex-end;
+        }
+
+        .layui-btn-circle {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            background-color: #ffffff;
+            border: #dcdfe6;
+            border-color: #dcdfe6;
+        }
+
+        /* 按钮hover颜色 */
+        .layui-btn-circle:hover {
+            background-color: #6081ef; /* 设置hover时的背景色 */
+        }
+
+        /* 自定义tooltip样式 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            right: 100%;
+            font-size: 12px;
+            transform: translate(0, -50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap; /* 文字不换行显示 */
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent #555;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .mt10 {
+            margin-top: 10px;
+        }
+    </style>
+    <style>
+        /* 去除表格最外面的边框线 */
+        .layui-table-view {
+            border: none !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!--startprint-->
+    <div class="form-container layui-form">
+        <!--        标题-->
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px; margin-bottom: 20px;">
+            <h2 style="margin-bottom: 10px;" id="form-name"></h2>
+            <span style="align-self: flex-end;" id="form-number"></span>
+        </div>
+        <!-- 内容-->
+        <div id="form-container"></div>
+        <!-- 审核记录-->
+        <div id="approval-record" style="margin-top:50px;margin-bottom: 50px;">
+            <table class="layui-hide" id="data-table" lay-filter="data-table"></table>
+        </div>
+    </div>
+    <!--endprint-->
+    <div class="side-toolbar">
+        <div class="tooltip">
+            <button type="button" class="layui-btn-circle execute">
+                <i class="layui-icon">&#xe605;</i>
+            </button>
+            <span class="tooltiptext">审核</span>
+        </div>
+        <div class="tooltip mt10">
+            <button type="button" class="layui-btn-circle track">
+                <i class="layui-icon">&#xe60e;</i>
+            </button>
+            <span class="tooltiptext">轨迹</span>
+        </div>
+        <div class="tooltip mt10">
+            <button type="button" class="layui-btn-circle exit">
+                <i class="layui-icon">&#x1006;</i>
+            </button>
+            <span class="tooltiptext">退出</span>
+        </div>
+    </div>
+</div>
+
+<!--引入layui模块-->
+<script type="text/javascript" src="/static/component/luminar/component/layui/layui.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/luminar.js"></script>
+
+<!--外部扩展js-->
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/Sortable/Sortable.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/htmlformat.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/jsformat.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/iceEditor/iceEditor.js"></script>
+
+<script>
+    const PRIMARY_KEY = "id";
+    const PROCESS_DEFINE_KEY = 'process_define_id';
+    const PROCESS_TASK_ID = "process_task_id";
+    const PROCESS_INSTANCE_ID = "process_instance_id";
+
+    const SELECT_API = "/admin/wf.todo/show" + location.search;
+    const EXECUTE_API = "/admin/wf.todo/execute";
+    const APPROVAL_RECORD_API = "/admin/wf.instance/approvalRecord";
+
+
+    const TRACK_URL = "/admin/wf.instance/track";
+    const HANDLE_APPROVE_URL = "/admin/wf.todo/handleApprove";
+
+    layui.use(['form', 'jquery', 'formDesigner', 'layer', 'upload', 'table'], function () {
+        let layer = layui.layer;
+        let $ = layui.jquery;
+        let upload = layui.upload;
+        let formDesigner = layui.formDesigner;
+        let table = layui.table;
+        let form = layui.form;
+        let render;
+        let data = [];//表单
+        let form_data = {};//表单数据
+        let process_instance_id = '';
+        let process_task_id = layui.url().search[PRIMARY_KEY];
+
+        //如果id没有传关闭当前页面
+        if (process_task_id == undefined || process_task_id == '') {
+            parent.layui.admin.closeCurrentTab();
+        }
+
+        /**
+         * 通过taskId获取表单信息
+         */
+        layui.$.ajax({
+            url: SELECT_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            data: {page: 1, limit: 9999},
+            success: function (ret) {
+                if (ret.code == 0) {
+                    let row = ret.data != undefined ? ret.data : [];
+                    let obj = row.form != undefined ? row.form : {};
+                    for (let key in obj) {
+                        data.push(obj[key]);
+                    }
+                    form_data = filterAndRemovePrefix(row?.instance?.ext || {}, 'f_');//筛选出表单值
+                    process_instance_id = row.process_instance_id ?? '';
+                    $('#form-name').html(row.process_define_display_name ?? '申请单');
+                    $('#form-number').html(row.business_no ?? '');
+                }
+            }
+        });
+
+        /**
+         * 表单渲染
+         */
+        render = formDesigner.render({
+            elem: '#form-container',
+            data: data,
+            viewOrDesign: true,
+            formDefaultButton: false,
+            formData: form_data
+        });
+
+        let images = render.getImages();
+        for (let i = 0; i < images.length; i++) {
+            upload.render({
+                elem: '#' + images[i].select
+                , url: '' + images[i].uploadUrl + ''
+                , multiple: true
+                , before: function (obj) {
+                    layer.msg('图片上传中...', {
+                        icon: 16,
+                        shade: 0.01,
+                        time: 0
+                    })
+                }
+                , done: function (res) {
+                    layer.close(layer.msg());//关闭上传提示窗口
+                    //上传完毕
+                    $('#uploader-list-' + item.id).append(
+                        '<div id="" class="file-iteme">' +
+                        '<div class="handle"><i class="layui-icon layui-icon-delete"></i></div>' +
+                        '<img style="width: 100px;height: 100px;" src=' + res.data.src + '>' +
+                        '<div class="info">' + res.data.title + '</div>' +
+                        '</div>'
+                    );
+                }
+            });
+        }
+
+        let filesData = render.getFiles();
+        for (let i = 0; i < filesData.length; i++) {
+            upload.render({
+                elem: '#' + filesData[i].select
+                , elemList: $('#list-' + filesData[i].select) //列表元素对象
+                , url: '' + filesData[i].uploadUrl + ''
+                , accept: 'file'
+                , multiple: true
+                , number: 3
+                , auto: false
+                , bindAction: '#listAction-' + filesData[i].select
+                , choose: function (obj) {
+                    var that = this;
+                    var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+                    //读取本地文件
+                    obj.preview(function (index, file, result) {
+                        var tr = $(['<tr id="upload-' + index + '">'
+                            , '<td>' + file.name + '</td>'
+                            , '<td>' + (file.size / 1014).toFixed(1) + 'kb</td>'
+                            , '<td><div class="layui-progress" lay-filter="progress-demo-' + index + '"><div class="layui-progress-bar" lay-percent=""></div></div></td>'
+                            , '<td>'
+                            , '<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>'
+                            , '<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>'
+                            , '</td>'
+                            , '</tr>'].join(''));
+
+                        //单个重传
+                        tr.find('.demo-reload').on('click', function () {
+                            obj.upload(index, file);
+                        });
+
+                        //删除
+                        tr.find('.demo-delete').on('click', function () {
+                            delete files[index]; //删除对应的文件
+                            tr.remove();
+                            uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+                        });
+
+                        that.elemList.append(tr);
+                        element.render('progress'); //渲染新加的进度条组件
+                    });
+                }
+                , done: function (res, index, upload) { //成功的回调
+                    var that = this;
+                    //if(res.code == 0){ //上传成功
+                    var tr = that.elemList.find('tr#upload-' + index)
+                        , tds = tr.children();
+                    tds.eq(3).html(''); //清空操作
+                    delete this.files[index]; //删除文件队列已经上传成功的文件
+                    return;
+                    //}
+                    this.error(index, upload);
+                }
+                , allDone: function (obj) { //多文件上传完毕后的状态回调
+                    console.log(obj)
+                }
+                , error: function (index, upload) { //错误回调
+                    var that = this;
+                    var tr = that.elemList.find('tr#upload-' + index)
+                        , tds = tr.children();
+                    tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+                }
+                , progress: function (n, elem, e, index) {
+                    element.progress('progress-demo-' + index, n + '%'); //执行进度条。n 即为返回的进度百分比
+                }
+            });
+        }
+
+
+        /**
+         * 审核
+         */
+        $('.execute').on('click', function () {
+            //审核需要提供taskId  instanceId
+            layer.open({
+                type: 2,
+                shade: 0.1,
+                move: false,
+                title: '审批意见',
+                shadeClose: true,
+                area: ["850px", "450px"],
+                content: HANDLE_APPROVE_URL + "?" + PRIMARY_KEY + "=" + process_task_id + '&process_instance_id=' + process_instance_id
+            });
+        });
+
+        /**
+         * 轨迹
+         */
+        $('.track').on('click', function () {
+            top.layer.open({
+                type: 2,
+                offset: 'r',
+                anim: 'slideLeft', // 从右往左
+                area: ['60%', '100%'],
+                shade: 0.1,
+                move: false,
+                title: '轨迹',
+                shadeClose: true,
+                content: TRACK_URL + "?" + PRIMARY_KEY + "=" + process_instance_id
+            });
+        });
+
+
+        /**
+         * 提交审核
+         * @param data
+         */
+        window.execute = function (data) {
+            data[PROCESS_INSTANCE_ID] = process_instance_id;
+            data[PROCESS_TASK_ID] = process_task_id;
+            layui.$.ajax({
+                url: EXECUTE_API,
+                type: 'post',
+                data: JSON.stringify({...data}),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (ret) {
+                    if (ret && ret.code == 0) {
+                        layer.msg(ret.msg, {
+                            icon: 1,
+                            time: 2000
+                        }, function () {
+                            parent.layui.admin.closeCurrentTab();
+                        });
+                    } else {
+                        layer.msg(ret.msg, {icon: 2});
+                    }
+                },
+                error: function (ret) {
+                    alert("出错" + ret.status + "：" + ret.responseText);
+                }
+            })
+        }
+
+
+        /**
+         * 退出
+         */
+        $('.exit').on('click', function () {
+            parent.layui.admin.closeCurrentTab();
+        });
+
+        /**
+         * 给表单添加前缀
+         * @param obj
+         * @param prefix
+         * @returns {{}}
+         */
+        function addPrefixToObject(obj, prefix = 'f_') {
+            let newObj = {};
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    newObj[prefix + key] = obj[key];
+                }
+            }
+            return newObj;
+        }
+
+        /**
+         * 过滤筛选出对应前缀的对象集合
+         * @returns {string}
+         */
+        function filterAndRemovePrefix(obj, prefix) {
+            let filteredObj = {}; // 创建一个新的对象来存储筛选后的属性
+            for (let key in obj) {
+                if (key.startsWith(prefix)) { // 检查属性是否以指定前缀开头
+                    let newKey = key.substring(prefix.length); // 去除前缀
+                    filteredObj[newKey] = obj[key]; // 将去除前缀后的属性添加到新对象中
+                }
+            }
+            return filteredObj; // 返回筛选后的对象
+        }
+
+        let submit_type = {
+            0: "发起申请",
+            1: "同意申请",
+            2: "拒绝申请",
+            3: "退回上一步",
+            4: "跳转",
+            5: "重新提交",
+            6: "退回发起人",
+            20: "拒绝申请",
+        };
+
+        let cols = [
+            {
+                title: '#',
+                type: 'number',
+                width: 60
+            },
+            {
+                title: '日期',
+                field: 'finish_date',
+                align: 'left',
+                width: 170,
+            },
+            {
+                title: '处理人',
+                field: 'display_name',
+                align: 'left',
+                width: 170
+            },
+            {
+                title: '步骤',
+                field: 'display_name',
+                align: 'left',
+                minWidth: 150
+            },
+            {
+                title: '执行人',
+                align: "center",
+                width: 190,
+                templet: function (d) {
+                    let ext = d['variable'] ?? [];
+                    let field = 'u_real_name';
+                    return ext[field] ?? '1';
+                }
+            },
+            {
+                title: '审批结果',
+                align: "center",
+                width: 190,
+                templet: function (d) {
+                    let field = 'submit_type';
+                    let ext = d.ext ?? {};
+                    return submit_type[ext[field]] ?? '';
+                }
+            },
+            {
+                title: '审批意见',
+                align: "center",
+                width: 190,
+                templet: function (d) {
+                    let field = 'tf_approval_comment';
+                    let ext = d.ext ?? {};
+                    return ext[field] ?? '';
+                }
+            }
+        ];
+
+        function tableRender(instanceId) {
+            table.render({
+                elem: "#data-table",
+                url: APPROVAL_RECORD_API,
+                page: false,
+                cols: [cols],
+                where: {id: instanceId},
+                skin: "line",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.code, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": 0, // 解析数据长度
+                        "data": ret.data // 解析数据列表
+                    };
+                },
+                toolbar: false,
+            })
+        }
+
+        /**
+         * 表单禁用模式
+         */
+        render.globalDisable();
+
+        /**轨迹图
+         * 追加表单审核意见
+         */
+        tableRender(process_instance_id);
+    });
+</script>
+</body>
+</html>

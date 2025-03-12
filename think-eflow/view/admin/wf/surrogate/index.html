@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>委托管理</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+    <style>
+        .layui-table-view {
+            border: none !important;
+        }
+    </style>
+</head>
+
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">唯一编码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" value="" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <select name="enabled">
+                        <option value="">全部</option>
+                        <option value="1">启用</option>
+                        <option value="2">禁用</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="data-table" lay-filter="data-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格顶部工具栏 -->
+<script type="text/html" id="table-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="app.wf.surrogate.insert">
+        <i class="layui-icon layui-icon-add-1"></i>新增
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="app.wf.surrogate.delete">
+        <i class="layui-icon layui-icon-delete"></i>删除
+    </button>
+</script>
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit">编辑</button>
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove">删除</button>
+</script>
+
+<script src="/static/component/layui/layui.js"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const SELECT_API = "/admin/wf.surrogate/select";
+    const DELETE_API = "/admin/wf.surrogate/delete";
+
+    const INSERT_URL = "/admin/wf.surrogate/insert";
+    const UPDATE_URL = "/admin/wf.surrogate/update";
+
+    layui.use(['table', 'form', 'jquery', 'util', 'popup', 'common'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let popup = layui.popup;
+        let util = layui.util;
+        let common = layui.common;
+
+        let enabled = {
+            0: '禁用',
+            1: '正常'
+        };
+
+        let cols = [
+            {
+                type: "checkbox"
+            },
+            {
+                title: 'ID',
+                field: 'id',
+                align: 'left',
+                sort: true,
+                hide: true,
+                width: 300
+            },
+            {
+                title: '唯一编码',
+                field: 'name',
+                align: 'left',
+                minWidth: 180,
+                templet: function (d) {
+                    let define = d['define'] ?? [];
+                    let field = 'name';
+                    return define[field] ?? '';
+                }
+            },
+            {
+                title: '流程名称',
+                field: 'display_name',
+                align: 'left',
+                minWidth: 150,
+                templet: function (d) {
+                    let define = d['define'] ?? [];
+                    let field = 'display_name';
+                    return define[field] ?? '';
+                }
+            },
+            {
+                title: '流程版本',
+                field: 'version',
+                align: 'left',
+                templet: function (d) {
+                    let define = d['define'] ?? [];
+                    let field = 'version';
+                    return define[field] ?? '';
+                }
+
+            },
+            {
+                title: '代理人',
+                field: 'surrogate_real_name',
+                align: 'center',
+                minWidth: 90
+            },
+            {
+                title: '状态',
+                field: 'enabled',
+                align: 'center',
+                width: 150,
+                templet: function (d) {
+                    let field = "enabled";
+                    let value = enabled[d[field]] || d[field];
+                    let css = {"禁用": "layui-bg-red", "正常": "layui-bg-blue"}[value];
+                    return '<span class="layui-badge ' + css + '">' + util.escape(value) + '</span>';
+                }
+            },
+            {
+                title: '生效时间',
+                field: 'start_date',
+                align: 'left',
+                width: 170
+            },
+            {
+                title: '截止时间',
+                field: 'end_date',
+                align: 'left',
+                width: 170,
+            },
+
+            {
+                title: '操作',
+                toolbar: '#table-bar',
+                align: "center",
+                minWidth: 140,
+            }
+        ]
+
+
+        function render() {
+            table.render({
+                elem: "#data-table",
+                url: SELECT_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                size: "lg",
+                height: 'full-162',
+                toolbar: "#table-toolbar",
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.code, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.total, // 解析数据长度
+                        "data": ret.data.items // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            })
+        }
+
+        render();
+
+        table.on('tool(data-table)', function (obj) {
+            if (obj.event === 'edit') {
+                edit(obj);
+            } else if (obj.event === 'remove') {
+                remove(obj)
+            }
+        });
+
+        table.on('toolbar(data-table)', function (obj) {
+            if (obj.event === 'refresh') {
+                window.refreshTable();
+            } else if (obj.event === 'add') {
+                add();
+            } else if (obj.event === 'batchRemove') {
+                batchRemove(obj);
+            }
+        });
+
+        // 头部搜索栏
+        form.on('submit(table-query)', function (data) {
+            table.reload('data-table', {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+
+        let add = function () {
+            layer.open({
+                type: 2,
+                title: "新增",
+                shade: 0.1,
+                area: [common.isModile() ? "100%" : "500px", common.isModile() ? "100%" : "450px"],
+                content: INSERT_URL
+            });
+        }
+
+        //表格编辑数据
+        let edit = function (obj) {
+            let value = obj.data[PRIMARY_KEY];
+            layer.open({
+                type: 2,
+                title: "修改",
+                shade: 0.1,
+                area: [common.isModile() ? "100%" : "500px", common.isModile() ? "100%" : "450px"],
+                content: UPDATE_URL + "?" + PRIMARY_KEY + "=" + value
+            });
+        }
+
+
+        // 删除一行
+        let remove = function (obj) {
+            return doRemove(obj.data[PRIMARY_KEY]);
+        }
+
+
+        // 删除多行
+        let batchRemove = function (obj) {
+            let checkIds = common.checkField(obj, PRIMARY_KEY);
+            if (checkIds === "") {
+                layui.popup.warning("未选中数据");
+                return false;
+            }
+            doRemove(checkIds.split(","));
+        }
+
+        // 执行删除
+        let doRemove = function (ids) {
+            let data = {};
+            data[PRIMARY_KEY] = ids;
+            layer.confirm("确定删除?", {
+                icon: 3,
+                title: "提示"
+            }, function (index) {
+                layer.close(index);
+                let loading = layer.load();
+                $.ajax({
+                    url: DELETE_API,
+                    data: data,
+                    dataType: "json",
+                    type: "post",
+                    success: function (res) {
+                        layer.close(loading);
+                        if (res.code !== 0) {
+                            return layui.popup.failure(res.msg);
+                        }
+                        return layui.popup.success("操作成功", refreshTable);
+                    }
+                })
+            });
+        }
+
+
+        /**
+         * 刷新
+         */
+        window.refreshTable = function () {
+            table.reloadData('data-table', {
+                scrollPos: "fixed"
+            });
+        }
+    });
+</script>
+</body>
+
+</html>

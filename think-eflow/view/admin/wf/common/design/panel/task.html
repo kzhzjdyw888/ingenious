@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>属性面板</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+    <style>
+        /* 扩展属性样式 */
+        .left-text {
+            text-align: left;
+        }
+
+        .right-text {
+            text-align: right;
+        }
+
+        .custom-form-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .custom-form-label {
+            flex: 1;
+        }
+
+        .custom-form-content {
+            flex: 2;
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-form-input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .custom-form-button {
+            width: 20px;
+            text-align: right;
+        }
+
+        .custom-form-button button {
+            width: 100%;
+        }
+
+        .remove-btn {
+            color: red;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="layui-tab layui-tab-brief layui-form" lay-filter="setting-form" id="setting-form">
+    <ul class="layui-tab-title">
+        <li class="layui-this" lay-id="1">节点属性</li>
+        <li lay-id="2">流程设置</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="main-container">
+                <h5>基本属性</h5>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务ID：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="required" placeholder="" autocomplete="off" name="id"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务类型：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="required" placeholder="" autocomplete="off" name="type"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">显示名称：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="required" placeholder="" autocomplete="off"
+                               name="display_name" class="layui-input">
+                    </div>
+                </div>
+                <!--                    <h5>样式设置</h5>-->
+                <!--                    <div class="layui-form-item">-->
+                <!--                        <label class="layui-form-label">宽度：</label>-->
+                <!--                        <div class="layui-input-block">-->
+                <!--                            <input type="number" lay-verify="" value="120" minValue="60" maxValue="999" name="width"-->
+                <!--                                autocomplete="off" class="layui-input">-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="layui-form-item">-->
+                <!--                        <label class="layui-form-label">高度：</label>-->
+                <!--                        <div class="layui-input-block">-->
+                <!--                            <input type="number" lay-verify="" value="40" minValue="60" maxValue="999" name="height"-->
+                <!--                                autocomplete="off" class="layui-input">-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="layui-form-item">-->
+                <!--                        <label class="layui-form-label">主题颜色：</label>-->
+                <!--                        <div class="layui-input-block">-->
+                <!--                            <div class="layui-input-inline" style="width: 120px;">-->
+                <!--                                <input type="text" name="theme" value="" placeholder="" class="layui-input"-->
+                <!--                                    id="theme-color">-->
+                <!--                            </div>-->
+                <!--                            <div class="layui-inline" style="left: -11px;">-->
+                <!--                                <div id="color-picker-theme"></div>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="layui-form-item">-->
+                <!--                        <label class="layui-form-label">边框颜色：</label>-->
+                <!--                        <div class="layui-input-block">-->
+                <!--                            <div class="layui-input-inline" style="width: 120px;">-->
+                <!--                                <input type="text" name="stroke" value="" placeholder="" class="layui-input"-->
+                <!--                                    id="stroke-color">-->
+                <!--                            </div>-->
+                <!--                            <div class="layui-inline" style="left: -11px;">-->
+                <!--                                <div id="color-picker-stroke"></div>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="layui-form-item">-->
+                <!--                        <label class="layui-form-label">字体颜色：</label>-->
+                <!--                        <div class="layui-input-block">-->
+                <!--                            <div class="layui-input-inline" style="width: 120px;">-->
+                <!--                                <input type="text" name="color" value="" placeholder="" class="layui-input" id="color">-->
+                <!--                            </div>-->
+                <!--                            <div class="layui-inline" style="left: -11px;">-->
+                <!--                                <div id="color-picker-color"></div>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="layui-form-item">-->
+                <!--                        <label class="layui-form-label">边线宽度：</label>-->
+                <!--                        <div class="layui-input-block">-->
+                <!--                            <input type="number" value="2" name="stroke_width" autocomplete="off" class="layui-input">-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <h5>拦截器</h5>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width: 100px;text-align: left;">前置拦截器：</label>
+                    <div class="layui-input-inline" style="width: 320px">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="pre_interceptors"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width: 100px;text-align: left;">后置拦截器：</label>
+                    <div class="layui-input-inline" style="width: 320px">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="post_interceptors"
+                               class="layui-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <!-- 流程设置 -->
+            <div class="main-container">
+                <h5>审批设置</h5>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">参与者</label>
+                    <div class="layui-input-block">
+                        <div id="assessing"></div>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">表单参与者</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="assignee_form_key" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">参与者处理类</label>
+                    <div class="layui-input-block">
+                        <select name="assignment_handler" lay-filter="assignment_handler" id="assignment_handler">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户组标识</label>
+                    <div class="layui-input-block">
+                        <div id="group_key"></div>
+                    </div>
+                </div>
+                <!--                <div class="layui-form-item">-->
+                <!--                    <label class="layui-form-label">候选用户</label>-->
+                <!--                    <div class="layui-input-block">-->
+                <!--                        <input type="text" placeholder="" autocomplete="off" name="candidate_users"-->
+                <!--                               class="layui-input">-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--                <div class="layui-form-item">-->
+                <!--                    <label class="layui-form-label">候选用户组</label>-->
+                <!--                    <div class="layui-input-block">-->
+                <!--                        <input type="text" placeholder="" autocomplete="off" name="candidate_groups"-->
+                <!--                               class="layui-input">-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--                <div class="layui-form-item">-->
+                <!--                    <label class="layui-form-label">候选人处理类</label>-->
+                <!--                    <div class="layui-input-block">-->
+                <!--                        <input type="text" placeholder="" autocomplete="off" name="candidate_handler"-->
+                <!--                               class="layui-input">-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
+                <h5>审批模式</h5>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务类型：</label>
+                    <div class="layui-input-block">
+                        <select name="task_type" lay-filter="task_type">
+                            <option value="Major" selected>主办任务</option>
+                            <option value="Aidant">协办任务</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">参与类型：</label>
+                    <div class="layui-input-block">
+                        <select name="perform_type" lay-filter="perform_type">
+                            <option value="ANY" selected>普通参与</option>
+                            <option value="ALL">会签参与</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 订阅设置-->
+                <h5>订阅设置</h5>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">提醒时间：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="" placeholder="60s/1m/1h/1d 格式" autocomplete="off" name="reminder_time" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">重复间隔：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="" placeholder="60s/1m/1h/1d 格式" autocomplete="off" name="reminder_repeat" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">期待完成时间：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="" placeholder="60s/1m/1h/1d 格式" autocomplete="off" name="expire_time" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">回调处理：</label>
+                    <div class="layui-input-block">
+                        <input type="text" lay-verify="" placeholder="" autocomplete="off" name="callback" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">自动完成：</label>
+                    <div class="layui-input-block">
+                        <select name="auto_execute" lay-filter="perform_type">
+                            <option value="N" selected>否</option>
+                            <option value="Y">是</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-card">
+                    <div class="layui-card-header" style="padding:0;">
+                        <div class="layui-container" style="padding:0;">
+                            <div class="layui-row layui-col-space">
+                                <div class="layui-col-xs6 layui-col-md4 left-text">
+                                    <h5>扩展属性</h5>
+                                </div>
+                                <div class="layui-col-xs6 layui-col-md8 right-text">
+                                                        <span id="ext" style="cursor: pointer;">
+                                                            添加
+                                                            <i class="layui-icon layui-icon-down layui-font-12"></i>
+                                                        </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-card-body">
+                        <div class="layui-form" id="ext-field" lay-filter="property-form"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--layui依赖-->
+<script src="/static/component/layui/layui.js"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+<script src="/static/component/logicflow/customized/properties.js"></script>
+<script>
+
+    const ASSIGNEE_SELECT_API = "/admin/wf.designer/assignee";//参与者
+    const GROUP_SELECT_API = "/admin/wf.designer/group";//用户组
+    const ASSESSING_HANDLER_SELECT_API = "/admin/wf.designer/assigneeHandler";//用户参与类
+
+    window.child = function (obj) {
+        layui.use(['jquery', 'form', 'colorpicker', 'dropdown', 'xmSelect'], function () {
+            let colorpicker = layui.colorpicker;
+            let dropdown = layui.dropdown;
+            let xmSelect = layui.xmSelect;
+            let $ = layui.jquery;
+            let form = layui.form;
+            let newObj = initializationData(obj)
+            let countersignKey = ['countersign_type', 'countersign_completion_condition'];
+
+            /**
+             * 参与者
+             */
+            let assessing = xmSelect.render({
+                el: '#assessing',
+                name: 'assignee',
+                filterable: true,
+                remoteSearch: true,
+                paging: true,//开启分页
+                pageRemote: true,//远程分页
+                pageEmptyShow: false,//没有数据不展示分页
+                prop: {
+                    name: 'nickname',
+                    value: 'id',
+                },
+                remoteMethod: function (val, cb, show, pageIndex) {
+                    $.ajax({
+                        url: ASSIGNEE_SELECT_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {name: val, limit: 5, page: pageIndex},
+                        success: function (ret) {
+                            let data = ret.data['items'] != undefined ? ret.data['items'] : [];
+                            let size = Math.ceil(ret.data['total'] / 5)
+                            cb(data, size)
+                        },
+                        error: function (ret) {
+                            cb([], 0)
+                        }
+                    });
+                },
+                data: [],
+                on: function (data) {
+                    let arr = data.arr
+                    let stringArr = []
+                    $.each(arr, function (index, item) {
+                        stringArr.push(item.id)
+                    });
+                    $('input[name="assignee"]').val(stringArr.join(','))
+                    dataProcessing();
+                }
+            });
+
+            /**
+             * 用户组
+             */
+            let group = xmSelect.render({
+                el: '#group_key',
+                name: 'group_key',
+                filterable: true,
+                remoteSearch: true,
+                paging: true,//开启分页
+                pageRemote: true,//远程分页
+                pageEmptyShow: false,//没有数据不展示分页
+                prop: {
+                    name: 'name',
+                    value: 'id',
+                },
+                remoteMethod: function (val, cb, show, pageIndex) {
+                    $.ajax({
+                        url: GROUP_SELECT_API,
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {name: val, limit: 5, page: pageIndex},
+                        success: function (ret) {
+                            let data = ret.data['items'] != undefined ? ret.data['items'] : [];
+                            let size = Math.ceil(ret.data['total'] / 5)
+                            cb(data, size)
+                        },
+                        error: function (ret) {
+                            cb([], 0)
+                        }
+                    });
+                },
+                data: [],
+                on: function (data) {
+                    let arr = data.arr
+                    let stringArr = []
+                    $.each(arr, function (index, item) {
+                        stringArr.push(item.id)
+                    });
+                    $('input[name="group_key"]').val(stringArr.join(','))
+                    dataProcessing();
+                }
+            });
+
+
+            //参与者处理类
+            form.on('select(assignment_handler)', function (data) {
+                dataProcessing();
+            });
+
+
+            //任务类型切换
+            form.on('select(task_type)', function (data) {
+                dataProcessing();
+            });
+
+            //参与类型切换
+            form.on('select(perform_type)', function (data) {
+                let elem = data.elem; // 获得 select 原始 DOM 对象
+                let value = data.value; // 获得被选中的值
+                let othis = data.othis; // 获得 select 元素被替换后的 jQuery 对象
+                if (value === 'ALL') {
+                    // 检查是否已存在相同属性名的输入框
+                    if ($('input[name="countersign_type"]').length > 0 || $('input[name="countersign_completion_condition"]').length > 0) {
+                        return;
+                    }
+                    let propertyItem = '<div class="custom-form-item">' +
+                        '<label class="layui-form-label">' + getPropertyTitle('countersign_type', propertyNames) + '</label>' +
+                        '<div class="custom-form-content">' +
+                        '<div class="layui-input-inline custom-form-input">' +
+                        '<select name="countersign_type" lay-filter="countersign_type">' +
+                        '<option value="PARALLEL" selected>并联会签</option>' +
+                        '<option value="SEQUENTIAL">顺序会签</option>' +
+                        '</select>' +
+                        '</div>' +
+                        '<div class="custom-form-button">' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="custom-form-item">' +
+                        '<label class="layui-form-label">' + getPropertyTitle('countersign_completion_condition', propertyNames) + '</label>' +
+                        '<div class="custom-form-content">' +
+                        '<div class="layui-input-inline custom-form-input">' +
+                        '<input type="text" name="countersign_completion_condition" lay-verify="required" placeholder="请输入属性值" autocomplete="off" class="layui-input">' +
+                        '</div>' +
+                        '<div class="custom-form-button">' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                    $('#ext-field').prepend(propertyItem);
+                } else {
+                    removeItemByKey(countersignKey);
+                }
+                dataProcessing();
+            });
+
+            //参与处理类
+            form.on('select(countersign_type)', function (data) {
+                dataProcessing();
+            });
+
+            //会签类型
+            form.on('select(countersign_type)', function (data) {
+                dataProcessing();
+            });
+
+
+            // // 扩展属性对应key
+            let propertyNames = [
+                {id: "countersign_type", title: '会签类型'},
+                {id: "countersign_completion_condition", title: '会签完成条件'},
+                {id: "ext_user_key", title: '用户标识'},
+                {id: "ext_group_key", title: '用户组标识'},
+                {id: "candidate_ext_users", title: '候选用户'},
+                {id: "candidate_ext_groups", title: '候选用户组'},
+                {id: "candidate_ext_handler", title: '候选人处理类'},
+                {id: "attr1", title: '额外属性1'},
+                {id: "attr2", title: '额外属性2'},
+                {id: "attr3", title: '额外属性3'}
+            ];
+
+            dropdown.render({
+                elem: '#ext', //可绑定在任意元素中，此处以上述按钮为例
+                data: propertyNames,
+                id: 'ext',
+                //菜单被点击的事件
+                click: function (obj) {
+                    // 检查是否已存在相同属性名的输入框
+                    if ($('input[name="' + obj.id + '"]').length > 0) {
+                        return;
+                    }
+                    if (inArray(obj.id, countersignKey)) {
+                        return;
+                    }
+                    // 显示属性名和输入值
+                    let propertyItem = '<div class="custom-form-item">' +
+                        '<label class="layui-form-label">' + getPropertyTitle(obj.id, propertyNames) + '</label>' +
+                        '<div class="custom-form-content">' +
+                        '<div class="layui-input-inline custom-form-input">' +
+                        '<input type="text" name="' + obj.id + '" lay-verify="required" placeholder="请输入属性值" autocomplete="off" class="layui-input">' +
+                        '</div>' +
+                        '<div class="custom-form-button">' +
+                        '<i class="remove-btn layui-icon">&#xe616;</i>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+
+                    $('#ext-field').append(propertyItem);
+                }
+            });
+
+            // 删除扩展属性
+            $('#ext-field').on('click', '.remove-btn', function () {
+                $(this).closest('.custom-form-item').remove();
+                dataProcessing();
+            });
+
+            // 删除指定key的栏目
+            function removeItemByKey(keys) {
+                if (typeof keys === 'string') {
+                    keys = [keys];
+                }
+                for (let i = 0; i < keys.length; i++) {
+                    let key = keys[i];
+                    $('[name="' + key + '"]').closest('.custom-form-item').remove();
+                }
+                form.render();
+                dataProcessing();
+            }
+
+
+            // 初始化渲染数据函数
+            function renderData(data, propertyNames) {
+                let countersignKey = ['countersign_type'];
+                let countersignAllKey = ['countersign_type', 'countersign_completion_condition'];
+
+                for (let i = 0; i < propertyNames.length; i++) {
+                    let propertyName = propertyNames[i];
+                    let key = propertyName.id;
+
+                    if (data.hasOwnProperty(key)) {
+                        if (countersignAllKey.includes(key)) {
+                            // 如果不是会签模式跳过自定义会签属性
+                            if (data['perform_type'] !== 'ALL') {
+                                continue; // 跳过当前循环
+                            }
+                        }
+                        //扩展属性没有值跳过
+                        // if( data[key]==undefined||data[key]==''||data[key]==null){
+                        //     continue; // 跳过当前循环
+                        // }
+
+                        let html = '<input type="text" name="' + key + '" value="' + data[key] + '" lay-verify="required" placeholder="请输入属性值" autocomplete="off" class="layui-input">';
+                        if (countersignKey.includes(key)) {
+                            html = '<select name="' + key + '" lay-filter="' + key + '">' +
+                                '<option value="PARALLEL" ' + (data[key] === 'PARALLEL' ? 'selected' : '') + '>并联会签</option>' +
+                                '<option value="SEQUENTIAL"  ' + (data[key] === 'SEQUENTIAL' ? 'selected' : '') + '>顺序会签</option>' +
+                                '</select>';
+                        }
+
+                        // 创建自定义表单项
+                        let propertyItem = '<div class="custom-form-item">' +
+                            '<label class="layui-form-label">' + propertyName.title + '</label>' +
+                            '<div class="custom-form-content">' +
+                            '<div class="layui-input-inline custom-form-input">' + html +
+                            '</div>' +
+                            '<div class="custom-form-button">' +
+                            '<i class="remove-btn layui-icon">&#xe616;</i>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        $('#ext-field').append(propertyItem);
+                        form.render();
+                    }
+                }
+            }
+
+
+            //渲染单据
+            form.val('setting-form', newObj)
+            form.render();
+
+
+            /**
+             * 监听input change事件
+             */
+            $(function () {
+                $("#setting-form input").off("change").change(function () {
+                    dataProcessing();
+                })
+            })
+
+            // 给扩展属性input元素添加change事件
+            $('#ext-field').on('change', 'input', function () {
+                var value = $(this).val();
+                dataProcessing();
+            });
+
+            /**
+             * 数据处理
+             */
+            function dataProcessing() {
+                let newData = form.val('setting-form');
+                let field = {};
+                let keys = propertyKeys();
+
+                Object.entries(newData).forEach(([i, j]) => {
+                    if (inArray(i, keys['field'])) {
+                        field[i] = j;
+                    }
+                });
+                newData.field = field;
+                propertyKeysSet(newData)
+            }
+
+            // 根据属性id获取对应的中文标签
+            function getPropertyTitle(id, data) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].id === id) {
+                        return data[i].title;
+                    }
+                }
+                return '';
+            }
+
+
+            /**
+             * 颜色选择器赋值
+             */
+            layui.$(document).ready(function () {
+                let theme = ('theme' in newObj) && newObj.theme !== '' ? newObj.theme : '#FFFFFF'
+                let stroke = ('stroke' in newObj) && newObj.stroke !== '' ? newObj.stroke : '#000000'
+                let color = ('color' in newObj) && newObj.color !== '' ? newObj.color : '#000000'
+                let stroke_width = ('stroke_width' in newObj) && newObj.stroke_width !== '' ? newObj.stroke_width : 2
+                layui.$('input[name="theme"]').val(theme)
+                layui.$('input[name="stroke"]').val(stroke)
+                layui.$('input[name="color"]').val(color)
+                layui.$('input[name="stroke_width"]').val(stroke_width)
+
+                //主题颜色
+                colorpicker.render({
+                    elem: '#color-picker-theme',
+                    color: '#FFFFFF',
+                    done: function (color) {
+                        $('#theme-color').val(color);
+                        propertyKeysSet()
+                    }
+                });
+                //边框颜色
+                colorpicker.render({
+                    elem: '#color-picker-stroke',
+                    color: stroke,
+                    done: function (color) {
+                        $('#stroke-color').val(color);
+                        propertyKeysSet()
+                    }
+                });
+                //字体颜色
+                colorpicker.render({
+                    elem: '#color-picker-color',
+                    color: color,
+                    done: function (color) {
+                        $('#color').val(color);
+                        propertyKeysSet()
+                    }
+                });
+
+                assessingHandler(newObj.assignment_handler != undefined ? newObj.assignment_handler : '');
+                staff(newObj);
+                organize(newObj);
+                renderData(newObj.field, propertyNames);//渲染扩展属性
+            })
+
+
+            /**
+             * 参与人赋值
+             * @param newObj
+             */
+            function staff(newObj) {
+                if (newObj.assignee === undefined || newObj.assignee === '') {
+                    return;
+                }
+                $.ajax({
+                    url: ASSIGNEE_SELECT_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    async: false,//避免弹窗关掉还没赋值就更新了数据导致参与人丢失
+                    data: {id: newObj.assignee, page: 1, limit: 999},
+                    success: function (ret) {
+                        let data = ret.data['items'] != undefined ? ret.data['items'] : []
+                        assessing.setValue(data);
+                        let stringArr = [];
+                        $.each(data, function (index, item) {
+                            stringArr.push(item.value)
+                        })
+                        //初始化必须重新赋值要不数据丢失
+                        $('input[name="assignee"]').val(stringArr.join(','))
+                        form.render();
+                    },
+                    error: function (ret) {
+                        assessing.setValue([]);
+                    }
+                });
+            }
+
+            /**
+             * 用户组赋值
+             * @param newObj
+             */
+            function organize(newObj) {
+                if (newObj.group_key === undefined || newObj.group_key === '') {
+                    return;
+                }
+                $.ajax({
+                    url: GROUP_SELECT_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    async: false,//避免弹窗关掉还没赋值就更新了数据导致数据丢失
+                    data: {id: newObj.group_key, page: 1, limit: 999},
+                    success: function (ret) {
+                        let data = ret.data['items'] != undefined ? ret.data['items'] : []
+                        group.setValue(data);
+                        let stringArr = [];
+                        $.each(data, function (index, item) {
+                            stringArr.push(item.value)
+                        })
+                        //初始化必须重新赋值要不数据丢失
+                        $('input[name="group_key"]').val(stringArr.join(','))
+                        form.render();
+                    },
+                    error: function (ret) {
+                        group.setValue([]);
+                    }
+                });
+            }
+
+
+            /**
+             * 参与人列表获取
+             **/
+            function assessingHandler(defaultValue = '') {
+                $.ajax({
+                    url: ASSESSING_HANDLER_SELECT_API,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (ret) {
+                        let data = ret.data;
+                        // 渲染下拉框
+                        let selectHtml = '<option value="">请选择参与处理类</option>';
+                        for (let i = 0; i < data.length; i++) {
+                            selectHtml += '<option value="' + data[i].value + '" ' + (data[i].value === defaultValue ? 'selected' : '') + '>' + data[i].label + '</option>';
+                        }
+                        $('[name="assignment_handler"]').html(selectHtml);
+                        // 重新渲染表单
+                        form.render('select');
+                    }
+                });
+            }
+        })
+    };
+</script>
+</body>
+
+</html>

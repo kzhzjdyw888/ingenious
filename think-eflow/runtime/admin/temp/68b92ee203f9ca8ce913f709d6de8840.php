@@ -1,0 +1,329 @@
+<?php /*a:1:{s:78:"C:\DATA\MyMotion\main\module\thinkphp-eflow\view\admin\wf\task\todo\index.html";i:1741744529;}*/ ?>
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <title>我的待办</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+    <style>
+        .layui-table-view {
+            border: none !important;
+        }
+    </style>
+</head>
+
+<body class="pear-container">
+
+<!-- 顶部查询表单 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form top-search-from">
+            <div class="layui-form-item">
+                <label class="layui-form-label">单据编号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="business_no" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">流程名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="process_define_display_name" value="" class="layui-input">
+                </div>
+            </div>
+
+
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label"></label>
+                <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="table-query">
+                    <i class="layui-icon layui-icon-search"></i>查询
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">
+                    <i class="layui-icon layui-icon-refresh"></i>重置
+                </button>
+            </div>
+            <div class="toggle-btn">
+                <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- 数据表格 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="data-table" lay-filter="data-table"></table>
+    </div>
+</div>
+
+
+<!-- 表格行工具栏 -->
+<script type="text/html" id="table-bar">
+    <button class="pear-btn pear-btn-xs tool-btn" lay-event="approval">处理</button>
+    <button class="pear-btn pear-btn-xs tool-btn"></button>
+</script>
+
+<script src="/static/component/layui/layui.js?v=2.8.12"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+
+<script>
+    // 相关常量
+    const PRIMARY_KEY = "id";
+    const SELECT_API = "/admin/wf.todo/select";
+    const DETAIL_API = "/admin/wf.todo/show";
+    const INTERNAL_DOCUMENT_API = "/admin/wf.formernalDocument";
+
+    layui.use(['table', 'form', 'jquery', 'common', 'popup'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+
+        let cols = [
+            {
+                title: 'ID',
+                field: 'id',
+                align: 'left',
+                sort: true,
+                hide: true,
+                width: 300
+            },
+            {
+                title: '序号',
+                type: 'numbers',
+                align: 'center',
+                width: 70
+            },
+            {
+                title: '单据编号',
+                field: 'instance_ext',
+                align: 'left',
+                minWidth: 180,
+                templet: function (d) {
+                    let data = d['instance'] !== undefined ? d['instance'] : [];
+                    let value = data['business_no'] != undefined ? data['business_no'] : (d['business_no'] != undefined ? d['business_no'] : '');
+                    return value != '' ? value : '';
+                }
+
+            },
+            {
+                title: '流程名称',
+                field: 'process_define_display_name',
+                align: 'left',
+                minWidth: 200,
+                templet: function (d) {
+                    let instance = d['instance'] !== undefined ? d['instance'] : [];
+                    let define = instance['define'] !== undefined ? instance['define'] : [];
+                    let value = define['display_name'] != undefined ? define['display_name'] : '';
+                    return value != '' ? value : '';
+
+                }
+            },
+            {
+                title: '标题',
+                field: 'ext',
+                align: 'left',
+                templet: function (d) {
+                    //这里可以优化优先级使用表单标题没有表单标题使用自动标题或者null
+                    let instance = d['instance'] !== undefined ? d['instance'] : [];
+                    let ext = instance['ext'] !== undefined ? instance['ext'] : [];
+                    let value = ext['auto_gen_title'] != undefined ? ext['auto_gen_title'] : '';
+                    return value != '' ? value : '';
+                }
+            },
+            {
+                title: '任务名称',
+                field: 'display_name',
+                align: 'left',
+                templet: function (d) {
+                    let task = d['task'] !== undefined ? d['task'] : [];
+                    let value = task['display_name'] !== undefined ? task['display_name'] : '';
+                    return value != '' ? value : '';
+
+                }
+            },
+            {
+                title: '发起人',
+                field: 'u_real_name',
+                align: 'left',
+                minWidth: 120,
+                templet: function (d) {
+                    let instance = d['instance'] !== undefined ? d['instance'] : [];
+                    let ext = instance['ext'] !== undefined ? instance['ext'] : [];
+                    let value = ext['u_real_name'] != undefined ? ext['u_real_name'] : '';
+                    return value != '' ? value : '';
+                }
+            },
+            {
+                title: '发起时间',
+                field: 'instance_create_date',
+                align: 'left',
+                minWidth: 170,
+                templet: function (d) {
+                    let instance = d['instance'] !== undefined ? d['instance'] : [];
+                    let value = instance['create_date'] !== undefined ? instance['create_date'] : '';
+                    return value != '' ? value : '';
+                }
+            },
+            {
+                title: '任务创建时间',
+                field: 'create_date',
+                align: 'left',
+                minWidth: 170
+            },
+            {
+                title: '办理期限',
+                field: 'create_date',
+                align: 'left',
+                minWidth: 170,
+                hide: true
+            },
+
+            {
+                title: '操作',
+                toolbar: '#table-bar',
+                align: "center",
+                minWidth: 150
+            }
+        ]
+
+        function render() {
+            table.render({
+                elem: "#data-table",
+                url: SELECT_API,
+                page: true,
+                cols: [cols],
+                skin: "line",
+                size: "lg",
+                height: 'full-162',
+                // toolbar: "#table-toolbar",
+                toolbar: false,
+                autoSort: false,
+                parseData: function (ret) {
+                    return {
+                        "code": ret.code, // 解析接口状态
+                        "msg": ret.msg, // 解析提示文本
+                        "count": ret.data.total, // 解析数据长度
+                        "data": ret.data.items // 解析数据列表
+                    };
+                },
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"]
+            })
+        }
+
+        render();
+
+        table.on('tool(data-table)', function (obj) {
+            if (obj.event === 'approval') {
+                approval(obj);
+            }
+        });
+
+        table.on('toolbar(data-table)', function (obj) {
+            if (obj.event === 'refresh') {
+                window.refreshTable()
+            }
+        });
+
+        // 头部搜索栏
+        form.on('submit(table-query)', function (data) {
+            table.reload('data-table', {
+                page: {
+                    curr: 1
+                },
+                where: data.field
+            })
+            return false;
+        });
+
+
+        /**
+         * 处理待办
+         * @param obj
+         */
+        function approval(obj) {
+            let title = obj?.data?.instance?.define?.display_name || ''
+            //1.先验证任务是否存在
+            let lock = false;//是否已处理
+            layui.$.ajax({
+                url: DETAIL_API,
+                type: 'GET',
+                data: {id: obj.data.process_task_id},
+                dataType: 'json',
+                async: false,
+                success: function (ret) {
+                    if (ret.code == 0) {
+                        if (ret.data.task_state !== 10 && ret.data.task_state !== "10") {
+                            lock = true;
+                        }
+                    }
+                }
+            });
+
+            //1.1已处理重新渲染当前表格
+            if (lock) {
+                layer.msg('任务已被处理请稍后重试', {
+                    icon: 2,
+                    time: 2000, // 设置消息显示2秒后自动关闭
+                }, function () {
+                    window.refreshTable();
+                });
+                return false;
+            }
+            //2.1 验证场景表单类型
+            let content = obj?.data?.instance?.define?.content ?? {};
+            let formType = content?.instance_type ?? 2;//1=》json表单   2=》 内置html
+            if (formType == 2 || formType == '2') {
+                //内置静态html表单
+                parent.layui.admin.addTab(obj.data.id, title, "/admin/wf.todo/handle_idf?id=" + obj.data.process_task_id + "&instance_url=" + content.instance_url + '&operate=todo');
+            } else {
+                //动态表单
+                parent.layui.admin.addTab(obj.data.id, title, "/admin/wf.todo/handle?id=" + obj.data.process_task_id);
+            }
+        }
+
+
+        /**
+         * 获取内置表单
+         * @param param
+         * @returns {*[]}
+         */
+        let internalDocument = function (param) {
+            let data = [];
+            $.ajax({
+                url: INTERNAL_DOCUMENT_API,
+                type: 'POST',
+                data: {instance_url: param},
+                async: false,
+                success: function (res) {
+                    //渲染模板
+                    data = res.data != undefined ? res.data : [];
+                },
+                error: function (xhr, status, error) {
+
+                }
+            });
+            return data;
+        }
+
+        /**
+         * 刷新
+         */
+        window.refreshTable = function () {
+            table.reloadData('data-table', {
+                scrollPos: "fixed"
+            });
+        }
+
+    })
+</script>
+</body>
+
+</html>

@@ -1,0 +1,62 @@
+<?php /*a:1:{s:78:"C:\DATA\MyMotion\think-eflow\view\admin\wf\common\track\template\timeline.html";i:1740722230;}*/ ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>时间轴</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+</head>
+<body>
+<div style="padding-left: 20px;padding-right: 20px">
+    <div class="layui-timeline" id="timeline">
+    </div>
+</div>
+
+<script src="/static/component/layui/layui.js"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+<script>
+
+    const SELECT_API = "/admin/wf.instance/approvalRecord";
+
+    layui.use(['table', 'form', 'jquery', 'util', 'popup', 'common'], function () {
+        let id = layui.url().search['id'] ?? '';//流程实例id
+
+        /**
+         * 通过实例id获取流程定义id
+         */
+        layui.$.ajax({
+            url: SELECT_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            data: {id: id},
+            success: function (ret) {
+                let timelineContainer = document.getElementById('timeline');
+                if (ret.code == 0) {
+                    let row = ret.data != undefined ? ret.data : [];
+                    row.forEach(function (item) {
+                        let user = item.variable['u_real_name'] ?? '';
+                        let comment = item.variable['tf_approval_comment'] ?? '';
+                        let timelineItem = document.createElement('div');
+                        timelineItem.className = 'layui-timeline-item';
+                        timelineItem.innerHTML = `<i class="layui-icon layui-timeline-axis"></i>
+                                                    <div class="layui-timeline-content layui-text">
+                                                        <h3 class="layui-timeline-title">${item.finish_date}</h3>
+                                                        <p>${item.display_name} - ${user}</p>
+                                                        <p>${comment}</p>
+                                                    </div>
+                                                `;
+                        timelineContainer.appendChild(timelineItem);
+                    });
+                }
+            }
+        });
+
+
+    });
+</script>
+</body>
+</html>

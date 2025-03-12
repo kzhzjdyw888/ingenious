@@ -1,0 +1,269 @@
+<?php /*a:1:{s:55:"D:\MyMotion\think-eflow\view\admin\wf\form\preview.html";i:1740654403;}*/ ?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Layui</title>
+    <link rel="stylesheet" href="/static/component/luminar/component/luminar/css/luminar.css"/>
+</head>
+
+<body>
+<div>
+    <!--    <div>-->
+    <!--        <button type="button" class="layui-btn" id="importJsonData">导入数据</button>-->
+    <!--        <button type="button" class="layui-btn layui-btn-danger" id="globalDisable">禁用表单</button>-->
+    <!--        <button type="button" class="layui-btn layui-btn-normal" id="globalNoDisable">启用表单</button>-->
+    <!--        <button type="button" class="layui-btn layui-btn-warm" id="getFormData">获取表单数据</button>-->
+    <!--    </div>-->
+    <div id="testdemo" style="margin: 20px 20px;">
+
+    </div>
+</div>
+<div class="importjsoncodedataview" style="display: none;">
+    <textarea class="site-demo-text" id="import-json-code-view"></textarea>
+    <a href="javascript:;" class="layui-btn layui-btn-normal" style="margin-right:20px;" id="import-json-code-data">导入数据</a>
+</div>
+<div class="getFormData" style="display: none;">
+    <textarea class="site-demo-text" id="get-form-data"></textarea>
+</div>
+
+<!--引入layui模块-->
+<script type="text/javascript" src="/static/component/luminar/component/layui/layui.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/luminar.js"></script>
+<!--外部扩展js-->
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/Sortable/Sortable.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/htmlformat.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/jsformat.js"></script>
+<script type="text/javascript" src="/static/component/luminar/component/luminar/js/iceEditor/iceEditor.js"></script>
+<script>
+
+
+    const SELECT_API = "/admin/wf.form/show" + location.search;
+    const PRIMARY_KEY = "id";
+
+    //JavaScript代码区域
+    layui.use(['formDesigner', 'form', 'layer', 'upload'], function () {
+        let layer = layui.layer;
+        let $ = layui.jquery;
+        let upload = layui.upload;
+        let index = layui.index;
+        let formDesigner = layui.formDesigner;
+        let form = layui.form;
+        let render;
+        let data = [];
+
+
+        let formId = layui.url().search[PRIMARY_KEY];
+        //获取表单设计json
+        if (formId !== undefined && formId !== '' && formId !== null) {
+            layui.$.ajax({
+                url: SELECT_API,
+                type: "POST",
+                dateType: "json",
+                async: false,
+                contentType: 'application/json',
+                success: function (ret) {
+                    if (ret.code === 0) {
+                        let obj = ret?.data?.latest_history?.content ?? {};
+                        for (let key in obj) {
+                            data.push(obj[key]);
+                        }
+                    }
+                }
+            });
+        }
+
+        //验证传入ID
+        if (formId !== undefined) {
+            render = formDesigner.render({
+                elem: '#testdemo',
+                data: data,
+                viewOrDesign: true,
+                formDefaultButton: false,
+                formData: {}
+            });
+            var images = render.getImages();
+            for (var i = 0; i < images.length; i++) {
+                upload.render({
+                    elem: '#' + images[i].select
+                    , url: '' + images[i].uploadUrl + ''
+                    , multiple: true
+                    , before: function (obj) {
+                        layer.msg('图片上传中...', {
+                            icon: 16,
+                            shade: 0.01,
+                            time: 0
+                        })
+                    }
+                    , done: function (res) {
+                        layer.close(layer.msg());//关闭上传提示窗口
+                        //上传完毕
+                        $('#uploader-list-' + item.id).append(
+                            '<div id="" class="file-iteme">' +
+                            '<div class="handle"><i class="layui-icon layui-icon-delete"></i></div>' +
+                            '<img style="width: 100px;height: 100px;" src=' + res.data.src + '>' +
+                            '<div class="info">' + res.data.title + '</div>' +
+                            '</div>'
+                        );
+                    }
+                });
+            }
+
+            var filesData = render.getFiles();
+            for (var i = 0; i < filesData.length; i++) {
+                upload.render({
+                    elem: '#' + filesData[i].select
+                    , elemList: $('#list-' + filesData[i].select) //列表元素对象
+                    , url: '' + filesData[i].uploadUrl + ''
+                    , accept: 'file'
+                    , multiple: true
+                    , number: 3
+                    , auto: false
+                    , bindAction: '#listAction-' + filesData[i].select
+                    , choose: function (obj) {
+                        var that = this;
+                        var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+                        //读取本地文件
+                        obj.preview(function (index, file, result) {
+                            var tr = $(['<tr id="upload-' + index + '">'
+                                , '<td>' + file.name + '</td>'
+                                , '<td>' + (file.size / 1014).toFixed(1) + 'kb</td>'
+                                , '<td><div class="layui-progress" lay-filter="progress-demo-' + index + '"><div class="layui-progress-bar" lay-percent=""></div></div></td>'
+                                , '<td>'
+                                , '<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>'
+                                , '<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>'
+                                , '</td>'
+                                , '</tr>'].join(''));
+
+                            //单个重传
+                            tr.find('.demo-reload').on('click', function () {
+                                obj.upload(index, file);
+                            });
+
+                            //删除
+                            tr.find('.demo-delete').on('click', function () {
+                                delete files[index]; //删除对应的文件
+                                tr.remove();
+                                uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+                            });
+
+                            that.elemList.append(tr);
+                            element.render('progress'); //渲染新加的进度条组件
+                        });
+                    }
+                    , done: function (res, index, upload) { //成功的回调
+                        var that = this;
+                        //if(res.code == 0){ //上传成功
+                        var tr = that.elemList.find('tr#upload-' + index)
+                            , tds = tr.children();
+                        tds.eq(3).html(''); //清空操作
+                        delete this.files[index]; //删除文件队列已经上传成功的文件
+                        return;
+                        //}
+                        this.error(index, upload);
+                    }
+                    , allDone: function (obj) { //多文件上传完毕后的状态回调
+                        console.log(obj)
+                    }
+                    , error: function (index, upload) { //错误回调
+                        var that = this;
+                        var tr = that.elemList.find('tr#upload-' + index)
+                            , tds = tr.children();
+                        tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+                    }
+                    , progress: function (n, elem, e, index) {
+                        element.progress('progress-demo-' + index, n + '%'); //执行进度条。n 即为返回的进度百分比
+                    }
+                });
+            }
+        }
+        //监听提交
+        form.on('submit(demo1)', function (data) {
+            var json = render.getFormData();
+            console.log(json);
+            layer.msg(JSON.stringify(json), {icon: 6});
+            /*$.ajax({
+              url:"/activiti-manager/addActivitiManagera",
+              type:"POST",
+              data:temp,
+              contentType:"application/json",
+              dataType: "json",
+              success:function(res){
+                alert(res.message);
+              }
+            });*/
+            return false;
+        });
+
+        //导入数据
+        $('#importJsonData').on('click', function () {
+            layer.open({
+                type: 1
+                , title: 'JSON模板数据导入'
+                , id: 'Lay_layer_importjsoncodeview'
+                , content: $('.importjsoncodedataview')
+                , area: ['800px', '640px']
+                , shade: false
+                , resize: false
+                , success: function (layero, index) {
+                }
+                , end: function () {
+                    $('.importjsoncodeview').css("display", "none")
+                }
+            });
+        });
+
+        //导入数据
+        $('#getFormData').on('click', function () {
+            var _value = render.getFormData();
+            $('#get-form-data').val(JSON.stringify(_value, null, 4));
+            layer.open({
+                type: 1
+                , title: 'JSON模板数据导入'
+                , id: 'Lay_layer_importjsoncodeview'
+                , content: $('.getFormData')
+                , area: ['800px', '640px']
+                , shade: false
+                , resize: false
+                , success: function (layero, index) {
+                }
+                , end: function () {
+                    $('.getFormData').css("display", "none")
+                }
+            });
+        });
+
+        $('#import-json-code-data').on('click', function () {
+            var _value = document.getElementById("import-json-code-view").value;
+            try {
+                var json = JSON.parse(_value);
+                render.setFormData(json);
+                layer.closeAll();
+                layer.msg('导入成功');
+            } catch (e) {
+                layer.closeAll();
+                layer.msg('导入数据格式异常');
+            }
+        });
+
+        $('#globalDisable').on('click', function () {
+            render.globalDisable();
+        });
+
+        $('#globalNoDisable').on('click', function () {
+            render.globalNoDisable();
+        });
+    });
+
+
+    function getSubmitData() {
+        var data = $('#testdemo').form[0].serialize();
+        console.log(data);
+        return data;
+    }
+
+</script>
+</body>
+
+</html>

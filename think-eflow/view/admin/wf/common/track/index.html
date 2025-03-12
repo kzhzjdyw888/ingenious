@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>轨迹</title>
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css"/>
+    <link rel="stylesheet" href="/static/admin/css/reset.css"/>
+</head>
+<body>
+<div class="layui-tab layui-tab-brief">
+    <ul class="layui-tab-title">
+        <li class="layui-this" data-id="1">轨迹图</li>
+        <li data-id="2">时间轴</li>
+        <li data-id="3">时间表</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show" style="height: calc(100vh - 120px);">
+            <iframe id="myIframe" style="width: 100%; height: 100%;" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="/static/component/layui/layui.js"></script>
+<script src="/static/component/pear/pear.js"></script>
+<script src="/static/admin/js/permission.js"></script>
+<script src="/static/admin/js/common.js"></script>
+
+<script>
+    const PRIMARY_KEY = "id";
+
+    const SELECT_API = "/admin/wf.instance/show";
+
+    const TRAJECTORY_URL = "/admin/wf.instance/trajectory";
+    const TIMELINE_URL = "/admin/wf.instance/timeline";
+    const TIMETABLE_URL = "/admin/wf.instance/timetable";
+
+    layui.use(['form', 'jquery', 'element'], function () {
+        let id = layui.url().search['id'] ?? '';//流程实例id
+        let process_define_id = "";//流程定义id
+
+
+        /**
+         * 通过实例id获取流程定义id
+         */
+        layui.$.ajax({
+            url: SELECT_API,
+            type: 'GET',
+            dataType: 'json',
+            async: false,
+            data: {id: id},
+            success: function (ret) {
+                if (ret.code == 0) {
+                    let row = ret.data != undefined ? ret.data : [];
+                    process_define_id = row.process_define_id ?? '';
+                }
+            }
+        });
+
+
+        /**
+         * 给tab添加点击事件
+         */
+        document.querySelectorAll('.layui-tab-title li').forEach(tab => {
+            tab.addEventListener('click', function () {
+                const scene = parseInt(this.getAttribute('data-id'));
+                formsRendering(scene);
+            });
+        });
+
+
+        /**
+         * 渲染对应的模板
+         * @param scene
+         */
+        function formsRendering(scene = 1) {
+            const iframe = document.getElementById('myIframe');
+            switch (scene) {
+                case 1:
+                    iframe.src = TRAJECTORY_URL + '?process_define_id=' + process_define_id+ '&process_instance_id='+id;
+                    break;
+                case 2:
+                    iframe.src = TIMELINE_URL + "?id=" + id;
+                    break;
+                default:
+                    iframe.src = TIMETABLE_URL + "?id=" + id;
+                    break;
+            }
+        }
+
+
+        /**
+         * 默认渲染tab
+         */
+        formsRendering(1);
+    });
+</script>
+
+</body>
+</html>
