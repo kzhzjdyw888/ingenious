@@ -1,8 +1,8 @@
 # Ingenious v2工作流引擎
 
-
 ## 介绍
-这是一款基于PHP面向对象编程（OOP）设计的国产自研工作流引擎。它不仅具备灵活轻巧的特点，而且功能全面，五脏俱全。该引擎的组件设计独立，具备出色的可扩展性，使其成为大型项目的理想选择。
+
+Ingenious v2 是一款基于 PHP 面向对象编程（OOP） 设计的国产自研工作流引擎。它以灵活轻巧为核心，功能全面，组件设计独立，具备出色的可扩展性，非常适合大型项目使用。
 
 ## 核心功能
 
@@ -18,39 +18,39 @@
 - 事件订阅：支持事件订阅功能，允许用户在特定事件发生时执行自定义逻辑。
 - ORM框架兼容：支持不同ORM框架系统使用，方便用户根据自身需求选择合适的ORM框架。
 
-## 主要特性
+## 适配 v2-demo
+为了方便用户快速上手和了解 Ingenious v2 工作流引擎的功能，我们提供了基于thinkphp 8.1+ 一键安装demo。这个 demo
+包含了一个完整的项目示例，展示了如何使用 ingenious v2 引擎实现工作流管理功能。您可以体验到引擎的流程设计、任务管理、权限配置等核心功能，并可以根据自己的需求进行定制和扩展。
 
+您可以通过访问分支v2-demo代码仓库来获取这个demo源码，并在本地环境中进行部署和运行。
+
+## 主要特性
 
 - PHP8强类型支持：采用PHP8强类型（严格模式）进行开发，提高代码的稳定性和可维护性。
 - PSR规范升级：升级PSR规范依赖版本，确保代码符合最新的PHP开发标准。
 - 主流框架支持：支持PHP主流框架如ThinkPHP、Webman、Laravel、Hyperf等，方便用户快速集成到现有项目中。
 - 主流设计器兼容：支持主流流程设计器如logicFlow、AntV X6等，提供丰富的流程设计工具。
 
+## 安装
 
+* 安装Composer
+* composer require madong/ingenious
 
-
-##  安装
-*  安装Composer
-*  composer require madong/ingenious
-
-
-
-##  链接
+## 链接
 
 ---
 
 > 官方：
 https://www.madong.tech/
 
->腾讯频道
+> 腾讯频道
 [pd52261144](https://pd.qq.com/s/3edfwx2lm)
 
->纷传圈子
+> 纷传圈子
 [https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ](https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ)
 
 
 ---
-
 
 ~~~
 对您有帮助的话，你可以在下方赞助我们，让我们更好的维护开发，谢谢！
