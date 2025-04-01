@@ -1,8 +1,17 @@
-# Ingenious v2工作流引擎
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">Ingenious 工作流引擎</h1>
+<h4 align="center">基于 PHP 面向对象编程（OOP） 设计的国产自研工作流引擎</h4>
+
+<p align="center">
+    <a href="https://gitee.com/ingenstream/ingenious/blob/master/LICENSE"><img src="https://img.shields.io/static/v1?label=License&message=Apache%202.0&color=blue"></a>
+    <a href="#"><img src="https://compass.gitee.com/badge/sen9f094.svg" alt="OSS Compass Analyze" /></a>
+    <a href="https://gitee.com/ingenstream/ingenious"><img src="https://img.shields.io/badge/Language-PHP8-orange?style=flat-square&logo=&#42"></a>
+    <a href='https://gitee.com/ingenstream/ingenious/stargazers'><img src='https://gitee.com/ingenstream/ingenious/badge/star.svg?theme=dark' alt='star'></img></a>
+    <a href="https://gitcode.com/motion-code/ingenious"><img src="https://gitcode.com/motion-code/ingenious/star/badge.svg"></a>
+    <a href="#"><img src="https://img.shields.io/github/v/tag/kzhzjdyw888/ingenious.svg?label=Version"></a>
+</p>
 
 ## 介绍
-
-Ingenious v2 是一款基于 PHP 面向对象编程（OOP） 设计的国产自研工作流引擎。它以灵活轻巧为核心，功能全面，组件设计独立，具备出色的可扩展性，非常适合大型项目使用。
+ingenious-v2是一款基于 PHP 面向对象编程（OOP）设计的国产自研工作流引擎，专为企业级应用而设计。它以灵活轻巧为核心理念，功能全面且强大，各组件设计独立而又高度协同，展现出卓越的可扩展性，完美适配大型项目的复杂需求。
 
 ## 核心功能
 
@@ -19,6 +28,7 @@ Ingenious v2 是一款基于 PHP 面向对象编程（OOP） 设计的国产自�
 - ORM框架兼容：支持不同ORM框架系统使用，方便用户根据自身需求选择合适的ORM框架。
 
 ## 适配 v2-demo
+
 为了方便用户快速上手和了解 Ingenious v2 工作流引擎的功能，我们提供了基于thinkphp 8.1+ 一键安装demo。这个 demo
 包含了一个完整的项目示例，展示了如何使用 ingenious v2 引擎实现工作流管理功能。您可以体验到引擎的流程设计、任务管理、权限配置等核心功能，并可以根据自己的需求进行定制和扩展。
 
@@ -30,6 +40,10 @@ Ingenious v2 是一款基于 PHP 面向对象编程（OOP） 设计的国产自�
 - PSR规范升级：升级PSR规范依赖版本，确保代码符合最新的PHP开发标准。
 - 主流框架支持：支持PHP主流框架如ThinkPHP、Webman、Laravel、Hyperf等，方便用户快速集成到现有项目中。
 - 主流设计器兼容：支持主流流程设计器如logicFlow、AntV X6等，提供丰富的流程设计工具。
+
+## 在线体验
+
+* 
 
 ## 安装
 
@@ -43,10 +57,13 @@ Ingenious v2 是一款基于 PHP 面向对象编程（OOP） 设计的国产自�
 > 官方：
 https://www.madong.tech/
 
-> 腾讯频道
+> 演示地址:
+[https://think-eflow.madong.tech/admin/login/index](https://think-eflow.madong.tech/admin/login/index)
+
+> 腾讯频道:
 [pd52261144](https://pd.qq.com/s/3edfwx2lm)
 
-> 纷传圈子
+> 纷传圈子:
 [https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ](https://pc.fenchuan8.com/#/index?forum=84868&yqm=M9RJ)
 
 
