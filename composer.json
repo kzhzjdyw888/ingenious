@@ -27,6 +27,7 @@
         "topthink/think-multi-app": "^1.1",
         "topthink/think-view": "^2.0",
         "madong/helper": "^1.0",
+        "madong/ingenious":"^2.0",
         "madong/think-wf": "^1.0"
     },
     "require-dev": {
