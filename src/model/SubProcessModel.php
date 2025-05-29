@@ -11,7 +11,7 @@
  * Official Website: https://madong.tech
  */
 
-namespace madong\ingenious\engine\model;
+namespace madong\ingenious\model;
 
 use madong\ingenious\interface\IExecution;
 use madong\ingenious\interface\nodes\ISubProcessModel;
