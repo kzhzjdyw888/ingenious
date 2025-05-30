@@ -11,7 +11,7 @@
  * Official Website: https://madong.tech
  */
 
-namespace madong\plugin\wf\engine\libs\utils;
+namespace madong\ingenious\libs\utils;
 
 class Str
 {

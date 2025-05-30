@@ -21,7 +21,7 @@ use madong\ingenious\interface\model\IProcessTask;
 use madong\ingenious\libs\traits\DynamicPropsTrait;
 use madong\ingenious\model\NodeModel;
 use madong\ingenious\model\ProcessModel;
-use madong\plugin\wf\enums\ProcessTaskStateEnum;
+use madong\ingenious\enums\ProcessTaskStateEnum;
 
 /**
  * @method setNodeModel(\madong\ingenious\model\NodeModel $param)
