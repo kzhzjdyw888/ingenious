@@ -58,7 +58,7 @@ ingenious-v2是一款基于 PHP 面向对象编程（OOP）设计的国产自研
 https://www.madong.tech/
 
 > 演示地址:
-[https://think-eflow.madong.tech/admin/login/index](https://think-eflow.madong.tech/admin/login/index)
+[https://flow.madong.tech/admin/login/index](https://flow.madong.tech/admin/login/index)
 
 > 腾讯频道:
 [pd52261144](https://pd.qq.com/s/3edfwx2lm)
