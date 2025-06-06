@@ -38,17 +38,6 @@ use madong\ingenious\parser\handler\StartParser;
 use madong\ingenious\parser\handler\TaskParser;
 use madong\ingenious\parser\handler\WfSubProcessParser;
 use madong\ingenious\scheduling\SchedulerIProcessEventListener;
-use madong\plugin\wf\services\ProcessCcInstanceService;
-use madong\plugin\wf\services\ProcessDefineFavoriteService;
-use madong\plugin\wf\services\ProcessDefineService;
-use madong\plugin\wf\services\ProcessDesignHistoryService;
-use madong\plugin\wf\services\ProcessDesignService;
-use madong\plugin\wf\services\ProcessInstanceService;
-use madong\plugin\wf\services\ProcessSurrogateService;
-use madong\plugin\wf\services\ProcessTaskActorService;
-use madong\plugin\wf\services\ProcessTaskService;
-use madong\plugin\wf\services\ProcessTypeService;
-use mysql_xdevapi\Exception;
 
 /**
  *
