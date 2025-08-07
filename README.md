@@ -42,8 +42,12 @@ ingenious-v2是一款基于 PHP 面向对象编程（OOP）设计的国产自研
 - 主流设计器兼容：支持主流流程设计器如logicFlow、AntV X6等，提供丰富的流程设计工具。
 
 ## 在线体验
+> 演示地址:
+[https://flow.madong.tech/admin/login/index](https://flow.madong.tech/admin/login/index)  
 
-* 
+> 项目演示：[https://admin.nexus.madong.tech/ ](https://admin.nexus.madong.tech/ )  admin 123456  注：该作品非开源项目
+
+
 
 ## 安装
 
@@ -57,8 +61,6 @@ ingenious-v2是一款基于 PHP 面向对象编程（OOP）设计的国产自研
 > 官方：
 https://www.madong.tech/
 
-> 演示地址:
-[https://flow.madong.tech/admin/login/index](https://flow.madong.tech/admin/login/index)
 
 > 腾讯频道:
 [pd52261144](https://pd.qq.com/s/3edfwx2lm)
