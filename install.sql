@@ -313,9 +313,7 @@ CREATE TABLE `wf_process_type`  (
 -- ----------------------------
 -- Records of wf_process_type
 -- ----------------------------
-INSERT INTO `wf_process_type` VALUES (249852146785460224, 0, NULL, '行政123', 0, 1, 1733823096, 1734168686, 1, 1, NULL, NULL);
 INSERT INTO `wf_process_type` VALUES (249854145362927614, 0, '', '行政', 0, 1, 1706087406, 1737643576, 1, 1, NULL, '');
-INSERT INTO `wf_process_type` VALUES (249854145362927616, 0, '', '行政123', 0, 1, 1733823335, 1734168686, 1, 1, NULL, NULL);
 INSERT INTO `wf_process_type` VALUES (249854145362927617, 0, '', '业务流程', 0, 1, 1706172538, 1706172538, 1, 1, NULL, '');
 INSERT INTO `wf_process_type` VALUES (249854145362927618, 0, '', 'OA', 10, 1, 1706087453, 1737643458, 1, 1, NULL, '');
 INSERT INTO `wf_process_type` VALUES (249854145362927619, 0, '', '人事', 0, 1, 1706087412, 1706171963, 1, 1, NULL, '');
