@@ -152,7 +152,7 @@ class ProcessEngines implements IProcessEngines
             $tm->execute($execution);
         }
         // 将流程状态修改为已拒绝
-        $processInstance = new ProcessInstance();
+        $processInstance = $execution->getProcessInstance();
         $processInstance->set('id', $execution->getProcessInstanceId());
         $processInstance->set('state', ProcessInstanceStateEnum::REJECT->value);
         $processInstance->set('update_time', time());
